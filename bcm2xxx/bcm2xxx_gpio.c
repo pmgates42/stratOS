@@ -41,12 +41,12 @@ typedef struct
     reg32_t         pupd_enbl_clocks[2];
                                         /* GPIO pull up/down enable clock registers */
 
-} bcm2xxx_gpio_reg_t;
+} gpio_reg_type;
 
 
 /* Constants */
 
-#define REG_GPIO_BASE ((volatile bcm2xxx_gpio_reg_t *)(PBASE + 0x200000))
+#define REG_GPIO_BASE ((volatile gpio_reg_type *)(PBASE + 0x200000))
 
 /**********************************************************
  * 

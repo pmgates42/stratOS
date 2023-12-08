@@ -66,7 +66,7 @@ void sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
         s_task_list[i].usr_tsk = &tasks[i];
     }
 
-    cfg_hw_timer();
+    // cfg_hw_timer();
 
     kick_off_sched();
 
