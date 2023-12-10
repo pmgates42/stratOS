@@ -17,12 +17,22 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 ifdef BUILD_BCM2XXX
+
+ARMGCC = aarch64-elf
+
 BCM2XXX_DIR = bcm2xxx
 BCM2XXX_C_FILES := $(wildcard $(BCM2XXX_DIR)/*.c)
 BCM2XXX_ASM_FILES := $(wildcard $(BCM2XXX_DIR)/*.S)
 BCM2XXX_OBJ_FILES := $(BCM2XXX_C_FILES:$(BCM2XXX_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(BCM2XXX_ASM_FILES:$(BCM2XXX_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(BCM2XXX_OBJ_FILES)
 COPTNS += -I$(BCM2XXX_DIR)/include
+
+AARCH64_DIR = aarch64
+AARCH64_C_FILES := $(wildcard $(AARCH64_DIR)/*.c)
+AARCH64_ASM_FILES := $(wildcard $(AARCH64_DIR)/*.S)
+AARCH64_OBJ_FILES := $(AARCH64_C_FILES:$(AARCH64_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(AARCH64_ASM_FILES:$(AARCH64_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+OBJ_FILES += $(AARCH64_OBJ_FILES)
+COPTNS += -I$(AARCH64_DIR)/include
 
 else
 $(info )
@@ -61,6 +71,11 @@ $(BUILD_DIR)/%_c.o: $(BCM2XXX_DIR)/%.c
 
 # Rule for building bcm2xxx assembly files
 $(BUILD_DIR)/%_s.o: $(BCM2XXX_DIR)/%.S
+	mkdir -p $(@D)
+	$(ARMGCC)-gcc $(COPTNS) -MMD -c $< -o $@
+
+# Rule for building aarch64 assembly files
+$(BUILD_DIR)/%_s.o: $(AARCH64_DIR)/%.S
 	mkdir -p $(@D)
 	$(ARMGCC)-gcc $(COPTNS) -MMD -c $< -o $@
 

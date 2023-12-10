@@ -30,7 +30,7 @@
 #define RX_READY_BIT 1
 
 /* static variables */
-static boolean s_uart_init = FALSE; /* gaurd against bss clear fail */
+static boolean s_uart_init = FALSE;
 
 /**********************************************************
  * 
@@ -41,7 +41,6 @@ static boolean s_uart_init = FALSE; /* gaurd against bss clear fail */
  *      initialize the mini UART
  *
  */
-
 
 void uart_init()
 {
@@ -72,6 +71,7 @@ void uart_init()
     REG_AUX_BASE->mu_control = 0x3;
 
     uart_send('\r');
+    uart_send('\n');
     uart_send('\n');
 
     s_uart_init = TRUE;
@@ -135,13 +135,9 @@ uint8_t uart_recv(void)
 }
 
 
-void uart_send_string(char *str)
+void uart_send_string(char* str)
 {
-    while(*str)
-    {   if(*str == '\n')
-            uart_send('\r');
-
-        uart_send(*str);
-        str++;
-    }
+	for (int i = 0; str[i] != '\0'; i ++) {
+		uart_send((char)str[i]);
+	}
 }

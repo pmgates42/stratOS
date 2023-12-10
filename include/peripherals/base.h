@@ -1,8 +1,7 @@
 #pragma once
 
-/* Set the correct Peripheral base 
- * or physical base of the rpi's MMIO.
- */
+// todo move this into rpi specific file
+/* Set the correct Peripheral base */
 
 #if RPI_VERSION == 3
 #define PBASE  0x3F000000UL

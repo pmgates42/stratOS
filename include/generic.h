@@ -21,3 +21,5 @@ typedef unsigned short uint16_t;
 typedef unsigned long long uint64_t;
 typedef volatile uint32_t reg32_t;
 typedef char boolean;
+
+typedef void ( *void_func_t )( void );
