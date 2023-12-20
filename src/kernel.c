@@ -16,20 +16,12 @@ void kernel_main()
 {
     /* Initialize hardware modules */
     uart_init();
-    //uart_send_string("Kernel initializing\n");
 
     irq_init();
     timer_init();
 
     /* Initialize OS level modules */
     sched_init( task_list, 1 );
-
-    /* echo back user input */
-    // while(1)
-    //     {
-    //     uart_send_string("Kernel initializing\n");
-    //     uart_send(uart_recv());
-    //     }
 
     uart_send_string("Kernel Initializing");
 
