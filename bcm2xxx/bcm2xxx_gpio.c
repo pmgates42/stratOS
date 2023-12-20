@@ -14,6 +14,10 @@
 #include "utils.h"
 #include "peripherals/base.h"
 
+/* Constants */
+#define MAX_NMBR_GPIO_PINS 53
+#define GPIO_REG_BITS      (sizeof(reg32_t) * 8)
+
 /* Types */
 
 typedef struct
@@ -65,6 +69,12 @@ void gpio_pin_set_func(uint32_t pin, uint8_t fnc)
 
     bcm2xxx_gpio_fnc_t fnc_bcm = (bcm2xxx_gpio_fnc_t)fnc;
 
+    /* Validate input */
+    if(pin > MAX_NMBR_GPIO_PINS)
+    {
+        return;
+    }
+
     /* Find the correct start bit and register index for the
      * provided pin
      */
@@ -98,6 +108,12 @@ void gpio_pin_set_func(uint32_t pin, uint8_t fnc)
 
 void gpio_pin_enable(uint32_t pin)
 {
+    /* Validate input */
+    if(pin > MAX_NMBR_GPIO_PINS)
+    {
+        return;
+    }
+
     /* Disable pull-up/down */
     REG_GPIO_BASE->pupd_enbl = 0;
 
@@ -107,12 +123,35 @@ void gpio_pin_enable(uint32_t pin)
     /* Activate clock signal on pin and wait another
      * 150 cycles
      */
-    uint8_t reg_size_bits = sizeof(reg32_t) * 8;
-    uint8_t idx = pin / reg_size_bits;
-    REG_GPIO_BASE->pupd_enbl_clocks[idx] = (1 << (pin % reg_size_bits));
+    uint8_t idx = pin / GPIO_REG_BITS;
+    REG_GPIO_BASE->pupd_enbl_clocks[idx] = (1 << (pin % GPIO_REG_BITS));
     delay(150);
  
     /* Disable pull-up/down */
     REG_GPIO_BASE->pupd_enbl = 0;
     REG_GPIO_BASE->pupd_enbl_clocks[idx] = 0;
+}
+
+/**********************************************************
+ * 
+ *  gpio_set
+ * 
+ * 
+ *  DESCRIPTION:
+ *      Set the pin
+ *
+ */
+
+void gpio_set(uint32_t pin)
+{
+    /* local variables */
+    uint8_t data_idx = pin / GPIO_REG_BITS;
+
+    /* Validate input */
+    if(pin > MAX_NMBR_GPIO_PINS)
+    {
+        return;
+    }
+
+    REG_GPIO_BASE->output_set.data[data_idx] |= (1 << pin % GPIO_REG_BITS);
 }

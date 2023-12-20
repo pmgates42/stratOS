@@ -4,6 +4,8 @@
 #include "irq.h"
 #include "peripherals/timer.h"
 
+#include "debug.h"
+
 static void tty_task(void);
 
 static sched_usr_tsk_t task_list[] =
@@ -24,6 +26,8 @@ void kernel_main()
     sched_init( task_list, 1 );
 
     uart_send_string("Kernel Initializing");
+
+    debug_set_led();
 
     while(1)
         {
