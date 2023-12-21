@@ -3,7 +3,7 @@
 #include "sched.h"
 #include "irq.h"
 #include "peripherals/timer.h"
-
+#include "peripherals/snsr/snsr.h"
 #include "debug.h"
 
 static void tty_task(void);
@@ -28,6 +28,9 @@ void kernel_main()
     uart_send_string("Kernel Initializing");
 
     debug_set_led();
+
+    /* Initialize sensor manager */
+    snsr_init();
 
     while(1)
         {

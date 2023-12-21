@@ -23,3 +23,6 @@ typedef volatile uint32_t reg32_t;
 typedef char boolean;
 
 typedef void ( *void_func_t )( void );
+
+int clr_mem( void *mem, uint32_t size );
+int list_cnt( void *list );
