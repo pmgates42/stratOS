@@ -5,6 +5,7 @@
 #include "peripherals/timer.h"
 
 #include "debug.h"
+#include "peripherals/snsr/snsr.h"
 
 static void tty_task(void);
 
@@ -21,13 +22,17 @@ void kernel_main()
 
     irq_init();
     timer_init();
+    debug_init();
 
     /* Initialize OS level modules */
     sched_init( task_list, 1 );
 
     uart_send_string("Kernel Initializing");
 
-    debug_set_led();
+    if(SNSR_ERR_NONE == snsr_init())
+    {
+        // debug_set_led();
+    }
 
     while(1)
         {
