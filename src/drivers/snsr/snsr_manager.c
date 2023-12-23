@@ -69,7 +69,7 @@ snsr_err_t8 snsr_init(void)
     clr_mem(&active_dst_sensors, sizeof(active_dst_sensors));
 
     /* ensure the uart is initialized */
-    if(!uart_is_init)
+    if(!uart_is_init())
     {
         uart_init();
     }
