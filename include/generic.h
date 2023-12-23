@@ -21,8 +21,16 @@ typedef unsigned short uint16_t;
 typedef unsigned long long uint64_t;
 typedef volatile uint32_t reg32_t;
 typedef char boolean;
+typedef unsigned long size_t;
 
 typedef void ( *void_func_t )( void );
 
-int clr_mem( void *mem, uint32_t size );
-int list_cnt( void *list );
+#define clr_mem(ptr, size) do { \
+    unsigned char *clr_mem_ptr = (unsigned char *)(ptr); \
+    size_t clr_mem_size = (size); \
+    while (clr_mem_size--) *clr_mem_ptr++ = 0; \
+} while(0)
+
+#define list_cnt(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+void memcpy(void *dest, const void *src, size_t n);

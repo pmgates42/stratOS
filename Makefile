@@ -91,8 +91,12 @@ VPATH := $(SRC_TOP_DIR):$(shell find $(SRC_TOP_DIR) -type d)
 SRC_C_FILES := $(wildcard $(addsuffix /*.c, $(VPATH)))
 SRC_ASM_FILES := $(wildcard $(addsuffix /*.S, $(VPATH)))
 
-all_src_files := $(SRC_C_FILES:$(SRC_TOP_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(SRC_ASM_FILES:$(SRC_TOP_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+ASM_FILES := $(wildcard $(SRC_DIR)/*.S)
+C_FILES := $(wildcard $(SRC_DIR)/*.c)
+
+all_src_files := $(SRC_C_FILES:$(SRC_TOP_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(ASM_FILES:$(SRC_TOP_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(all_src_files)
+OBJ_FILES += $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
 
 DEP_FILES := $(OBJ_FILES:.o=.d)
 -include $(DEP_FILES)

@@ -49,4 +49,4 @@ enum
     SNSR_ERR_UNKNOWN = SNSR_ERR_COUNT,
     };
 
-void snsr_init(void);
+snsr_err_t8 snsr_init(void);

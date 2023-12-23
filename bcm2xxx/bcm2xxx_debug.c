@@ -16,10 +16,19 @@
 #warning !!! Setting default debug LED pin (BCM2XXX_DEBUG_LED_PIN) to GPIO 23 please update if necessary !!!
 #endif
 
-void debug_set_led(void)
+void debug_init(void)
 {
-    /* set the debug led */
+    /* Initialize debug LED */
     gpio_pin_set_func(BCM2XXX_DEBUG_LED_PIN, BCM2XXX_GPIO_FUNC_OUTPUT);
     gpio_pin_enable(BCM2XXX_DEBUG_LED_PIN);
+}
+
+void debug_set_led(void)
+{
     gpio_set(BCM2XXX_DEBUG_LED_PIN);
+}
+
+void debug_clr_led(void)
+{
+    gpio_clr(BCM2XXX_DEBUG_LED_PIN);
 }

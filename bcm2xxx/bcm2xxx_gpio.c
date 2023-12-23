@@ -155,3 +155,27 @@ void gpio_set(uint32_t pin)
 
     REG_GPIO_BASE->output_set.data[data_idx] |= (1 << pin % GPIO_REG_BITS);
 }
+
+/**********************************************************
+ * 
+ *  gpio_clr
+ * 
+ * 
+ *  DESCRIPTION:
+ *      Clear the pin
+ *
+ */
+
+void gpio_clr(uint32_t pin)
+{
+    /* local variables */
+    uint8_t data_idx = pin / GPIO_REG_BITS;
+
+    /* Validate input */
+    if(pin > MAX_NMBR_GPIO_PINS)
+    {
+        return;
+    }
+
+    REG_GPIO_BASE->output_clear.data[data_idx] |= (1 << pin % GPIO_REG_BITS);
+}

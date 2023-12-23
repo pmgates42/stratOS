@@ -15,22 +15,22 @@
 
 #include "config.h"
 #include "peripherals/snsr/snsr.h"
+#include "debug.h"
 
 // todo stubbing sensor config while flash code is incomplete
-static kernel_config_t stubbed_config;
+static kernel_config_t stubbed_config = {0};
 
-config_err_t8 config_get_sys_config(kernel_config_t *config)
+config_err_t8 config_get_sys_config(kernel_config_t * config)
 {
-    snsr_config_t hc_sr04_snsr_cfg;
+    stubbed_config.snsr_configs[0].hw = SNSR_HW_HCSR04;
+    stubbed_config.snsr_configs[0].hw_config.hc_sr04.echo = 24;
+    stubbed_config.snsr_configs[0].hw_config.hc_sr04.trig = 25;
 
-    hc_sr04_snsr_cfg.hw = SNSR_HW_HCSR04;
-    hc_sr04_snsr_cfg.hw_config.hc_sr04.echo = 24;
-    hc_sr04_snsr_cfg.hw_config.hc_sr04.trig = 25;
+    debug_set_led();
 
-    stubbed_config.snsr_configs[0] = hc_sr04_snsr_cfg;
     stubbed_config.num_snsrs = 1;
 
-    config = &stubbed_config;
+    memcpy(config, &stubbed_config, sizeof(kernel_config_t));
 
     return CONFIG_ERR_NONE;
 

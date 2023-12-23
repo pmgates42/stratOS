@@ -15,7 +15,7 @@
 #include "peripherals/snsr/hc_sr04.h"
 
 #define SNSR_MAX_CHNL 8   /* Maximum number of channels per sensor */
-#define SNSR_MAX_CFGS 100 /* Maximum number of sensors */
+#define CFG_SNSR_MAX_CFGS 100 /* Maximum number of sensors */
 
 typedef uint8_t config_err_t8;
 enum
@@ -30,7 +30,7 @@ typedef union
 
 } snsr_hw_config_t;
 
-typedef struct
+typedef struct snsr_config_struc
 {
     char name[16];                  /* Name of sensor */
     snsr_hw_config_t hw_config;     /* Hardware configuration */
@@ -38,10 +38,10 @@ typedef struct
 
 } snsr_config_t;
 
-typedef struct
+typedef struct  __attribute__((packed))
 {
     uint16_t num_snsrs;
-    snsr_config_t snsr_configs[SNSR_MAX_CFGS];
+    snsr_config_t snsr_configs[CFG_SNSR_MAX_CFGS];
 
 } kernel_config_t;
 

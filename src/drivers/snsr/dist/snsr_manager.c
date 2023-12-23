@@ -13,8 +13,10 @@
  */
 
 #include "generic.h"
-#include "snsr.h"
+#include "peripherals/snsr/snsr.h"
 #include "config.h"
+#include "debug.h"
+#include "uart.h"
 
 #define MAX_NUM_SNSR_PER_TYPE  25
 
@@ -28,7 +30,7 @@ typedef struct
 
 typedef struct
 {
-    snsr_config_t config;
+    snsr_config_t * config;
 } active_sensor;
 
 typedef struct
@@ -61,15 +63,23 @@ static snsr_type_t8 get_snsr_type(snsr_hardware_t8 hw_type);
  *
  */
 
-void snsr_init(void)
+snsr_err_t8 snsr_init(void)
 {
-    /* Ininitialize the active sensor lists */
+    /* ininitialize the active sensor lists */
     clr_mem(&active_dst_sensors, sizeof(active_dst_sensors));
 
-    if(load_configured_sensors)
+    /* ensure the uart is initialized */
+    if(!uart_is_init)
+    {
+        uart_init();
+    }
+
+    if(!load_configured_sensors())
     {
         return SNSR_ERR_INVLD_CFG;
-}
+    }
+    return SNSR_ERR_NONE;
+
 }
 
 /**********************************************************
@@ -93,11 +103,14 @@ static boolean load_configured_sensors(void)
     snsr_type_t8 tmp_snsr_type;
     uint8_t tmp_idx;
 
-    if(CONFIG_ERR_NONE != config_get_sys_config(&kernel_config))
+    /* input validation */
+    if(CONFIG_ERR_NONE != config_get_sys_config(&kernel_config) || 
+      (CFG_SNSR_MAX_CFGS < kernel_config.num_snsrs))
     {
         return FALSE;
     }
 
+    /* add all configured sensors to the appropriate list */
     for(i = 0; i < kernel_config.num_snsrs; i++)
     {
         tmp_hw_type = kernel_config.snsr_configs[i].hw;
@@ -105,13 +118,20 @@ static boolean load_configured_sensors(void)
 
         switch(tmp_snsr_type)
         {
+        /* add the configured distance sensor */
         case SNSR_TYPE_DIST:
             tmp_idx = active_dst_sensors.active_cnt;
-            active_dst_sensors.snsr_lst[tmp_idx].config = kernel_config.snsr_configs[i];
+            active_dst_sensors.snsr_lst[tmp_idx].config = &kernel_config.snsr_configs[i];
+            break;
+
+        default:
+            uart_send_string("Invalild sensor configuration\n");
             break;
         }
     }
 
+    debug_set_led();
+    return TRUE;
 }
 
 /**********************************************************
