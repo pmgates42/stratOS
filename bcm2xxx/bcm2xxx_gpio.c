@@ -95,6 +95,33 @@ void gpio_pin_set_func(uint32_t pin, uint8_t fnc)
 #undef PINS_PER_REG
 }
 
+/**********************************************************
+ * 
+ *  gpio_pin_setas_outp
+ * 
+ * 
+ *  DESCRIPTION:
+ *      Enable output on the pin
+ *
+ */
+void gpio_pin_setas_outp(uint32_t pin)
+{
+    gpio_pin_set_func(pin, BCM2XXX_GPIO_FUNC_OUTPUT);
+}
+
+/**********************************************************
+ * 
+ *  gpio_pin_setas_inp
+ * 
+ * 
+ *  DESCRIPTION:
+ *      Enable input on the pin
+ *
+ */
+void gpio_pin_setas_inp(uint32_t pin)
+{
+    gpio_pin_set_func(pin, BCM2XXX_GPIO_FUNC_INPUT);
+}
 
 /**********************************************************
  * 

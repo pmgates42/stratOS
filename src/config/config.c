@@ -22,11 +22,9 @@ static kernel_config_t stubbed_config = {0};
 
 config_err_t8 config_get_sys_config(kernel_config_t * config)
 {
-    stubbed_config.snsr_configs[0].hw = SNSR_HW_HCSR04;
+    stubbed_config.snsr_configs[0].hw_type = SNSR_HW_HCSR04;
     stubbed_config.snsr_configs[0].hw_config.hc_sr04.echo = 24;
     stubbed_config.snsr_configs[0].hw_config.hc_sr04.trig = 25;
-
-    debug_set_led();
 
     stubbed_config.num_snsrs = 1;
 

@@ -16,6 +16,10 @@ all: kernel8.img
 clean:
 	rm -rf $(BUILD_DIR)
 
+#----------------------------------------
+# CPU configuration
+#----------------------------------------
+
 ifdef BUILD_BCM2XXX
 
 ARMGCC = aarch64-elf
@@ -47,12 +51,33 @@ $(error Invalid CPU configuration)
 
 endif
 
+#----------------------------------------
+# Scheduler configuration
+#----------------------------------------
+
 SCHED_DIR = ssched
 SCHED_C_FILES := $(wildcard $(SCHED_DIR)/*.c)
 SCHED_ASM_FILES := $(wildcard $(SCHED_DIR)/*.S)
 SCHED_OBJ_FILES := $(SCHED_C_FILES:$(SCHED_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(SCHED_ASM_FILES:$(SCHED_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(SCHED_OBJ_FILES)
 COPTNS += -I$(SCHED_DIR)/include
+
+#----------------------------------------
+# Hardware driver configurations
+#----------------------------------------
+
+ifdef HW_DRIVER_HC_SR04
+COPTNS += -DHW_DRIVER_HC_SR04=1
+
+HW_DRIVER_HC_SR04_DIR = drivers/hc_sr04
+HW_DRIVER_HC_SR04_C_FILES := $(wildcard $(HW_DRIVER_HC_SR04_DIR)/*.c)
+HW_DRIVER_HC_SR04_ASM_FILES := $(wildcard $(HW_DRIVER_HC_SR04_DIR)/*.S)
+HW_DRIVER_HC_SR04_OBJ_FILES := $(HW_DRIVER_HC_SR04_C_FILES:$(HW_DRIVER_HC_SR04_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(HW_DRIVER_HC_SR04_ASM_FILES:$(HW_DRIVER_HC_SR04_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+OBJ_FILES += $(HW_DRIVER_HC_SR04_OBJ_FILES)
+COPTNS += -I$(HW_DRIVER_HC_SR04_DIR)/include
+
+else
+endif
 
 # Rule for building C files
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
@@ -81,6 +106,11 @@ $(BUILD_DIR)/%_s.o: $(AARCH64_DIR)/%.S
 
 # Rule for building scheduler C files
 $(BUILD_DIR)/%_c.o: $(SCHED_DIR)/%.c
+	mkdir -p $(@D)
+	$(ARMGCC)-gcc $(COPTNS) -MMD -c $< -o $@
+
+# Rule for building HC-SR04 driver C files
+$(BUILD_DIR)/%_c.o: $(HW_DRIVER_HC_SR04_DIR)/%.c
 	mkdir -p $(@D)
 	$(ARMGCC)-gcc $(COPTNS) -MMD -c $< -o $@
 

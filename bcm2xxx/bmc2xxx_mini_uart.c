@@ -23,11 +23,16 @@
 #include "rpi_common.h"
 #include "uart.h"
 
+#define BASE 10
+
 #define TX_PIN 14
 #define RX_PIN 15
 
 #define TX_READY_BIT (1 << 5)
 #define RX_READY_BIT 1
+
+#define DIGIT_TO_CHAR(digit) (digit + '0')
+                        /* Convert uint8 digit to ASCII character */
 
 /* static variables */
 static boolean s_uart_init = FALSE;
@@ -113,6 +118,42 @@ void uart_send(char c)
     REG_AUX_BASE->mu_io = c;
 }
 
+/**********************************************************
+ * 
+ *  uart_send_uint32()
+ * 
+ * 
+ *  DESCRIPTION:
+ *      TX uint32
+ *
+ */
+
+void uart_send_uint32(uint32_t n)
+{
+    /* buffer to store 10 chars and null terminator */
+    char buffer[12];
+    int index = 0;
+
+    if (n == 0)
+    {
+        uart_send('0');
+        return;
+    }
+
+    /* convert the uint32_t to ASCII in reverse order */
+    while (n > 0)
+    {
+        uint8_t digit = n % BASE;
+        buffer[index++] = DIGIT_TO_CHAR(digit);
+        n /= BASE;
+    }
+
+    /* Send each character over UART in reverse order */
+    for (int i = index - 1; i >= 0; i--)
+    {
+        uart_send(buffer[i]);
+    }
+}
 
 /**********************************************************
  * 

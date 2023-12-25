@@ -6,16 +6,27 @@
  *  DESCRIPTION:
  *      System configuration interface
  *
+ *  NOTES:
+ *      Types in this file map directly to nonvol data.
+ *      Be aware that changes will break backwards
+ *      compatability.
+ * 
  */
 
 #pragma once
 
 #include "generic.h"
-#include "peripherals/snsr/snsr.h"
-#include "peripherals/snsr/hc_sr04.h"
 
-#define SNSR_MAX_CHNL 8   /* Maximum number of channels per sensor */
 #define CFG_SNSR_MAX_CFGS 100 /* Maximum number of sensors */
+#define CFG_MAX_DST_SNSR  10  /* Maximum number of distance sensors */
+
+typedef uint8_t snsr_hardware_t8;
+enum
+    {
+    SNSR_HW_NONE = 0,
+    SNSR_HW_HCSR04,
+    SNSR_HW_COUNT,
+    };
 
 typedef uint8_t config_err_t8;
 enum
@@ -23,6 +34,13 @@ enum
     CONFIG_ERR_NONE = 0,
     CONFIG_ERR_INVLD_CONFIG,
 };
+
+typedef struct
+{
+    uint8_t trig;   /* TRIG pin */
+    uint8_t echo;   /* ECHO pin */
+
+} hc_sr04_config_t;
 
 typedef union
 {   
@@ -32,9 +50,8 @@ typedef union
 
 typedef struct snsr_config_struc
 {
-    char name[16];                  /* Name of sensor */
     snsr_hw_config_t hw_config;     /* Hardware configuration */
-    snsr_hardware_t8 hw;            /* Hardware type */
+    snsr_hardware_t8 hw_type;       /* Hardware type */
 
 } snsr_config_t;
 

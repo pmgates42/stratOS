@@ -14,30 +14,28 @@
 
 #include "generic.h"
 #include "peripherals/snsr/snsr.h"
+#include "peripherals/snsr/snsr_dist.h"
 #include "config.h"
 #include "debug.h"
 #include "uart.h"
+
 
 #define MAX_NUM_SNSR_PER_TYPE  25
 
 /* Types */
 typedef struct
 {
-    snsr_hardware_t8 hw;
-    snsr_type_t8 type;
+    snsr_hardware_t8 hw_type;
+    snsr_type_t8 snsr_type;
 
 } snsr_hw_type_map_t;
 
 typedef struct
 {
-    snsr_config_t * config;
-} active_sensor;
-
-typedef struct
-{
-    active_sensor snsr_lst[MAX_NUM_SNSR_PER_TYPE];
-                                    /* List of active sensors */
+    snsr_cb_t snsr_lst[MAX_NUM_SNSR_PER_TYPE];
+                                    /* List of active sensors  */
     uint8_t active_cnt;             /* Count of active sensors */
+    uint8_t snsr_count;             /* Count of all sensors    */
 
 } active_sensor_lst_t;
 
@@ -51,7 +49,6 @@ static const snsr_hw_type_map_t hw_type_map[] =
 static active_sensor_lst_t active_dst_sensors;
 
 static boolean load_configured_sensors(void);
-static snsr_type_t8 get_snsr_type(snsr_hardware_t8 hw_type);
 
 /**********************************************************
  * 
@@ -65,14 +62,19 @@ static snsr_type_t8 get_snsr_type(snsr_hardware_t8 hw_type);
 
 snsr_err_t8 snsr_init(void)
 {
-    /* ininitialize the active sensor lists */
-    clr_mem(&active_dst_sensors, sizeof(active_dst_sensors));
-
     /* ensure the uart is initialized */
     if(!uart_is_init())
     {
         uart_init();
     }
+
+    /* initialize active sensor lists */
+    clr_mem(&active_dst_sensors, sizeof(active_dst_sensors));
+    active_dst_sensors.active_cnt = 0;
+    active_dst_sensors.snsr_count = 0;
+
+    /* initialize all the sub-manager modules */
+    snsr_dist_manager_init();
 
     if(!load_configured_sensors())
     {
@@ -113,15 +115,25 @@ static boolean load_configured_sensors(void)
     /* add all configured sensors to the appropriate list */
     for(i = 0; i < kernel_config.num_snsrs; i++)
     {
-        tmp_hw_type = kernel_config.snsr_configs[i].hw;
-        tmp_snsr_type = get_snsr_type(tmp_hw_type);
+        tmp_hw_type = kernel_config.snsr_configs[i].hw_type;
+        tmp_snsr_type = snsr_get_snsr_type(tmp_hw_type);
 
         switch(tmp_snsr_type)
         {
         /* add the configured distance sensor */
         case SNSR_TYPE_DIST:
-            tmp_idx = active_dst_sensors.active_cnt;
-            active_dst_sensors.snsr_lst[tmp_idx].config = &kernel_config.snsr_configs[i];
+            /* setup the next sensor */
+            tmp_idx = active_dst_sensors.snsr_count;
+            active_dst_sensors.snsr_lst[tmp_idx].config.hw_config = kernel_config.snsr_configs[i].hw_config;
+            active_dst_sensors.snsr_lst[tmp_idx].config.hw_type = kernel_config.snsr_configs[i].hw_type;
+            active_dst_sensors.snsr_lst[tmp_idx].registered = FALSE;
+
+            /* register the sensor with the appropriate sub-manager */
+            if(SNSR_ERR_NONE == snsr_dist_register_snsr(&active_dst_sensors.snsr_lst[tmp_idx]))
+            {
+                active_dst_sensors.active_cnt++;
+            }
+            active_dst_sensors.snsr_count++;
             break;
 
         default:
@@ -130,13 +142,12 @@ static boolean load_configured_sensors(void)
         }
     }
 
-    debug_set_led();
     return TRUE;
 }
 
 /**********************************************************
  * 
- *  get_snsr_type()
+ *  snsr_get_snsr_type()
  * 
  * 
  *  DESCRIPTION:
@@ -144,7 +155,7 @@ static boolean load_configured_sensors(void)
  *
  */
 
-static snsr_type_t8 get_snsr_type(snsr_hardware_t8  hw_type)
+snsr_type_t8 snsr_get_snsr_type(snsr_hardware_t8  hw_type)
 {
     uint8_t i;
 
@@ -156,12 +167,13 @@ static snsr_type_t8 get_snsr_type(snsr_hardware_t8  hw_type)
 
     for(i = 0; i < list_cnt(hw_type_map); i++)
     {
-        if(hw_type_map[i].hw == hw_type)
+        if(hw_type_map[i].hw_type == hw_type)
             {
-            return hw_type_map[i].type;
+            return hw_type_map[i].snsr_type;
             }
     }
 
     /* could not find sensor type in list */
     return SNSR_TYPE_INVLD;
+
 }

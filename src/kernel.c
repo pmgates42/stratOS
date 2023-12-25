@@ -1,3 +1,13 @@
+/**********************************************************
+ * 
+ *  kernel.c
+ * 
+ * 
+ *  DESCRIPTION:
+ *      Main kernel driver
+ *
+ */
+
 #include "generic.h"
 #include "uart.h"
 #include "sched.h"
@@ -6,15 +16,29 @@
 
 #include "debug.h"
 #include "peripherals/snsr/snsr.h"
+#include "peripherals/drivers/hc_sr04.h"
 
 static void tty_task(void);
+
+static void setup_drivers(void);
 
 static sched_usr_tsk_t task_list[] =
     {
     { 10 /* ms */, tty_task }
     };
 
-/* Called from boot.S, this is just for testing rn */
+/**********************************************************
+ * 
+ *  kernel_main()
+ * 
+ *  DESCRIPTION:
+ *     Main kernel function.     
+ * 
+ *  NOTES:
+ *      First kernel function to be called by the boot code
+ *
+ */
+
 void kernel_main()
 {
     /* Initialize hardware modules */
@@ -23,6 +47,8 @@ void kernel_main()
     irq_init();
     timer_init();
     debug_init();
+
+    setup_drivers();
 
     /* Initialize OS level modules */
     sched_init( task_list, 1 );
@@ -47,4 +73,26 @@ static void tty_task(void)
         {
         uart_send('G');
         }
+}
+
+/**********************************************************
+ * 
+ *  setup_drivers()
+ * 
+ *  DESCRIPTION:
+ *     Setup the hardware drivers based on the user defined
+ *     configurations.    
+ * 
+ */
+
+static void setup_drivers(void)
+{
+    /* Initialize all of the driver managers */
+    hc_sr04_intf_init();
+
+    #ifdef HW_DRIVER_HC_SR04
+    hc_sr04_intf_reg_intf(hc_sr04_get_reg_intf());
+    hc_sr04_init();
+    #endif
+
 }
