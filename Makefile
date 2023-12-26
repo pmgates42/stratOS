@@ -4,7 +4,7 @@ RPI_VERSION ?= 3
 # BOOTMNT ?= /media/parallels/boot
 ARMGCC ?= aarch64-elf
 
-COPTNS = -DRPI_VERSION=$(RPI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -mgeneral-regs-only
+COPTNS = -DRPI_VERSION=$(RPI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude #-mgeneral-regs-only allow floating point instructions
 
 ASMOPTS = -Iinclude
 
@@ -37,6 +37,7 @@ AARCH64_ASM_FILES := $(wildcard $(AARCH64_DIR)/*.S)
 AARCH64_OBJ_FILES := $(AARCH64_C_FILES:$(AARCH64_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(AARCH64_ASM_FILES:$(AARCH64_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(AARCH64_OBJ_FILES)
 COPTNS += -I$(AARCH64_DIR)/include
+
 
 else
 $(info )

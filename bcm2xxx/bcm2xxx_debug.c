@@ -7,7 +7,7 @@
  *      Debug utilities
  *
  */
-
+#include "generic.h"
 #include "peripherals/gpio.h"
 #include "bcm2xxx_pvg_gpio.h"
 
@@ -16,19 +16,36 @@
 #warning !!! Setting default debug LED pin (BCM2XXX_DEBUG_LED_PIN) to GPIO 23 please update if necessary !!!
 #endif
 
+static boolean led_is_set;
+
 void debug_init(void)
 {
     /* Initialize debug LED */
     gpio_pin_set_func(BCM2XXX_DEBUG_LED_PIN, BCM2XXX_GPIO_FUNC_OUTPUT);
     gpio_pin_enable(BCM2XXX_DEBUG_LED_PIN);
+    led_is_set = FALSE;
 }
 
 void debug_set_led(void)
 {
     gpio_set(BCM2XXX_DEBUG_LED_PIN);
+    led_is_set = TRUE;
 }
 
 void debug_clr_led(void)
 {
     gpio_clr(BCM2XXX_DEBUG_LED_PIN);
+    led_is_set = FALSE;
+}
+
+void debug_toggle_led(void)
+{
+    if(led_is_set)
+    {
+        debug_clr_led();
+    }
+    else
+    {
+        debug_set_led();
+    }
 }

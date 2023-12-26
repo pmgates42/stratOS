@@ -85,3 +85,21 @@ snsr_err_t8 hc_sr04_register_snsr(snsr_config_t config)
 
     return SNSR_ERR_FAILED;
 }
+
+/**********************************************************
+ * 
+ *  hc_sr04_update()
+ * 
+ * 
+ *  DESCRIPTION:
+ *      Register a new sensor instance with the driver
+ *
+ */
+
+void hc_sr04_update(void)
+{
+    if(NULL != s_intf.update)
+    {
+        s_intf.update();
+    }
+}

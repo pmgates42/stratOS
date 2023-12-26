@@ -55,9 +55,9 @@ void kernel_main()
     /* Initialize OS level modules */
     sched_init( task_list, 1 );
 
-    uart_send_string("Kernel Initializing\r\n");
-    uart_send_string(STRATOS_VERSION);
-    uart_send('\n');
+    uart_send_string("Kernel Initializing");
+    // uart_send_string(STRATOS_VERSION);
+    // uart_send('\n');
 
     if(SNSR_ERR_NONE == snsr_init())
     {
@@ -95,10 +95,10 @@ static void setup_drivers(void)
     hc_sr04_intf_init();
 
     #ifdef HW_DRIVER_HC_SR04
-    uart_send_string("HC-SR04 Hardware driver(s) configured....\r\n");
+    // uart_send_string("HC-SR04 Hardware driver(s) configured....\r\n");
     hc_sr04_intf_reg_intf(hc_sr04_get_reg_intf());
     hc_sr04_init();
-    uart_send_string("Successfully registered the HC-SR04 driver....\r\n");
+    // uart_send_string("Successfully registered the HC-SR04 driver....\r\n");
     #endif
 
 }

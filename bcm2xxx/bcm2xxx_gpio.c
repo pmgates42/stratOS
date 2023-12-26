@@ -52,6 +52,16 @@ typedef struct
 
 #define REG_GPIO_BASE ((volatile gpio_reg_type *)(PBASE + 0x200000))
 
+/* Macros */
+
+#define DATA_IDX(pin) (pin / GPIO_REG_BITS)
+                        /* Get the index into pin data array */
+#define set_data_pin(reg, pin)  (REG_GPIO_BASE->reg.data[DATA_IDX(pin)] |= (1 << pin % GPIO_REG_BITS))
+                        /* Set the given pin in the given register */
+#define read_data_pin(reg, pin) (REG_GPIO_BASE->reg.data[DATA_IDX(pin)] >> (pin % GPIO_REG_BITS) & 1)
+                        /* Read the given pin state from the given 
+                          register */
+
 /**********************************************************
  * 
  *  gpio_pin_set_func
@@ -150,7 +160,7 @@ void gpio_pin_enable(uint32_t pin)
     /* Activate clock signal on pin and wait another
      * 150 cycles
      */
-    uint8_t idx = pin / GPIO_REG_BITS;
+    uint8_t idx = DATA_IDX(pin);
     REG_GPIO_BASE->pupd_enbl_clocks[idx] = (1 << (pin % GPIO_REG_BITS));
     delay(150);
  
@@ -171,16 +181,14 @@ void gpio_pin_enable(uint32_t pin)
 
 void gpio_set(uint32_t pin)
 {
-    /* local variables */
-    uint8_t data_idx = pin / GPIO_REG_BITS;
-
     /* Validate input */
     if(pin > MAX_NMBR_GPIO_PINS)
     {
         return;
     }
 
-    REG_GPIO_BASE->output_set.data[data_idx] |= (1 << pin % GPIO_REG_BITS);
+    set_data_pin(output_set, pin);
+
 }
 
 /**********************************************************
@@ -195,14 +203,24 @@ void gpio_set(uint32_t pin)
 
 void gpio_clr(uint32_t pin)
 {
-    /* local variables */
-    uint8_t data_idx = pin / GPIO_REG_BITS;
-
     /* Validate input */
     if(pin > MAX_NMBR_GPIO_PINS)
     {
         return;
     }
 
-    REG_GPIO_BASE->output_clear.data[data_idx] |= (1 << pin % GPIO_REG_BITS);
+    set_data_pin(output_clear, pin);
+
+}
+
+uint8_t gpio_read_outp(uint32_t pin)
+{
+    /* validate input */
+    if(pin > MAX_NMBR_GPIO_PINS)
+    {
+        return 0;
+    }
+
+    return read_data_pin(level, pin);
+
 }

@@ -29,9 +29,11 @@
 /* Types */
 typedef struct
 {
-     void (* init)(void);                           /* Initialize sensor callback */
+     void (* init)(void);                           /* Initialize sensor */
      snsr_err_t8 (* register_snsr)(snsr_config_t config); 
-                                                    /* Regsiter sensor callback   */
+                                                    /* Register sensor   */
+     void (* update)(void);                         /* Periodic update   */
+
 } hc_sr04_intf_t;
 
 /* Manager functions */
@@ -42,3 +44,4 @@ void hc_sr04_intf_reg_intf(hc_sr04_intf_t intf);   /* Register interface      */
 hc_sr04_intf_t hc_sr04_get_reg_intf(void);         /* Get registerable interface  */
 void hc_sr04_init(void);                           /* Initialize driver           */
 snsr_err_t8 hc_sr04_register_snsr(snsr_config_t config);  /* Register new sensor instance*/
+void hc_sr04_update(void);
