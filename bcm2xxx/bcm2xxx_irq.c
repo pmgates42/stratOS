@@ -61,7 +61,7 @@ void bcm2xxx_irq_enable(bcm2xxx_irq_periph_t8 periph)
 
 /**********************************************************
  * 
- *  irq_init.c
+ *  irq_init
  * 
  * 
  *  DESCRIPTION:

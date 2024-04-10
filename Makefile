@@ -4,7 +4,7 @@ RPI_VERSION ?= 3
 # BOOTMNT ?= /media/parallels/boot
 ARMGCC ?= aarch64-elf
 
-COPTNS = -DRPI_VERSION=$(RPI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -mgeneral-regs-only
+COPTNS = -DRPI_VERSION=$(RPI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -Iinclude/public  -mgeneral-regs-only
 
 ASMOPTS = -Iinclude
 

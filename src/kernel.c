@@ -9,6 +9,7 @@
  */
 
 #include "generic.h"
+#include "net.h"
 #include "uart.h"
 #include "sched.h"
 #include "irq.h"
@@ -63,6 +64,9 @@ void kernel_main()
     {
         // debug_set_led();
     }
+
+    /* Initializ netowrk interfaces */
+    sock_api_init();
 
     while(1)
         {
