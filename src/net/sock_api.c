@@ -19,8 +19,8 @@ typedef struct
     uint8_t                sock_cnt;
 } sock_ctrl_t;
 
-typedef void ( *tx_proc )( void *, size_t size );
-typedef void ( *rx_proc )( void *, size_t size );
+typedef void ( *tx_proc )( void *, size_t );
+typedef void ( *rx_proc )( void *, size_t );
 
 /* Module control vars */
 static sock_ctrl_t sock_ctrl;
