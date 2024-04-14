@@ -12,6 +12,8 @@
 #include "generic.h"
 #include "uart.h"
 #include "peripherals/timer.h"
+#include "utils.h"
+#include "printf.h"
 
 #ifndef SSCHED_TSK_MAX
 #define SSCHED_TSK_MAX  20
@@ -23,7 +25,7 @@
 typedef struct
     {
     boolean           cnfgd;    /* Task is configured in the system */
-    sched_usr_tsk_t * usr_tsk;  /* User task ptr */
+    sched_usr_tsk_t   usr_tsk;  /* User task ptr */
 
     } task_cb_t;
 
@@ -67,14 +69,14 @@ void sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
     for(i = 0; i < num_tasks; i++ )
     {
         s_task_list[i].cnfgd = TRUE;
-        s_task_list[i].usr_tsk = &tasks[i];
+        s_task_list[i].usr_tsk = tasks[i];
     }
 
     kick_off_sched();
 
     if(FALSE == s_sched_running)
     {
-        // uart_send_string("Failed to initialize the scheduler\n");
+        printf("Failed to initialize the scheduler\n");
     }
 }
 

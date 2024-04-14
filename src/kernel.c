@@ -54,7 +54,7 @@ void kernel_main()
     /* Echo Rx'd uart data forever */
     while(1)
     {
-        uart_send(uart_recv());
+        // uart_send(uart_recv());
         delay(5000);
     }
 }
