@@ -105,7 +105,7 @@ void irq_enable()
 
 void irq_handle_irqs(void)
 {
-    debug_clr_led();
+    debug_set_led();
     // uart_send_string("Handling IRQs");//todo remove after test
     // uint64_t irq = REG_IRQ_BASE->irq_pending;
     // switch (irq)

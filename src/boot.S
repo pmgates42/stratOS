@@ -9,6 +9,7 @@
  */
 
 #include "mm.h"
+#include "sysregs.h"
 
 .section ".text.boot"
 
@@ -22,6 +23,32 @@ _start:
     b hang
 
 master:
+
+    /* Boot into EL1 
+        OS ARM code typically runs in EL1.
+    */
+
+    ldr x0, =SCTLR_VALUE_MMU_DISABLED
+    msr sctlr_el1, x0
+
+    ldr x0, =HCR_VALUE
+    msr hcr_el2, x0
+
+    ldr x0, =SCR_VALUE
+    msr scr_el3, x0
+
+    ldr x0, =SPSR_VALUE_EL1
+    msr spsr_el3, x0    
+
+    adr x0, el1_entry
+    msr elr_el3, x0
+
+    /* return from the exception. Reset the program counter
+    and return from current exception lvl
+    */
+    eret
+
+el1_entry:
     /* clear BSS */
     adr x0, bss_begin     
     adr x1, bss_end

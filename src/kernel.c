@@ -21,6 +21,7 @@
 
 #include "debug.h"
 #include "utils.h"
+#include "printf.h"
 
 static void tty_task(void);
 
@@ -47,8 +48,8 @@ void kernel_main()
 {
     /* Initialize hardware modules */
     uart_init();
+	init_printf(0, putc);
     debug_init();
-
     irq_init();
     timer_init();
 
@@ -61,8 +62,8 @@ void kernel_main()
     /* Set up all of the hw drivers */
     setup_drivers();
 
-    uart_send_string("Kernel initialized\n\r");
-    uart_send_string(STRATOS_VERSION);
+    printf("Kernel initialized\n\rExecuting in EL%d\n", get_el());
+    printf(STRATOS_VERSION);
 
     if(SNSR_ERR_NONE == snsr_init())
     {
