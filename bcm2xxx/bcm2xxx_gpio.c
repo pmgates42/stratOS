@@ -13,6 +13,7 @@
 #include "bcm2xxx_pvg_gpio.h"
 #include "utils.h"
 #include "peripherals/base.h"
+#include "uart.h"
 
 /* Constants */
 #define MAX_NMBR_GPIO_PINS 53
@@ -179,8 +180,8 @@ void gpio_set(uint32_t pin)
     {
         return;
     }
-
-    REG_GPIO_BASE->output_set.data[data_idx] |= (1 << pin % GPIO_REG_BITS);
+    uart_send( 1 << ( pin % GPIO_REG_BITS ) );
+    REG_GPIO_BASE->output_set.data[data_idx] |= ( 1 << ( pin % GPIO_REG_BITS ) );
 }
 
 /**********************************************************
@@ -204,5 +205,5 @@ void gpio_clr(uint32_t pin)
         return;
     }
 
-    REG_GPIO_BASE->output_clear.data[data_idx] |= (1 << pin % GPIO_REG_BITS);
+    REG_GPIO_BASE->output_clear.data[data_idx] |= ( 1 << ( pin % GPIO_REG_BITS) );
 }

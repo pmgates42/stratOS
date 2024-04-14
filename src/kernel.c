@@ -46,28 +46,32 @@ void kernel_main()
 {
     /* Initialize hardware modules */
     uart_init();
+    debug_init();
 
     irq_init();
     timer_init();
-    debug_init();
 
-    setup_drivers();
-
-    /* Initialize OS level modules */
+    /* Initialize modules that rely on timers */
     sched_init( task_list, 1 );
 
-    uart_send_string("Kernel Initializing\r\n");
+    /* Enable IRQs */
+    irq_enable();
+
+    /* Set up all of the hw drivers */
+    // setup_drivers();
+
+    uart_send_string("Kernel Initializing ");
     uart_send_string(STRATOS_VERSION);
-    uart_send('\n');
 
     if(SNSR_ERR_NONE == snsr_init())
     {
         // debug_set_led();
     }
 
-    /* Initializ netowrk interfaces */
-    sock_api_init();
+    /* Initialize the network interfaces */
+    // sock_api_init();
 
+    /* Echo Rx'd uart data forever */
     while(1)
         {
         uart_send(uart_recv());

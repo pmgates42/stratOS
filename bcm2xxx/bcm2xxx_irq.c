@@ -14,6 +14,7 @@
 #include "vector.h"
 #include "peripherals/base.h"
 #include "uart.h"//todo remove after testing
+#include "debug.h"//todo remove after testing
 
 #define SYSTEM_TIMER_IRQ_0	(1 << 0)
 #define SYSTEM_TIMER_IRQ_1	(1 << 1)
@@ -23,7 +24,7 @@
 typedef struct
 {
     reg32_t  basic_pending;
-    uint64_t irq_pending;
+    reg32_t  irq_pending[2];
     reg32_t  fiq_ctrl;
     reg32_t  en[2];
     reg32_t  en_basic;
@@ -38,21 +39,18 @@ typedef struct
 
 static bcm2xxx_timer_t8 map_irq_to_timer_channel(uint8_t irq);
 
-void bcm2xxx_irq_enable(bcm2xxx_irq_periph_t8 periph)
+static void en_periph(bcm2xxx_irq_periph_t8 periph)
 {
-    // /* local variables */
-    // uint8_t en_reg_idx = 0;
+    /* local variables */
+    uint32_t en_reg_idx = 0;
 
-    // /* prevent invalid memory writes */
-    // if(periph >= BCM2XXX_IRQ_PERIPH_COUNT)
-    //     return;
+    /* prevent invalid memory writes */
+    if(periph >= BCM2XXX_IRQ_PERIPH_COUNT)
+        return;
 
-    // /* clear the interrupt pending enable bit */
-
-    // /* Enable the interrupt */
-    // en_reg_idx = periph / 32;
-    // REG_IRQ_BASE->irq_pending[en_reg_idx] |= (1 <<periph % 32);
-    // REG_IRQ_BASE->en[en_reg_idx]          |= (1 << periph % 32);
+    /* Enable the interrupt */
+    en_reg_idx = (uint32_t)periph / 32;
+    REG_IRQ_BASE->en[en_reg_idx] |= ( 1 << ( periph % 32 ) );
 
 }
 
@@ -81,6 +79,16 @@ void irq_init(void)
     vector_init();
 }
 
+void irq_enable()
+{
+    /* Enable peripherals */
+    en_periph(BCM2XXX_IRQ_PERIPH_SYS_TMR_M1);
+
+    /* Enable IRQs on the CPU */
+    vector_enable_irq();
+
+}
+
 /**********************************************************
  * 
  *  irq_handle_irqs
@@ -97,22 +105,23 @@ void irq_init(void)
 
 void irq_handle_irqs(void)
 {
-    uart_send_string("Handling IRQs");//todo remove after test
-    uint64_t irq = REG_IRQ_BASE->irq_pending;
-    switch (irq)
-    {
-    /* Handle System timer IRQS */
-    case SYSTEM_TIMER_IRQ_0:
-    case SYSTEM_TIMER_IRQ_1:
-    case SYSTEM_TIMER_IRQ_2:
-    case SYSTEM_TIMER_IRQ_3:
-        uart_send_string("Handle SYS timer IRQ\n");//todo remove after test
-        uart_send((char)map_irq_to_timer_channel(irq));
-        bcm2xxx_timer_irq_hndlr(map_irq_to_timer_channel(irq));
-        break;
-    default:
-        break;
-    }
+    debug_clr_led();
+    // uart_send_string("Handling IRQs");//todo remove after test
+    // uint64_t irq = REG_IRQ_BASE->irq_pending;
+    // switch (irq)
+    // {
+    // /* Handle System timer IRQS */
+    // case SYSTEM_TIMER_IRQ_0:
+    // case SYSTEM_TIMER_IRQ_1:
+    // case SYSTEM_TIMER_IRQ_2:
+    // case SYSTEM_TIMER_IRQ_3:
+    //     uart_send_string("Handle SYS timer IRQ\n");//todo remove after test
+    //     uart_send((char)map_irq_to_timer_channel(irq));
+    //     bcm2xxx_timer_irq_hndlr(map_irq_to_timer_channel(irq));
+    //     break;
+    // default:
+    //     break;
+    // }
 }
 
 /**********************************************************
