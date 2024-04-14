@@ -106,22 +106,20 @@ void irq_enable()
 void irq_handle_irqs(void)
 {
     debug_set_led();
-    // uart_send_string("Handling IRQs");//todo remove after test
-    // uint64_t irq = REG_IRQ_BASE->irq_pending;
-    // switch (irq)
-    // {
-    // /* Handle System timer IRQS */
-    // case SYSTEM_TIMER_IRQ_0:
-    // case SYSTEM_TIMER_IRQ_1:
-    // case SYSTEM_TIMER_IRQ_2:
-    // case SYSTEM_TIMER_IRQ_3:
-    //     uart_send_string("Handle SYS timer IRQ\n");//todo remove after test
-    //     uart_send((char)map_irq_to_timer_channel(irq));
-    //     bcm2xxx_timer_irq_hndlr(map_irq_to_timer_channel(irq));
-    //     break;
-    // default:
-    //     break;
-    // }
+    uint32_t irq = REG_IRQ_BASE->irq_pending[0];
+    switch (irq)
+    {
+    /* Handle System timer IRQS */
+    case SYSTEM_TIMER_IRQ_0:
+    case SYSTEM_TIMER_IRQ_1:
+    case SYSTEM_TIMER_IRQ_2:
+    case SYSTEM_TIMER_IRQ_3:
+        uart_send((char)map_irq_to_timer_channel(irq));
+        bcm2xxx_timer_irq_hndlr(map_irq_to_timer_channel(irq));
+        break;
+    default:
+        break;
+    }
 }
 
 /**********************************************************

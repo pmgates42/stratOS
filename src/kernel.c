@@ -23,8 +23,8 @@
 #include "utils.h"
 #include "printf.h"
 
+static void init(void);
 static void tty_task(void);
-
 static void setup_drivers(void);
 
 static sched_usr_tsk_t task_list[] =
@@ -46,6 +46,30 @@ static sched_usr_tsk_t task_list[] =
 
 void kernel_main()
 {
+    init();
+
+    printf("Kernel initialized\n\rExecuting in EL%d\n", get_el());
+    printf(STRATOS_VERSION);
+
+    /* Echo Rx'd uart data forever */
+    while(1)
+    {
+        uart_send(uart_recv());
+        delay(5000);
+    }
+}
+
+static void tty_task(void)
+{
+    /* echo back user input */
+    while(1)
+    {
+        uart_send('G');
+    }
+}
+
+static void init(void)
+{
     /* Initialize hardware modules */
     uart_init();
 	init_printf(0, putc);
@@ -62,34 +86,13 @@ void kernel_main()
     /* Set up all of the hw drivers */
     setup_drivers();
 
-    printf("Kernel initialized\n\rExecuting in EL%d\n", get_el());
-    printf(STRATOS_VERSION);
-
-    if(SNSR_ERR_NONE == snsr_init())
+    if(SNSR_ERR_NONE != snsr_init())
     {
-        // debug_set_led();
+        printf("\n[error]: Failed to initialize sensor manager\n");
     }
 
     /* Initialize the network interfaces */
-    // sock_api_init();
-
-    /* Echo Rx'd uart data forever */
-    while(1)
-        {
-        // uart_send(uart_recv());
-
-        delay(5000);
-
-        }
-}
-
-static void tty_task(void)
-{
-    /* echo back user input */
-    while(1)
-        {
-        uart_send('G');
-        }
+    sock_api_init();
 }
 
 /**********************************************************
