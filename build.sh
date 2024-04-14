@@ -1,0 +1,1 @@
+make BUILD_BCM2XXX=1 && cp build/kernel8.img /Volumes/bootfs

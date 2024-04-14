@@ -24,19 +24,21 @@
 #include "peripherals/base.h"
 #include "bcm2xxx_timer.h"
 #include "peripherals/timer.h"
+#include "debug.h"
+#include "uart.h"
 
 #define NUM_COUNT_REGS 2
 #define COUNTER_LO     0
 #define COUNTER_HI     1
 
-#define TEST_INTERVAL 20000//todo remove after testing
+#define TEST_INTERVAL 200000//todo remove after testing
 
 /* Types */
 
 typedef struct
 {
-    reg32_t control_sts;                             /* Control/Status register */
-    reg32_t counter[ NUM_COUNT_REGS ];               /* Counter registers */
+    reg32_t control_sts;                           /* Control/Status register */
+    reg32_t counter[ NUM_COUNT_REGS ];             /* Counter registers */
     reg32_t compares[ BCMXXX_TIMER_CHNL_COUNT ];   /* Compare registers */
 
 } sys_timer_add_map_t;
@@ -57,7 +59,6 @@ void timer_init(void)
     {
         reg_timer_irq_hnldrs[i] = NULL;
     }
-
 }
 
 /**********************************************************
@@ -86,9 +87,6 @@ uint8_t timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ticks)
     cur_val = REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO];
     ticks = cur_val + TEST_INTERVAL;
     REG_SYS_ADD_MAP_BASE->compares[bcm_tmr] = ticks;
-
-    /* Enable the selected channel in the control reg */
-    // REG_SYS_ADD_MAP_BASE->control_sts |= (1 << bcm_tmr);//todo do we need this?
 
     /* register the irq callback function */
     reg_timer_irq_hnldrs[bcm_tmr] = irq_cb;

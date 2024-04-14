@@ -13,6 +13,8 @@
 #include "bcm2xxx_pvg_gpio.h"
 #include "utils.h"
 #include "peripherals/base.h"
+#include "uart.h"
+#include "debug.h"
 
 /* Constants */
 #define MAX_NMBR_GPIO_PINS 53
@@ -144,18 +146,15 @@ void gpio_pin_enable(uint32_t pin)
     /* Disable pull-up/down */
     REG_GPIO_BASE->pupd_enbl = 0;
 
-    /* Must delay 150 cycles */
-    delay(150);
-
     /* Activate clock signal on pin and wait another
      * 150 cycles
      */
     uint8_t idx = pin / GPIO_REG_BITS;
+
+    /* Must delay 150 cycles */
+    delay(150);
     REG_GPIO_BASE->pupd_enbl_clocks[idx] = (1 << (pin % GPIO_REG_BITS));
     delay(150);
- 
-    /* Disable pull-up/down */
-    REG_GPIO_BASE->pupd_enbl = 0;
     REG_GPIO_BASE->pupd_enbl_clocks[idx] = 0;
 }
 
@@ -179,8 +178,7 @@ void gpio_set(uint32_t pin)
     {
         return;
     }
-
-    REG_GPIO_BASE->output_set.data[data_idx] |= (1 << pin % GPIO_REG_BITS);
+    REG_GPIO_BASE->output_set.data[data_idx] |= ( 1 << ( pin % GPIO_REG_BITS ) );
 }
 
 /**********************************************************
@@ -204,5 +202,5 @@ void gpio_clr(uint32_t pin)
         return;
     }
 
-    REG_GPIO_BASE->output_clear.data[data_idx] |= (1 << pin % GPIO_REG_BITS);
+    REG_GPIO_BASE->output_clear.data[data_idx] |= ( 1 << ( pin % GPIO_REG_BITS) );
 }

@@ -135,3 +135,11 @@ DEP_FILES := $(OBJ_FILES:.o=.d)
 kernel8.img: $(SRC_DIR)/linker.ld $(OBJ_FILES)
 	$(ARMGCC)-ld -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf $(OBJ_FILES)
 	$(ARMGCC)-objcopy $(BUILD_DIR)/kernel8.elf -O binary $(BUILD_DIR)/kernel8.img
+
+armstub/build/armstub_s.o: armstub/src/armstub.S
+	mkdir -p $(@D)
+	$(ARMGCC)-gcc $(COPTNS) -MMD -c $< -o $@
+
+armstub: armstub/build/armstub_s.o
+	$(ARMGCC)-ld --section-start=.text=0 -o armstub/build/armstub.elf armstub/build/armstub_s.o
+	$(ARMGCC)-objcopy armstub/build/armstub.elf -O binary armstub/build/armstub-new.bin

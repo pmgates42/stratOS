@@ -20,6 +20,8 @@
 #include "peripherals/drivers/hc_sr04.h"
 
 #include "debug.h"
+#include "utils.h"
+#include "printf.h"
 
 static void tty_task(void);
 
@@ -46,31 +48,38 @@ void kernel_main()
 {
     /* Initialize hardware modules */
     uart_init();
-
+	init_printf(0, putc);
+    debug_init();
     irq_init();
     timer_init();
-    debug_init();
 
-    setup_drivers();
-
-    /* Initialize OS level modules */
+    /* Initialize modules that rely on timers */
     sched_init( task_list, 1 );
 
-    uart_send_string("Kernel Initializing\r\n");
-    uart_send_string(STRATOS_VERSION);
-    uart_send('\n');
+    /* Enable IRQs */
+    irq_enable();
+
+    /* Set up all of the hw drivers */
+    setup_drivers();
+
+    printf("Kernel initialized\n\rExecuting in EL%d\n", get_el());
+    printf(STRATOS_VERSION);
 
     if(SNSR_ERR_NONE == snsr_init())
     {
         // debug_set_led();
     }
 
-    /* Initializ netowrk interfaces */
-    sock_api_init();
+    /* Initialize the network interfaces */
+    // sock_api_init();
 
+    /* Echo Rx'd uart data forever */
     while(1)
         {
-        uart_send(uart_recv());
+        // uart_send(uart_recv());
+
+        delay(5000);
+
         }
 }
 
