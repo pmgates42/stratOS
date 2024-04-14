@@ -19,4 +19,10 @@
     #error "Unsupported RPI_VERSION"
 #endif
 
+#ifdef RPI_3B_PLUS
+    #define MU_BUAD_RATE 434
+#else
+    #define MU_BUAD_RATE 270
+#endif
+
 #define BAUD_RATE 115200
