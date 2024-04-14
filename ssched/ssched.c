@@ -74,7 +74,7 @@ void sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
 
     if(FALSE == s_sched_running)
     {
-        uart_send_string("Failed to initialize the scheduler\n");
+        // uart_send_string("Failed to initialize the scheduler\n");
     }
 }
 

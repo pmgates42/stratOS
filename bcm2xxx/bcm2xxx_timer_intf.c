@@ -94,11 +94,6 @@ uint8_t timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ticks)
     // todo give this a meaningful value
     *timer_id = 12;
 
-    debug_set_led();
-    uart_send_string(" ");
-    uart_send_uint32(REG_SYS_ADD_MAP_BASE->compares[bcm_tmr]);
-    uart_send_string(" ");
-
     return TIMER_ERR_NONE;
 }
 

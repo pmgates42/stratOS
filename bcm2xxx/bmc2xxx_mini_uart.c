@@ -67,17 +67,11 @@ void uart_init()
     REG_AUX_BASE->mu_lcr = 0x3;
     REG_AUX_BASE->mu_mcr = 0x0;
 
-    /* The value of the baud rate is calculated as
-     * baudrate = (system_clock_freq)/(8 * (baudrate_reg + 1))
-     */
-    REG_AUX_BASE->mu_baudrate = (int)((SYSTEM_CLOCK_FREQUENCY / (8 * BAUD_RATE)) - 1);
+    // REG_AUX_BASE->mu_baudrate = (SYSTEM_CLOCK_FREQUENCY / (8 * BAUD_RATE)) - 1;
+    REG_AUX_BASE->mu_baudrate = 434; // 115200 baud rate
 
     /* Enable the TX/RX */
     REG_AUX_BASE->mu_control = 0x3;
-
-    uart_send('\r');
-    uart_send('\n');
-    uart_send('\n');
 
     s_uart_init = TRUE;
 }

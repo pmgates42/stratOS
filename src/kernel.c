@@ -20,6 +20,7 @@
 #include "peripherals/drivers/hc_sr04.h"
 
 #include "debug.h"
+#include "utils.h"
 
 static void tty_task(void);
 
@@ -58,9 +59,9 @@ void kernel_main()
     irq_enable();
 
     /* Set up all of the hw drivers */
-    // setup_drivers();
+    setup_drivers();
 
-    uart_send_string("Kernel Initializing ");
+    uart_send_string("Kernel initialized\n\r");
     uart_send_string(STRATOS_VERSION);
 
     if(SNSR_ERR_NONE == snsr_init())
@@ -74,7 +75,10 @@ void kernel_main()
     /* Echo Rx'd uart data forever */
     while(1)
         {
-        uart_send(uart_recv());
+        // uart_send(uart_recv());
+
+        delay(5000);
+
         }
 }
 
