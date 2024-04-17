@@ -1,6 +1,6 @@
 /**********************************************************
  * 
- *  bcm2xxx_timer_mngr.c
+ *  bcm2xxx_timer.c
  * 
  * 
  *  DESCRIPTION:
@@ -31,8 +31,6 @@
 #define COUNTER_LO     0
 #define COUNTER_HI     1
 
-#define TEST_INTERVAL 200000//todo remove after testing
-
 /* Types */
 
 typedef struct
@@ -45,20 +43,20 @@ typedef struct
 
 #define REG_SYS_ADD_MAP_BASE ((volatile sys_timer_add_map_t *)(PBASE + 0x003000))
 
+typedef struct
+{
+    void_func_t irq_cb;
+    uint32_t tick_interval;
+} timer_ctrl_t;
+
 /* Variables */
-static void_func_t reg_timer_irq_hnldrs[ BCMXXX_TIMER_CHNL_COUNT ];
+static timer_ctrl_t timer_ctrl_block[ BCMXXX_TIMER_CHNL_COUNT ];
 static uint32_t cur_val = 0;
 
 void timer_init(void)
 {
-    /* Local variables */
-    uint8_t i;
-
     /* Initialize the reg timer list */
-    for(i =0; i < BCMXXX_TIMER_CHNL_COUNT; i++)
-    {
-        reg_timer_irq_hnldrs[i] = NULL;
-    }
+    clr_mem((uint8_t *)timer_ctrl_block, sizeof(timer_ctrl_t) * BCMXXX_TIMER_CHNL_COUNT);
 }
 
 /**********************************************************
@@ -85,11 +83,12 @@ uint8_t timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ticks)
      * of the free counter for the provided timer
      */
     cur_val = REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO];
-    ticks = cur_val + TEST_INTERVAL;
+    ticks = cur_val + ticks;
     REG_SYS_ADD_MAP_BASE->compares[bcm_tmr] = ticks;
 
     /* register the irq callback function */
-    reg_timer_irq_hnldrs[bcm_tmr] = irq_cb;
+    timer_ctrl_block[bcm_tmr].irq_cb = irq_cb;
+    timer_ctrl_block[bcm_tmr].tick_interval = ticks;
 
     // todo give this a meaningful value
     *timer_id = 12;
@@ -109,6 +108,9 @@ uint8_t timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ticks)
 
 void bcm2xxx_timer_irq_hndlr(bcm2xxx_timer_t8 timer)
 {
+    /* local variables */
+    uint32_t ticks;
+
     /* input validation */
     if(timer >= BCMXXX_TIMER_CHNL_COUNT)
     {
@@ -116,16 +118,17 @@ void bcm2xxx_timer_irq_hndlr(bcm2xxx_timer_t8 timer)
     }
 
     /* prepare the next interval */
-    cur_val += TEST_INTERVAL;
-    REG_SYS_ADD_MAP_BASE->compares[timer] = cur_val;
+    cur_val = REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO];
+    ticks = cur_val + timer_ctrl_block[timer].tick_interval;
+    REG_SYS_ADD_MAP_BASE->compares[timer] = ticks;
+
     REG_SYS_ADD_MAP_BASE->control_sts |= (1 << timer);
 
     /* otherwise call the registered irq handler
      * if one exists
      */
-    if(NULL != reg_timer_irq_hnldrs[timer])
+    if(NULL != timer_ctrl_block[timer].irq_cb)
     {
-        reg_timer_irq_hnldrs[timer]();
+        timer_ctrl_block[timer].irq_cb();
     }
-
 }

@@ -12,12 +12,12 @@
 #include "generic.h"
 #include "uart.h"
 #include "peripherals/timer.h"
-#include "utils.h"
 #include "printf.h"
+#include "debug.h"
 
 #ifndef SSCHED_TSK_MAX
 #define SSCHED_TSK_MAX  20
-#warning Configuration SCHED_TSK_MAX not set, using default value of 20
+    #warning Configuration SCHED_TSK_MAX not set, using default value of 20
 #endif
 
 /* Types */
@@ -83,7 +83,7 @@ void sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
 
 void sched_task(void)
 {
-    uart_send(uart_recv());
+    debug_toggle_led();
 }
 
 /**********************************************************
@@ -99,7 +99,7 @@ void sched_task(void)
 static void kick_off_sched(void)
 {
     /* allocate a system timer */
-    if( TIMER_ERR_NONE != timer_alloc(&s_sched_tmr_id, sched_task, 0x00FFFFFF))
+    if( TIMER_ERR_NONE != timer_alloc(&s_sched_tmr_id, sched_task, 20000))
     {
         s_sched_running = FALSE;
         return;

@@ -15,6 +15,7 @@
 #include "peripherals/base.h"
 #include "uart.h"//todo remove after testing
 #include "debug.h"//todo remove after testing
+#include "printf.h"//todo remove after testing
 
 #define SYSTEM_TIMER_IRQ_0	(1 << 0)
 #define SYSTEM_TIMER_IRQ_1	(1 << 1)
@@ -105,8 +106,7 @@ void irq_enable()
 
 void irq_handle_irqs(void)
 {
-    debug_set_led();
-    uint32_t irq = REG_IRQ_BASE->irq_pending[0];
+    uint64_t irq = REG_IRQ_BASE->irq_pending[0];
     switch (irq)
     {
     /* Handle System timer IRQS */
@@ -114,7 +114,6 @@ void irq_handle_irqs(void)
     case SYSTEM_TIMER_IRQ_1:
     case SYSTEM_TIMER_IRQ_2:
     case SYSTEM_TIMER_IRQ_3:
-        uart_send((char)map_irq_to_timer_channel(irq));
         bcm2xxx_timer_irq_hndlr(map_irq_to_timer_channel(irq));
         break;
     default:
