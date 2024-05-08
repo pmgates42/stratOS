@@ -3,6 +3,7 @@
 #include "generic.h"
 #include "peripherals/base.h"
 
+// TODO this is BCM 283x specific. Move into appropriate header file.
 typedef struct
 {
     reg32_t irq_status;        /* IRQ status */

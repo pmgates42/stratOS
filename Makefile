@@ -1,10 +1,11 @@
-# Default PI version is 3
+# Default PI version is 3 sub-version 1 (3B+)
 RPI_VERSION ?= 3
+RPI_SUB_VERSION ?= 1
 
 # BOOTMNT ?= /media/parallels/boot
 ARMGCC ?= aarch64-elf
 
-COPTNS = -DRPI_VERSION=$(RPI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -Iinclude/public  -mgeneral-regs-only
+COPTNS = -DRPI_VERSION=$(RPI_VERSION)  -DRPI_SUB_VERSION=$(RPI_SUB_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -Iinclude/public  -mgeneral-regs-only
 
 ASMOPTS = -Iinclude
 

@@ -9,19 +9,19 @@
  */
 
 #include "generic.h"
+#include "cpu.h"
 #include "net.h"
 #include "uart.h"
 #include "sched.h"
 #include "irq.h"
 #include "kernel.h"
-
 #include "peripherals/timer.h"
 #include "peripherals/snsr/snsr.h"
 #include "peripherals/drivers/hc_sr04.h"
-
 #include "debug.h"
 #include "utils.h"
 #include "printf.h"
+#include "usb.h"
 
 static void init(void);
 static void tty_task(void);
@@ -71,6 +71,7 @@ static void tty_task(void)
 static void init(void)
 {
     /* Initialize hardware modules */
+    cpu_init();
     uart_init();
 	init_printf(0, putc);
     debug_init();
@@ -107,6 +108,9 @@ static void init(void)
 
 static void setup_drivers(void)
 {
+    /* Initialize core (generic) drivers */
+    usb_core_init();
+
     /* Initialize all of the driver managers */
     hc_sr04_intf_init();
 

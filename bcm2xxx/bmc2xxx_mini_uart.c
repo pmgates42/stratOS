@@ -68,7 +68,7 @@ void uart_init()
     REG_AUX_BASE->mu_mcr = 0x0;
 
     /* Baud rate = (SYSTEM_CLOCK_FREQUENCY / (8 * BAUD_RATE)) - 1; */
-    REG_AUX_BASE->mu_baudrate = MU_BUAD_RATE;
+    REG_AUX_BASE->mu_baudrate = 434;
 
     /* Enable the TX/RX */
     REG_AUX_BASE->mu_control = 0x3;
