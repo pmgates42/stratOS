@@ -13,10 +13,9 @@
 #include "usb.h"
 
 /**
- * usb_hcd_power_on
+ * usb_hcd_init
  * 
- * @brief power on the USB hardware. This is required for
- * some systems.
+ * @brief Initialize USB HCD
  * 
  */
-usb_err_t usb_hcd_power_on(void)
+usb_err_t usb_hcd_init(void);

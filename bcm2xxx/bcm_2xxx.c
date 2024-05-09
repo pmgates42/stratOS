@@ -10,6 +10,7 @@
 
 /**
  * cpu_power_on_usb
+ * 
  * @brief Contracted CPU function
  * 
  * @return true Power on of USB was successful
@@ -22,6 +23,13 @@ bcm2xxx_power_on(BCM_2XXX_POWER_ON_TYPE_USB);
 return TRUE;
 }
 
+/**
+ * cpu_init
+ * 
+ * @brief Contracted CPU initialization function
+ * 
+ * @return boolean 
+ */
 boolean cpu_init(void)
 {
 bcm2xxx_mb_init();

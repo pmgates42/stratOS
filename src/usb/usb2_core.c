@@ -12,6 +12,7 @@
 
 #include "usb.h"
 #include "cpu.h"
+#include "usb_hcd.h"
 
 /**
  * usb_core_init
@@ -23,6 +24,8 @@
 usb_err_t usb_core_init(void)
 {
 cpu_power_on_usb();
+
+usb_hcd_init();
 
 return USB_ERR_NONE;
 }

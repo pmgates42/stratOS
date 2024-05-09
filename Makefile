@@ -80,6 +80,20 @@ COPTNS += -I$(HW_DRIVER_HC_SR04_DIR)/include
 else
 endif
 
+#----------------------------------------
+# RPI specific hardware drivers
+#----------------------------------------
+
+ifdef RPI_VERSION
+
+DWC2_DIR = drivers/usb/dwc2
+DWC2_C_FILES := $(wildcard $(DWC2_DIR)/*.c)
+DWC2_OBJ_FILES := $(DWC2_C_FILES:$(DWC2_DIR)/%.c=$(BUILD_DIR)/%_c.o)
+OBJ_FILES += $(DWC2_OBJ_FILES)
+
+else
+endif
+
 # Rule for building C files
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
@@ -115,6 +129,10 @@ $(BUILD_DIR)/%_c.o: $(HW_DRIVER_HC_SR04_DIR)/%.c
 	mkdir -p $(@D)
 	$(ARMGCC)-gcc $(COPTNS) -MMD -c $< -o $@
 
+# Rule for building DWC2 driver C files
+$(BUILD_DIR)/%_c.o: $(DWC2_DIR)/%.c
+	mkdir -p $(@D)
+	$(ARMGCC)-gcc $(COPTNS) -MMD -c $< -o $@
 
 SRC_TOP_DIR := $(SRC_DIR)
 VPATH := $(SRC_TOP_DIR):$(shell find $(SRC_TOP_DIR) -type d)

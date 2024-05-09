@@ -101,18 +101,19 @@ static void init(void)
  *  setup_drivers()
  * 
  *  DESCRIPTION:
- *     Setup the hardware drivers based on the user defined
- *     configurations.    
+ *     Setup the hardware drivers
  * 
  */
 
 static void setup_drivers(void)
 {
-    /* Initialize core (generic) drivers */
+    /* Initialize OS core drivers */
     usb_core_init();
 
     /* Initialize all of the driver managers */
     hc_sr04_intf_init();
+
+    /* Configured drivers */
 
     #ifdef HW_DRIVER_HC_SR04
     uart_send_string("HC-SR04 Hardware driver(s) configured....\r\n");
