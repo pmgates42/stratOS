@@ -51,17 +51,11 @@ static boolean do_soft_reset(void);
  */
 usb_err_t usb_hcd_init(void)
 {
-    boolean reset_success;
-
-    reset_success = do_soft_reset();
-
-    /* debug print out */
-    if(!reset_success)
+    if(!do_soft_reset())
     {
         printf("\nFailed to reset DWC2\n");
         return USB_ERR_HW;
     }
-    printf("\nSuccessfully reset DWC2\n");
 
     return USB_ERR_NONE;
 }

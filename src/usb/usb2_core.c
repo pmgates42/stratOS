@@ -23,9 +23,12 @@
  */
 usb_err_t usb_core_init(void)
 {
-cpu_power_on_usb();
-
-usb_hcd_init();
+/* Ensure hardware is succesfully initialized */
+if( FALSE == cpu_power_on_usb()
+|| FALSE == usb_hcd_init() )
+{
+    return USB_ERR_HW;
+}
 
 return USB_ERR_NONE;
 }
