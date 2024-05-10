@@ -5,6 +5,7 @@
  * DESCRIPTION:
  *      USB core header available for consumption by USB device
  *      drivers and kernel boot procedures.
+ * 
  */
 
 #pragma once
@@ -25,7 +26,11 @@ usb_err_t usb_core_init(void);
 
 /* USB Packet types */
 
-/* 4-bit PID codes */
+/* 4-bit PID codes
+ *
+ * Universal Serial Bus Specification Revision 2.0 Section 8.3.1
+ * Table 8-1.
+ */
 typedef uint8_t usb_pid_code_t;
 enum
 {
@@ -60,6 +65,12 @@ enum
     USB_PID_CODE_RESRVD = 0x00,
 
 };
+
+
+/* Packet types
+ *
+ * Universal Serial Bus Specification Revision 2.0 Section 8.4
+ */
 
 typedef struct
 {
