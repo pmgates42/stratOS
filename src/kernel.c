@@ -81,8 +81,8 @@ static void init(void)
     /* Initialize modules that rely on timers */
     sched_init( task_list, 1 );
 
-    /* Enable IRQs */
-    irq_enable();
+    /* Enable system IRQs */
+    irq_sys_enable();
 
     /* Set up all of the hw drivers */
     setup_drivers();

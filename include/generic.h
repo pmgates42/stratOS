@@ -17,6 +17,8 @@
 
 #define BIT(n) (1UL << (n))
 
+#define BS_ALL_32 ( 0 - 1 )
+
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;

@@ -22,6 +22,7 @@
 #include "usb.h"
 #include "dwc2.h"
 #include "printf.h"
+#include "irq.h"
 
 
 /* Register definitions */
@@ -41,11 +42,18 @@
 
 #define REG_AHB_CFG *( ( volatile uint32_t * )GAHBCFG )
 
+#define REG_GBL_INTR_MSK *( ( volatile uint32_t * )GINTMSK )
+#define REG_GBL_INTR_STS *( ( volatile uint32_t * )GINTSTS )
+
+#define EN_HOST_CHNL_INTR ( 0x1 << 25 )
+#define EN_HOST_PORT_INTR ( 0x1 << 25 )
+#define EN_AHB_INTR ( 0x1  << 0 )
 
 /* static procs */
 
 static boolean do_soft_reset(void);
 static void setup_dma(void);
+static boolean setup_intr(void);
 
 /**
  * usb_hcd_init
@@ -72,6 +80,12 @@ usb_err_t usb_hcd_init(void)
     }
 
     setup_dma();
+
+    if(!setup_intr())
+    {
+        printf("\nFailed to set up interrupts DWC2\n");
+        return USB_ERR_HW;
+    }
 
     return USB_ERR_NONE;
 }
@@ -142,4 +156,33 @@ static void setup_dma(void)
 
     /* Enable DMA */
     REG_AHB_CFG |= GAHBCFG_DMA_EN;
+
+    printf("\nDMA enabled\n");
+}
+
+/**
+ * setup_intr 
+ *
+ * @brief Set up USB interrupts
+ * 
+ */
+static boolean setup_intr(void)
+{
+    /* Clear any pending interrupts */
+    REG_GBL_INTR_MSK = 0;
+    REG_GBL_INTR_STS = BS_ALL_32;
+
+    /* Enable interrupts on the controller */
+    REG_GBL_INTR_MSK |= EN_HOST_CHNL_INTR | EN_HOST_PORT_INTR;
+
+    /* Enable IRQs on this CPU */
+    if( !irq_enable_usb() )
+    {
+        return FALSE;
+    }
+
+    /* Enable interrupts on AHB config reg */
+    REG_AHB_CFG |= EN_HOST_CHNL_INTR;
+
+    return TRUE;
 }

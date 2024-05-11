@@ -17,10 +17,13 @@
 #include "debug.h"//todo remove after testing
 #include "printf.h"//todo remove after testing
 
-#define SYSTEM_TIMER_IRQ_0	(1 << 0)
-#define SYSTEM_TIMER_IRQ_1	(1 << 1)
-#define SYSTEM_TIMER_IRQ_2	(1 << 2)
-#define SYSTEM_TIMER_IRQ_3	(1 << 3)
+/* Interrupt source defines*/
+
+#define IRQ_SYS_TIMER_0	(1 << 0)    /* System timer 0 */
+#define IRQ_SYS_TIMER_1	(1 << 1)    /* System timer 1 */
+#define IRQ_SYS_TIMER_2	(1 << 2)    /* System timer 2 */
+#define IRQ_SYS_TIMER_3	(1 << 3)    /* System timer 3 */
+#define IRQ_USB_CTRL    (1 << 9)    /* USB contoller */
 
 typedef struct
 {
@@ -80,7 +83,19 @@ void irq_init(void)
     vector_init();
 }
 
-void irq_enable()
+/**********************************************************
+ * 
+ *  irq_sys_enable
+ * 
+ * 
+ *  DESCRIPTION:
+ *      Enable system IRQs. This is called by the kernel
+ *      initialization logic after timers and irqs are
+ *      initialized.
+ * 
+ */
+
+void irq_sys_enable(void)
 {
     /* Enable peripherals */
     en_periph(BCM2XXX_IRQ_PERIPH_SYS_TMR_M1);
@@ -88,6 +103,22 @@ void irq_enable()
     /* Enable IRQs on the CPU */
     vector_enable_irq();
 
+}
+
+/**********************************************************
+ * 
+ *  irq_enable_usb
+ * 
+ * 
+ *  DESCRIPTION:
+ *      Contracted Enable USB interrupt procedure.
+ * 
+ */
+boolean irq_enable_usb(void)
+{
+    en_periph(BCM2XXX_IRQ_PERIPH_USB_CTRL);
+
+    return TRUE;
 }
 
 /**********************************************************
@@ -106,15 +137,22 @@ void irq_enable()
 
 void irq_handle_irqs(void)
 {
-    uint64_t irq = REG_IRQ_BASE->irq_pending[0];
+    reg32_t irq = REG_IRQ_BASE->irq_pending[0];
+    printf("\n%d\n", irq);
     switch (irq)
     {
+
     /* Handle System timer IRQS */
-    case SYSTEM_TIMER_IRQ_0:
-    case SYSTEM_TIMER_IRQ_1:
-    case SYSTEM_TIMER_IRQ_2:
-    case SYSTEM_TIMER_IRQ_3:
+    case IRQ_SYS_TIMER_0:
+    case IRQ_SYS_TIMER_1:
+    case IRQ_SYS_TIMER_2:
+    case IRQ_SYS_TIMER_3:
         bcm2xxx_timer_irq_hndlr(map_irq_to_timer_channel(irq));
+        break;
+
+    /* Handle USB Controller IRQs */
+    case IRQ_USB_CTRL:
+        printf("USB Controller interrupt");
         break;
     default:
         break;
@@ -136,16 +174,16 @@ static bcm2xxx_timer_t8 map_irq_to_timer_channel(uint8_t irq)
 {
     switch (irq)
     {
-    case SYSTEM_TIMER_IRQ_0:
+    case IRQ_SYS_TIMER_0:
         return BM2XXX_TIMER_CHNL_0;
 
-    case SYSTEM_TIMER_IRQ_1:
+    case IRQ_SYS_TIMER_1:
         return BM2XXX_TIMER_CHNL_1;
 
-    case SYSTEM_TIMER_IRQ_2:
+    case IRQ_SYS_TIMER_2:
         return BM2XXX_TIMER_CHNL_2;
 
-    case SYSTEM_TIMER_IRQ_3:
+    case IRQ_SYS_TIMER_3:
         return BM2XXX_TIMER_CHNL_3;
 
     default:
