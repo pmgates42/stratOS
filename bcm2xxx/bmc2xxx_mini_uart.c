@@ -110,6 +110,12 @@ void uart_send(char c)
 
     /* set the byte in the IO reg */
     REG_AUX_BASE->mu_io = c;
+
+    /* If this is a newline, add carriage return */
+    if(c == '\n')
+    {
+        uart_send('\r');
+    }
 }
 
 /**********************************************************
