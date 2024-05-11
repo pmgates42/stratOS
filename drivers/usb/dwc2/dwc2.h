@@ -6,6 +6,7 @@
  */
 
 #include "peripherals/base.h"
+#include "generic.h"
 
 #ifndef __DWC2_HW_H__
 #define __DWC2_HW_H__

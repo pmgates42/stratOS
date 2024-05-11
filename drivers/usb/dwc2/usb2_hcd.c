@@ -26,25 +26,26 @@
 
 /* Register definitions */
 
-#define REG_CORE_RESET *( ( volatile unsigned char * )GRSTCTL )
+#define REG_CORE_RESET *( ( volatile uint32_t * )GRSTCTL )
 #define SOFT_RESET (0x1 << 0)
 #define SOFT_RESET_TIMEOUT_CYCLES 500
 
-#define REG_GBL_RX_FIFO_SZ *( ( volatile unsigned char * )GRXFSIZ )
+#define REG_GBL_RX_FIFO_SZ *( ( volatile uint32_t * )GRXFSIZ )
 #define RX_FIFO_BUF_SZ ( 12 * 1024 )                /* 12 KB */
 
-#define REG_GBL_NP_TX_FIFO_SZ *( ( volatile unsigned char * )GNPTXFSIZ )
+#define REG_GBL_NP_TX_FIFO_SZ *( ( volatile uint32_t * )GNPTXFSIZ )
 #define TX_FIFO_BUF_SZ ( 12 * 1024 )                /* 12 KB */
 
-#define REG_HOST_PRDC_TX_FIFO_SZ *( ( volatile unsigned char * )HPTXFSIZ )
+#define REG_HOST_PRDC_TX_FIFO_SZ *( ( volatile uint32_t * )HPTXFSIZ )
 #define HOST_PRDC_TX_FIFO_BUF_SZ ( 12 * 1024 )      /* 12 KB */
 
-#define REG_AHB_CFG *( ( volatile unsigned char * )GAHBCFG )
+#define REG_AHB_CFG *( ( volatile uint32_t * )GAHBCFG )
 
 
 /* static procs */
 
 static boolean do_soft_reset(void);
+static void setup_dma(void);
 
 /**
  * usb_hcd_init
@@ -61,6 +62,7 @@ static boolean do_soft_reset(void);
  * 
  * @return usb_err_t 
  */
+
 usb_err_t usb_hcd_init(void)
 {
     if(!do_soft_reset())
@@ -69,13 +71,22 @@ usb_err_t usb_hcd_init(void)
         return USB_ERR_HW;
     }
 
+    setup_dma();
+
     return USB_ERR_NONE;
 }
 
 /**
- * Return TRUE if restart was successful
+ * do_soft_reset
+ * 
+ * @brief Initiate a software reset on the USB controller
+ * and wait for it to indicate completion. Timeout after
+ * SOFT_RESET_TIMEOUT_CYCLES cycles.
+ * 
+ * @return TRUE if restart was successful FALSE otherwise
  * 
  */
+
 static boolean do_soft_reset(void)
 {
     uint8_t cycles = 0;
@@ -114,21 +125,21 @@ static boolean do_soft_reset(void)
  * 
  */
 
-static boolean setup_dma(void)
+static void setup_dma(void)
 {
-/* Set the RX buffer size */
-REG_GBL_RX_FIFO_SZ = RX_FIFO_BUF_SZ;
+    /* Set the RX buffer size */
+    REG_GBL_RX_FIFO_SZ = RX_FIFO_BUF_SZ;
 
-/*  Low 16 bits are from start of FIFO buffer reserved memory.
- *  High bits are for non-periodic TX buffer size.
- */
-REG_GBL_NP_TX_FIFO_SZ =  ( TX_FIFO_BUF_SZ << 16 ) | RX_FIFO_BUF_SZ;
+    /*  Low 16 bits are from start of FIFO buffer reserved memory.
+    *  High bits are for non-periodic TX buffer size.
+    */
+    REG_GBL_NP_TX_FIFO_SZ =  ( TX_FIFO_BUF_SZ << 16 ) | RX_FIFO_BUF_SZ;
 
-/*  Low 16 bits are from start of FIFO buffer reserved memory.
- *  High bits are for host periodic TX buffer size.
- */
-REG_HOST_PRDC_TX_FIFO_SZ = ( HOST_PRDC_TX_FIFO_BUF_SZ << 16 ) | ( TX_FIFO_BUF_SZ + RX_FIFO_BUF_SZ );
+    /*  Low 16 bits are from start of FIFO buffer reserved memory.
+    *  High bits are for host periodic TX buffer size.
+    */
+    REG_HOST_PRDC_TX_FIFO_SZ = ( HOST_PRDC_TX_FIFO_BUF_SZ << 16 ) | ( TX_FIFO_BUF_SZ + RX_FIFO_BUF_SZ );
 
-/* Enable DMA */
-REG_AHB_CFG |= GAHBCFG_DMA_EN;
+    /* Enable DMA */
+    REG_AHB_CFG |= GAHBCFG_DMA_EN;
 }

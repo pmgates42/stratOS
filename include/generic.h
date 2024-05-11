@@ -15,6 +15,8 @@
 #define TRUE  1
 #define FALSE 0
 
+#define BIT(n) (1UL << (n))
+
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
