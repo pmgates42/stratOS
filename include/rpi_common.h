@@ -19,10 +19,18 @@
     #error "Unsupported RPI_VERSION"
 #endif
 
-#ifdef RPI_3B_PLUS
-    #define MU_BUAD_RATE 434
+#define RPI_3B_PLUS 1
+
+#ifdef RPI_SUB_VERSION
+    #if RPI_SUB_VERSION == RPI_3B_PLUS
+        #define MU_BUAD_RATE 434
+    #else
+        #define MU_BUAD_RATE 270
+    #endif
+    #warning "Only the Raspberry Pi 3B+ is supported and tested at this time"
 #else
     #define MU_BUAD_RATE 270
+    #warning "Only the Raspberry Pi 3B+ is supported and tested at this time"
 #endif
 
 #define BAUD_RATE 115200

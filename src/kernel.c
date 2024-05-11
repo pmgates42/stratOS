@@ -9,19 +9,19 @@
  */
 
 #include "generic.h"
+#include "cpu.h"
 #include "net.h"
 #include "uart.h"
 #include "sched.h"
 #include "irq.h"
 #include "kernel.h"
-
 #include "peripherals/timer.h"
 #include "peripherals/snsr/snsr.h"
 #include "peripherals/drivers/hc_sr04.h"
-
 #include "debug.h"
 #include "utils.h"
 #include "printf.h"
+#include "usb.h"
 
 static void init(void);
 static void tty_task(void);
@@ -71,6 +71,7 @@ static void tty_task(void)
 static void init(void)
 {
     /* Initialize hardware modules */
+    cpu_init();
     uart_init();
 	init_printf(0, putc);
     debug_init();
@@ -80,8 +81,8 @@ static void init(void)
     /* Initialize modules that rely on timers */
     sched_init( task_list, 1 );
 
-    /* Enable IRQs */
-    irq_enable();
+    /* Enable system IRQs */
+    irq_sys_enable();
 
     /* Set up all of the hw drivers */
     setup_drivers();
@@ -100,15 +101,19 @@ static void init(void)
  *  setup_drivers()
  * 
  *  DESCRIPTION:
- *     Setup the hardware drivers based on the user defined
- *     configurations.    
+ *     Setup the hardware drivers
  * 
  */
 
 static void setup_drivers(void)
 {
+    /* Initialize OS core drivers */
+    usb_core_init();
+
     /* Initialize all of the driver managers */
     hc_sr04_intf_init();
+
+    /* Configured drivers */
 
     #ifdef HW_DRIVER_HC_SR04
     uart_send_string("HC-SR04 Hardware driver(s) configured....\r\n");

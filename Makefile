@@ -1,10 +1,11 @@
-# Default PI version is 3
+# Default PI version is 3 sub-version 1 (3B+)
 RPI_VERSION ?= 3
+RPI_SUB_VERSION ?= 1
 
 # BOOTMNT ?= /media/parallels/boot
 ARMGCC ?= aarch64-elf
 
-COPTNS = -DRPI_VERSION=$(RPI_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -Iinclude/public  -mgeneral-regs-only
+COPTNS = -DRPI_VERSION=$(RPI_VERSION)  -DRPI_SUB_VERSION=$(RPI_SUB_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -Iinclude/public  -mgeneral-regs-only
 
 ASMOPTS = -Iinclude
 
@@ -79,6 +80,20 @@ COPTNS += -I$(HW_DRIVER_HC_SR04_DIR)/include
 else
 endif
 
+#----------------------------------------
+# RPI specific hardware drivers
+#----------------------------------------
+
+ifdef RPI_VERSION
+
+DWC2_DIR = drivers/usb/dwc2
+DWC2_C_FILES := $(wildcard $(DWC2_DIR)/*.c)
+DWC2_OBJ_FILES := $(DWC2_C_FILES:$(DWC2_DIR)/%.c=$(BUILD_DIR)/%_c.o)
+OBJ_FILES += $(DWC2_OBJ_FILES)
+
+else
+endif
+
 # Rule for building C files
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
@@ -114,6 +129,10 @@ $(BUILD_DIR)/%_c.o: $(HW_DRIVER_HC_SR04_DIR)/%.c
 	mkdir -p $(@D)
 	$(ARMGCC)-gcc $(COPTNS) -MMD -c $< -o $@
 
+# Rule for building DWC2 driver C files
+$(BUILD_DIR)/%_c.o: $(DWC2_DIR)/%.c
+	mkdir -p $(@D)
+	$(ARMGCC)-gcc $(COPTNS) -MMD -c $< -o $@
 
 SRC_TOP_DIR := $(SRC_DIR)
 VPATH := $(SRC_TOP_DIR):$(shell find $(SRC_TOP_DIR) -type d)

@@ -5,10 +5,13 @@
  * Copyright 2004-2013 Synopsys, Inc.
  */
 
+#include "peripherals/base.h"
+#include "generic.h"
+
 #ifndef __DWC2_HW_H__
 #define __DWC2_HW_H__
 
-#define HSOTG_REG(x)	(x)
+#define HSOTG_REG(x)	(PBASE + x)
 
 #define GOTGCTL				HSOTG_REG(0x000)
 #define GOTGCTL_CHIRPEN			BIT(27)
