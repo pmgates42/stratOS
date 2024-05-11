@@ -23,11 +23,24 @@
 #include "dwc2.h"
 #include "printf.h"
 
+
 /* Register definitions */
 
 #define REG_CORE_RESET *( ( volatile unsigned char * )GRSTCTL )
 #define SOFT_RESET (0x1 << 0)
 #define SOFT_RESET_TIMEOUT_CYCLES 500
+
+#define REG_GBL_RX_FIFO_SZ *( ( volatile unsigned char * )GRXFSIZ )
+#define RX_FIFO_BUF_SZ ( 12 * 1024 )                /* 12 KB */
+
+#define REG_GBL_NP_TX_FIFO_SZ *( ( volatile unsigned char * )GNPTXFSIZ )
+#define TX_FIFO_BUF_SZ ( 12 * 1024 )                /* 12 KB */
+
+#define REG_HOST_PRDC_TX_FIFO_SZ *( ( volatile unsigned char * )HPTXFSIZ )
+#define HOST_PRDC_TX_FIFO_BUF_SZ ( 12 * 1024 )      /* 12 KB */
+
+#define REG_AHB_CFG *( ( volatile unsigned char * )GAHBCFG )
+
 
 /* static procs */
 
@@ -42,8 +55,7 @@ static boolean do_soft_reset(void);
  * 
  *  - Do a soft reset, i.e,. restart the firmware on the
  *    device.
- *  - Set up Direct Memory Addressing (DMA). This let's
- *    us share RX/TX buffers with the controller.
+ *  - Set up Direct Memory Addressing (DMA).
  *  - Enable USB IRQ.
  *  - 
  * 
@@ -77,4 +89,46 @@ static boolean do_soft_reset(void)
     }
 
     return (cycles < SOFT_RESET_TIMEOUT_CYCLES);
+}
+
+/**
+ * setup_dma
+ * 
+ * @brief set up DMA. Allows controller to access the
+ * buffers directly.
+ * 
+ * @note There are three types of buffers that the USB
+ * controller can use:
+ * 
+ *  - RX buffer
+ *      Contains data recieved by other devices that
+ *      need to be processed.
+ * 
+ *  - Non-periodic TX buffer
+ *      Used to transfer non-periodic data, i.e., bulk
+ *      and control communications
+ * 
+ * - Host periodic TX buffer
+ *      Periodic buffer used for isochronous (stream)
+ *      transfers
+ * 
+ */
+
+static boolean setup_dma(void)
+{
+/* Set the RX buffer size */
+REG_GBL_RX_FIFO_SZ = RX_FIFO_BUF_SZ;
+
+/*  Low 16 bits are from start of FIFO buffer reserved memory.
+ *  High bits are for non-periodic TX buffer size.
+ */
+REG_GBL_NP_TX_FIFO_SZ =  ( TX_FIFO_BUF_SZ << 16 ) | RX_FIFO_BUF_SZ;
+
+/*  Low 16 bits are from start of FIFO buffer reserved memory.
+ *  High bits are for host periodic TX buffer size.
+ */
+REG_HOST_PRDC_TX_FIFO_SZ = ( HOST_PRDC_TX_FIFO_BUF_SZ << 16 ) | ( TX_FIFO_BUF_SZ + RX_FIFO_BUF_SZ );
+
+/* Enable DMA */
+REG_AHB_CFG |= GAHBCFG_DMA_EN;
 }
