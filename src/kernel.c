@@ -76,7 +76,7 @@ static void init(void)
     timer_init();
 
     /* Initialize modules that rely on timers */
-    // sched_init( task_list, 1 );
+    sched_init(task_list, list_cnt(task_list));
 
     /* Enable system IRQs */
     irq_sys_enable();
