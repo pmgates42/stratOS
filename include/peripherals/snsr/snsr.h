@@ -48,7 +48,7 @@ enum
 typedef struct
 {
     snsr_config_t config;   /* Sensor config (NV copy) */
-    boolean registered;     /* Sensor is registered    */
+    boolean registered;     /* Sensor is registered */
     snsr_id_t16 sid;        /* Sensor ID */
 
 } snsr_cb_t;    /* Sensor control block */

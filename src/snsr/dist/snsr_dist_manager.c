@@ -20,7 +20,6 @@ static snsr_err_t8 init_snsr(snsr_cb_t * snsr);
  * 
  *  snsr_dist_manager_init()
  * 
- * 
  *  DESCRIPTION:
  *      Initialize distance sensor manager
  *
@@ -35,7 +34,6 @@ void snsr_dist_manager_init(void)
  * 
  *  snsr_dist_register_snsr()
  * 
- * 
  *  DESCRIPTION:
  *      Register distance sensor
  *
@@ -43,6 +41,10 @@ void snsr_dist_manager_init(void)
 
 snsr_err_t8 snsr_dist_register_snsr(snsr_cb_t * snsr)
 {
+    snsr_err_t8 err;
+
+    snsr->registered = FALSE;
+
     /* input validation */
     if(NULL == snsr )
     {
@@ -51,13 +53,16 @@ snsr_err_t8 snsr_dist_register_snsr(snsr_cb_t * snsr)
  
     if(SNSR_TYPE_DIST != snsr_get_snsr_type(snsr->config.hw_type))
     {
-        snsr->registered = FALSE;
         return SNSR_ERR_INVLD_TYPE;
     }
 
-    init_snsr(snsr);
+    err = init_snsr(snsr);
+    if(SNSR_ERR_NONE != err)
+    {
+        return err;
+    }
+
     snsr->registered = TRUE;
-    
     return SNSR_ERR_NONE;
 
 }
@@ -68,7 +73,7 @@ snsr_err_t8 snsr_dist_register_snsr(snsr_cb_t * snsr)
  * 
  * 
  *  DESCRIPTION:
- *      Initialize a distacne sensor
+ *      Initialize a distance sensor
  *
  */
 
@@ -85,8 +90,7 @@ static snsr_err_t8 init_snsr(snsr_cb_t * snsr)
     {
     /* initialize the HC-SR04 ultrasonic sensor */
     case SNSR_HW_HCSR04:
-        snsr_config_t tmp;
-        hc_sr04_register_snsr(tmp);//todo mem failure here?
+        hc_sr04_register_snsr(snsr->config);
         break;
 
     /* invalid hardware type */

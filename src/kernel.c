@@ -51,11 +51,11 @@ void kernel_main()
     printf("Kernel initialized\n\rExecuting in EL%d\n", get_el());
     printf(STRATOS_VERSION);
 
-    /* Echo Rx'd uart data forever */
     while(1)
     {
-        // uart_send(uart_recv());
-        delay(5000);
+        /* Run some tests */
+        // update();
+        // delay_sec(3);
     }
 }
 
@@ -79,7 +79,7 @@ static void init(void)
     timer_init();
 
     /* Initialize modules that rely on timers */
-    sched_init( task_list, 1 );
+    // sched_init( task_list, 1 );
 
     /* Enable system IRQs */
     irq_sys_enable();
@@ -90,6 +90,13 @@ static void init(void)
     if(SNSR_ERR_NONE != snsr_init())
     {
         printf("\n[error]: Failed to initialize sensor manager\n");
+    }
+
+    while(1)
+    {
+        /* Run some tests */
+        update();
+        delay_ms(1000);
     }
 
     /* Initialize the network interfaces */
@@ -116,10 +123,10 @@ static void setup_drivers(void)
     /* Configured drivers */
 
     #ifdef HW_DRIVER_HC_SR04
-    uart_send_string("HC-SR04 Hardware driver(s) configured....\r\n");
+    printf("\nHC-SR04 Hardware driver(s) configured....\n");
     hc_sr04_intf_reg_intf(hc_sr04_get_reg_intf());
     hc_sr04_init();
-    uart_send_string("Successfully registered the HC-SR04 driver....\r\n");
+    printf("Successfully registered the HC-SR04 driver....\n\n");
     #endif
 
 }

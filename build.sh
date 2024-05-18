@@ -1,1 +1,1 @@
-make BUILD_BCM2XXX=1 RPI_3B_PLUS=1 && cp build/kernel8.img /Volumes/bootfs
+make BUILD_BCM2XXX=1 RPI_3B_PLUS=1 HW_DRIVER_HC_SR04=1 && cp build/kernel8.img /Volumes/bootfs

@@ -18,6 +18,7 @@
 #include "config.h"
 #include "debug.h"
 #include "uart.h"
+#include "printf.h"
 
 
 #define MAX_NUM_SNSR_PER_TYPE  25
@@ -62,7 +63,9 @@ static boolean load_configured_sensors(void);
 
 snsr_err_t8 snsr_init(void)
 {
-    /* ensure the uart is initialized */
+    /* ensure the uart is initialized. This allows us to
+     * use printf while debugging.
+     */
     if(!uart_is_init())
     {
         uart_init();
@@ -70,8 +73,6 @@ snsr_err_t8 snsr_init(void)
 
     /* initialize active sensor lists */
     clr_mem(&active_dst_sensors, sizeof(active_dst_sensors));
-    active_dst_sensors.active_cnt = 0;
-    active_dst_sensors.snsr_count = 0;
 
     /* initialize all the sub-manager modules */
     snsr_dist_manager_init();
@@ -99,11 +100,11 @@ snsr_err_t8 snsr_init(void)
 static boolean load_configured_sensors(void)
 {
     /* Local variables */
-    kernel_config_t kernel_config;
     uint8_t i;
+    uint8_t tmp_idx;
+    kernel_config_t kernel_config;
     snsr_hardware_t8 tmp_hw_type;
     snsr_type_t8 tmp_snsr_type;
-    uint8_t tmp_idx;
 
     /* input validation */
     if(CONFIG_ERR_NONE != config_get_sys_config(&kernel_config) || 
@@ -128,7 +129,7 @@ static boolean load_configured_sensors(void)
             active_dst_sensors.snsr_lst[tmp_idx].config.hw_type = kernel_config.snsr_configs[i].hw_type;
             active_dst_sensors.snsr_lst[tmp_idx].registered = FALSE;
 
-            /* register the sensor with the appropriate sub-manager */
+            /* register the sensor with the distance sensor sub-manager */
             if(SNSR_ERR_NONE == snsr_dist_register_snsr(&active_dst_sensors.snsr_lst[tmp_idx]))
             {
                 active_dst_sensors.active_cnt++;
@@ -137,7 +138,7 @@ static boolean load_configured_sensors(void)
             break;
 
         default:
-            uart_send_string("Invalild sensor configuration\n");
+            printf("Invalild sensor configuration\n");
             break;
         }
     }

@@ -20,7 +20,7 @@
 
 #include "include/bcm2xxx_pvg_gpio.h"
 #include "peripherals/aux.h"
-#include "rpi_common.h"
+#include "cpu_impl.h"
 #include "uart.h"
 
 #define BASE 10
@@ -68,7 +68,7 @@ void uart_init()
     REG_AUX_BASE->mu_mcr = 0x0;
 
     /* Baud rate = (SYSTEM_CLOCK_FREQUENCY / (8 * BAUD_RATE)) - 1; */
-    REG_AUX_BASE->mu_baudrate = 434;
+    REG_AUX_BASE->mu_baudrate = 434; //TODO MU_BUAD_RATE
 
     /* Enable the TX/RX */
     REG_AUX_BASE->mu_control = 0x3;

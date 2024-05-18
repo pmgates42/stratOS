@@ -1,1 +1,1 @@
-screen /dev/tty.usbserial-1410 115200
+screen /dev/tty.usbserial-1420 115200

@@ -83,7 +83,7 @@ void sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
 
 void sched_task(void)
 {
-    debug_toggle_led();
+    // debug_toggle_led();
 }
 
 /**********************************************************

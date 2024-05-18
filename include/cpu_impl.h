@@ -1,6 +1,6 @@
 /**********************************************************
  * 
- *  rpi_common.h
+ *  cpu_impl.h
  * 
  *  DESCRIPTION:
  *      Contains common definitions and interfaces
@@ -32,5 +32,3 @@
     #define MU_BUAD_RATE 270
     #warning "Only the Raspberry Pi 3B+ is supported and tested at this time"
 #endif
-
-#define BAUD_RATE 115200

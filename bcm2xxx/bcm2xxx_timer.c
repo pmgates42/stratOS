@@ -31,6 +31,10 @@
 #define COUNTER_LO     0
 #define COUNTER_HI     1
 
+#define TICKS_PER_USEC 1 /* System timer runs at 1Mhz */
+#define TICKS_PER_MS ( 1000 * TICKS_PER_USEC )
+#define TICKS_PER_SECOND ( 1000 * TICKS_PER_MS ) 
+
 /* Types */
 
 typedef struct
@@ -94,6 +98,50 @@ uint8_t timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ticks)
     *timer_id = 12;
 
     return TIMER_ERR_NONE;
+}
+
+
+/**********************************************************
+ * 
+ *  delay_us
+ * 
+ */
+
+void delay_us(uint32_t us)
+{
+    uint32_t end_val;
+    uint32_t current_val;
+
+    current_val = REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO];
+
+    end_val = current_val + us;
+
+    while( REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO] < end_val )
+        ;
+}
+
+
+/**********************************************************
+ * 
+ *  delay_sec
+ * 
+ */
+
+void delay_sec(uint32_t sec)
+{
+    delay_us( TICKS_PER_SECOND * sec );
+}
+
+
+/**********************************************************
+ * 
+ *  delay_ms
+ * 
+ */
+
+void delay_ms(uint32_t msec)
+{
+    delay_us( TICKS_PER_MS * msec );
 }
 
 
