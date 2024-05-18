@@ -53,9 +53,6 @@ void kernel_main()
 
     while(1)
     {
-        /* Run some tests */
-        // update();
-        // delay_sec(3);
     }
 }
 
@@ -90,13 +87,6 @@ static void init(void)
     if(SNSR_ERR_NONE != snsr_init())
     {
         printf("\n[error]: Failed to initialize sensor manager\n");
-    }
-
-    while(1)
-    {
-        /* Run some tests */
-        update();
-        delay_ms(1000);
     }
 
     /* Initialize the network interfaces */
