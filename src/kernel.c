@@ -48,12 +48,17 @@ void kernel_main()
 {
     init();
 
-    printf("Kernel initialized\n\rExecuting in EL%d\n", get_el());
-    printf(STRATOS_VERSION);
+    printf("\nKernel initialized\n\rExecuting in EL%d\n", get_el());
+    printf("Version %d", STRATOS_VERSION);
 
-    while(1)
-    {
-    }
+    /* Call the main scheduler function */
+    sched_main();
+
+    /* If for whatever reason the scheduler gives control
+     * back to us, just loop forever.
+     */
+    while(1)//TODO CPU optimizations, e.g., wait for interrupt?
+        ;
 }
 
 static void tty_task(void)
@@ -75,6 +80,7 @@ static void init(void)
     irq_init();
     timer_init();
 
+    // TODO move this to bottom of this function?
     /* Initialize modules that rely on timers */
     sched_init(task_list, list_cnt(task_list));
 
@@ -86,7 +92,7 @@ static void init(void)
 
     if(SNSR_ERR_NONE != snsr_init())
     {
-        printf("\n[error]: Failed to initialize sensor manager\n");
+        printf("\nFailed to initialize sensor manager\n");
     }
 
     /* Initialize the network interfaces */
@@ -118,5 +124,4 @@ static void setup_drivers(void)
     hc_sr04_init();
     printf("Successfully registered the HC-SR04 driver....\n\n");
     #endif
-
 }
