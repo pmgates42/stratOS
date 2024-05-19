@@ -11,7 +11,7 @@
 #ifndef __DWC2_HW_H__
 #define __DWC2_HW_H__
 
-#define HSOTG_REG(x)	(PBASE + x)
+#define HSOTG_REG(x)	( ( PBASE  + 0x980000 ) + x )
 
 #define GOTGCTL				HSOTG_REG(0x000)
 #define GOTGCTL_CHIRPEN			BIT(27)

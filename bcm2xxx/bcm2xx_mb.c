@@ -68,6 +68,6 @@ void bcm2xxx_power_on(bcm2xxx_power_on_t type)
         REG_MB->write_byt = ( current_mb_val & ~( 0x0F ) ) | POWER_CHNL;
     }
 
-    printf("Successful power on of component %d", type);
+    printf("\nSuccessful power on of component %d", type);
 }
 
