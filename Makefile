@@ -62,6 +62,7 @@ SCHED_ASM_FILES := $(wildcard $(SCHED_DIR)/*.S)
 SCHED_OBJ_FILES := $(SCHED_C_FILES:$(SCHED_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(SCHED_ASM_FILES:$(SCHED_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(SCHED_OBJ_FILES)
 COPTNS += -I$(SCHED_DIR)/include
+COPTNS += -DSSCHED_SHOW_DEBUG_DATA
 
 #----------------------------------------
 # Hardware driver configurations
@@ -90,6 +91,9 @@ DWC2_DIR = drivers/usb/dwc2
 DWC2_C_FILES := $(wildcard $(DWC2_DIR)/*.c)
 DWC2_OBJ_FILES := $(DWC2_C_FILES:$(DWC2_DIR)/%.c=$(BUILD_DIR)/%_c.o)
 OBJ_FILES += $(DWC2_OBJ_FILES)
+
+# Show debug data by default
+COPTNS += -DDWC2_SHOW_DEBUG_DATA
 
 else
 endif

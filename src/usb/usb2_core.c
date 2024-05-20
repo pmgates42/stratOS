@@ -27,7 +27,7 @@ usb_err_t usb_core_init(void)
 if( FALSE == cpu_power_on_usb()
 || FALSE == usb_hcd_init() )
 {
-    return USB_ERR_HW;
+    return USB_ERR_INVLD_STATE;
 }
 
 return USB_ERR_NONE;

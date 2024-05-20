@@ -18,8 +18,10 @@ typedef uint8_t usb_err_t;
 enum
 {
     USB_ERR_NONE,               /* No error */
-    USB_ERR_HW,                 /* Hardware level error */
     USB_ERR_CORE_FAULT,         /* Core fault error */
+    USB_ERR_MEM,                /* Memory error */
+    USB_ERR_INVLD_STATE,        /* Invalid state */
+    USB_ERR_INVLD_CNFG,         /* Invalid configuration */
 };
 
 usb_err_t usb_core_init(void);

@@ -32,7 +32,7 @@ return TRUE;
  */
 boolean cpu_init(void)
 {
-bcm2xxx_mb_init();
+// bcm2xxx_mb_init();
 
 return TRUE;
 }

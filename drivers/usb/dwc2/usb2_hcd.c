@@ -49,6 +49,8 @@
 #define EN_HOST_PORT_INTR ( 0x1 << 25 )
 #define EN_AHB_INTR ( 0x1  << 0 )
 
+#define REG_VENDOR_ID *( ( volatile uint32_t * )GSNPSID )
+
 /* static procs */
 
 static boolean do_soft_reset(void);
@@ -66,25 +68,44 @@ static boolean setup_intr(void);
  *    device.
  *  - Set up Direct Memory Addressing (DMA).
  *  - Enable USB IRQ.
- *  - 
  * 
  * @return usb_err_t 
  */
 
 usb_err_t usb_hcd_init(void)
 {
+    /* Verify vendor id */
+    if(REG_VENDOR_ID != 0x4F54280A)
+    {
+        /* We are using this driver with the improper
+         * hardware or there is an invalid peripheral base
+         * address. In any case, something has gone wrong
+         * with the system configuration */
+        #ifdef DWC2_SHOW_DEBUG_DATA
+            printf("Invalid vendor id! Expected 0x4F54280A, got %d", REG_VENDOR_ID);
+        #endif
+        return USB_ERR_INVLD_CNFG;
+    }
+
+    /* print vendor id */
+    printf("DWC2 Vendor id %d", REG_VENDOR_ID);
+
     if(!do_soft_reset())
     {
-        printf("\nFailed to reset DWC2\n");
-        return USB_ERR_HW;
+        #ifdef DWC2_SHOW_DEBUG_DATA
+            printf("\nFailed to reset DWC2\n");
+        #endif
+        return USB_ERR_INVLD_STATE;
     }
 
     setup_dma();
 
     if(!setup_intr())
     {
-        printf("\nFailed to set up interrupts DWC2\n");
-        return USB_ERR_HW;
+        #ifdef DWC2_SHOW_DEBUG_DATA
+            printf("\nFailed to set up interrupts DWC2\n");
+        #endif
+        return USB_ERR_INVLD_STATE;
     }
 
     return USB_ERR_NONE;
