@@ -2,9 +2,8 @@
  * 
  *  kernel.c
  * 
- * 
  *  DESCRIPTION:
- *      Main kernel driver
+ *      Kernel boot procedures
  *
  */
 
@@ -55,8 +54,7 @@ void kernel_main()
     sched_main();
 
     /* If for whatever reason the scheduler gives control
-     * back to us, just loop forever.
-     */
+     * back to us, just loop forever. */
     while(1)//TODO CPU optimizations, e.g., wait for interrupt?
         ;
 }
@@ -66,7 +64,8 @@ static void tty_task(void)
     /* echo back user input */
     while(1)
     {
-        uart_send('G');
+        debug_toggle_led();
+        // uart_send(uart_recv());
     }
 }
 

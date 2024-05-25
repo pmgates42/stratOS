@@ -48,6 +48,8 @@
     #warning Configuration SSCHED_SCHED_TICK_US not set, using default value of 1000uS.
 #endif
 
+#define SCHED_INIT_KEY 0x78DEF087
+
 /* Types */
 
 typedef struct
@@ -111,6 +113,7 @@ static timer_id_t8 sched_timer_id;
 static uint64_t system_tick;
 static sched_task_id_t task_id_count;
 static scheduler_state_t scheduler_state;
+static int sched_init_key;
 
 /* Forward declares */
 
@@ -134,6 +137,15 @@ static boolean find_available_task_index(uint8_t *index);
 
 void sched_main(void)
 {
+    /* Ensure scheduler was initialized */
+    if(sched_init != SCHED_INIT_KEY)
+    {
+        return;
+        #ifdef SSCHED_SHOW_DEBUG_DATA
+            printf("\nScheduler was not initialized!");
+        #endif
+    }
+
     is_sched_running = TRUE;
 
     while(TRUE)
@@ -176,6 +188,7 @@ sched_err_t sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
     uint8_t i;
 
     /* initialize the control variables */
+    sched_init_key = SCHED_INIT_KEY;
     is_sched_running = FALSE;
     task_id_count = 0;
     system_tick = 0;
