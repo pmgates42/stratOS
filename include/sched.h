@@ -80,7 +80,7 @@ sched_err_t sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks);
  *
  */
 
-sched_err_t sched_register_task(sched_usr_tsk_t task);
+sched_err_t sched_register_task(sched_usr_tsk_t * task);
 
 /**********************************************************
  *

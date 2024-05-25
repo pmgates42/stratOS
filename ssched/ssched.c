@@ -43,7 +43,7 @@
  * but generally, a value of 1ms or larger is recommended.
  *
  */
-#ifdef SSCHED_SCHED_TICK_US
+#ifndef SSCHED_SCHED_TICK_US
 #define SSCHED_SCHED_TICK_US 1000
     #warning Configuration SSCHED_SCHED_TICK_US not set, using default value of 1000uS.
 #endif
@@ -110,14 +110,12 @@ static boolean is_sched_running;
 static timer_id_t8 sched_timer_id;
 static uint64_t system_tick;
 static sched_task_id_t task_id_count;
-static uint8_t insert_task_index;
 static scheduler_state_t scheduler_state;
 
 /* Forward declares */
 
 static void sched_task(void);
-static void kick_off_sched(void);
-static void register_new_task(sched_usr_tsk_t *task);
+static boolean register_new_task(sched_usr_tsk_t *task);
 static boolean find_available_task_index(uint8_t *index);
 
 /**********************************************************
@@ -229,13 +227,13 @@ sched_err_t sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
  *
  */
 
-sched_err_t sched_register_task(sched_usr_tsk_t task)
+sched_err_t sched_register_task(sched_usr_tsk_t * task)
 {
     if(register_new_task(task))
     {
         return SCHED_ERR_FAILED_REG;
     }
-    return SCHED_ERR_NO_ERR:
+    return SCHED_ERR_NO_ERR;
 }
 
 /**********************************************************
@@ -254,7 +252,7 @@ sched_err_t sched_register_task(sched_usr_tsk_t task)
  *
  */
 
-static boolean register_new_task(sched_usr_tsk_t *task)
+static boolean register_new_task(sched_usr_tsk_t * task)
 {
     uint8_t index;
 
@@ -341,8 +339,6 @@ static boolean find_available_task_index(uint8_t *index)
 
 static void sched_task(void)
 {
-    uint8_t i;
-
     /* Check for system tick roll over */
     if((system_tick + 1) == 0)
         // TODO handle system tick roll over
@@ -371,7 +367,7 @@ static void sched_task(void)
  *      and false otherwise.
  *
  */
-static void sched_kill_task(sched_task_id_t task_id)
+sched_err_t sched_kill_task(sched_task_id_t task_id)
 {
     uint8_t index;
 
