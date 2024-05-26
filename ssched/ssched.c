@@ -48,21 +48,29 @@
     #warning Configuration SSCHED_SCHED_TICK_US not set, using default value of 1000uS.
 #endif
 
+#define US_PER_MS 1000
+#define MS_PER_TICKS ( SSCHED_SCHED_TICK_US / US_PER_MS )
 #define SCHED_INIT_KEY 0x78DEF087
 
 /* Types */
 
-typedef struct
+typedef struct task_cb_t_struc
     {
-    boolean           alive;    /* Task is not killed */
-    boolean           active    /* Task is actively running on the scheduler */;
-    sched_usr_tsk_t   usr_tsk;  /* User task ptr */
+    boolean                  alive;        /* Task is not killed */
+    boolean                  active        /* Task is actively running on the scheduler */;
+    boolean                  scheduled;    /* Task has been scheduled */
+    sched_usr_tsk_t          usr_tsk;      /* User task ptr */
+    uint64_t                 active_tick;  /* Tick when task became active */
+    struct task_cb_t_struc * next_task;    /* Next task to run */
     } task_cb_t;
 
 typedef uint8_t scheduler_state_t;
 enum
 {
-    IDLE,
+    IDLE,               /* Scheduler is idle */
+    TASK_OVERRUN,       /* Hnadle a task overrun */
+    EXECUTE_TASK,       /* Execute the task head */
+    QUEUE_TASKS,        /* Queue up tasks */
 };
 
 /**********************************************************
@@ -107,19 +115,22 @@ enum
  *          State that the scheduler is in.
  */
 
+static int sched_init_key;
 static task_cb_t system_task_list[ SSCHED_TSK_MAX ];
 static boolean is_sched_running;
 static timer_id_t8 sched_timer_id;
 static uint64_t system_tick;
 static sched_task_id_t task_id_count;
 static scheduler_state_t scheduler_state;
-static int sched_init_key;
+static task_cb_t * task_head;
 
 /* Forward declares */
 
 static void sched_task(void);
 static boolean register_new_task(sched_usr_tsk_t *task);
 static boolean find_available_task_index(uint8_t *index);
+static void call_task_proc(task_cb_t * task);
+static void queue_tasks(void);
 
 /**********************************************************
  *
@@ -137,9 +148,13 @@ static boolean find_available_task_index(uint8_t *index);
 
 void sched_main(void)
 {
+    /* Local vars */
+    uint8_t i;
+
     /* Ensure scheduler was initialized */
     if(sched_init != SCHED_INIT_KEY)
     {
+        is_sched_running = FALSE;
         return;
         #ifdef SSCHED_SHOW_DEBUG_DATA
             printf("\nScheduler was not initialized!");
@@ -150,11 +165,45 @@ void sched_main(void)
 
     while(TRUE)
     {
+
+        //TODO not sure if this is the best place for dealing with this case, however it does
+        //TODO make the scheduler interface a bit easier to use because the kernel can
+        //TODO give control to the scheduler and then the first task can be registered at
+        //TODO any time after.
+        if(task_head == NULL)
+        {
+            /* Find the first available task in the active list
+               and scheduler it */
+            for(i = 0; i < SSCHED_TSK_MAX; i++)
+            {
+                if(system_task_list[i].active)
+                {
+                task_head = &system_task_list[i];
+                }
+            }
+        }
+
+        /* Main scheduler state machine */
         switch(scheduler_state)
         {
             /* Idle state, don't do anything */
             case IDLE:
-            break;
+                break;
+
+            /* Handle task overruns */
+            case TASK_OVERRUN:
+                scheduler_state = IDLE;
+                break;
+
+            /* Execute a queued task */
+            case EXECUTE_TASK:
+                call_task_proc(task_head);
+                break;
+
+            /* Perform task queuing */
+            case QUEUE_TASKS:
+                queue_tasks();
+                break;
 
             /* Invalid state. Log a debug message once */
             default:
@@ -166,7 +215,7 @@ void sched_main(void)
                     invalid_state_message_shown = TRUE;
                 }
             #endif
-            break;
+                break;
         }
     }
 }
@@ -193,6 +242,7 @@ sched_err_t sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
     task_id_count = 0;
     system_tick = 0;
     scheduler_state = IDLE;
+    task_head = NULL;
     clr_mem(system_task_list, sizeof(system_task_list));
 
     /* make sure uart is initialized so we can debug print */
@@ -289,7 +339,6 @@ static boolean register_new_task(sched_usr_tsk_t * task)
      * to be put back on the scheduler.
      */
     system_task_list[index].alive = TRUE;
-    system_task_list[index].active = TRUE;
     system_task_list[index].usr_tsk = *task;
     task->id = task_id_count;
 
@@ -352,6 +401,11 @@ static boolean find_available_task_index(uint8_t *index)
 
 static void sched_task(void)
 {
+    #define DETECT_OVERRUN(tsk) ( tsk->usr_tsk.period_ms < ( ( system_tick - tsk->active_tick ) * MS_PER_TICKS ) )
+
+    /* Local vars */
+    uint64_t task_active_ms;
+
     /* Check for system tick roll over */
     if((system_tick + 1) == 0)
         // TODO handle system tick roll over
@@ -359,12 +413,126 @@ static void sched_task(void)
 
     system_tick++;
 
-    if(!is_sched_running)
+    /* Task is not ready to be scheduled */
+    if(!is_sched_running || task_head == NULL)
     {
         return;
     }
 
-    /* determine if we should execute a new task */
+    /* Allow active task to continue to run */
+    if(TRUE == task_head->active)
+    {
+        if(DETECT_OVERRUN(task_head))
+        {
+        #ifdef SSCHED_SHOW_DEBUG_DATA
+            printf("\nTask %d did an overrun");
+        #endif
+        scheduler_state = TASK_OVERRUN;
+        }
+        return;
+    }
+
+    /* No active task means we may want to execute a task */
+    else
+    {
+        /* If there is a next task queued up, run that immediately */
+        task_head = task_head->next_task;
+    }
+}
+
+/**********************************************************
+ *
+ *  call_task_proc()
+ *
+ *
+ *  DESCRIPTION:
+ *      Call the task procedure and update control vars.
+ *
+ */
+
+static void call_task_proc(task_cb_t * task)
+{
+    if( task != NULL  && task->usr_tsk.task_func )
+    {
+        task->active_tick = system_tick;
+        task->usr_tsk.task_func();
+    }
+
+    task->active = FALSE;
+}
+
+/**********************************************************
+ *
+ *  call_task_proc()
+ *
+ *
+ *  DESCRIPTION:
+ *      Queue tasks. This should be performed during down
+ *      time. Or if there are no more queued tasks.
+ *
+ *  NOTES:
+ *      Function assumes that task peroid is less than the
+ *      max value of a signed integer.
+ *
+ *      TODO handle system_tick roll over
+ *
+ */
+
+static void queue_tasks(void)
+{
+    uint8_t     i;
+    uint32_t    period_ms;         /* Task period in ms */
+    uint32_t    last_ran_ms;       /* Last run of task in ms */
+    sint32_t    next_exe_ms;       /* Next time of execution */
+    sint32_t    sml_next_exe_ms;   /* Smallest time of next execution */
+    sint32_t    next_tsk_idx;      /* Index of next task to run */
+    task_cb_t * task_ptr;          /* Pointer to task cb */
+
+    sml_next_exe_ms = ~( 0 );
+
+    /* Find the active task that will need to be ran the
+    the soonest */
+    for(i = 0; i < SSCHED_TSK_MAX; i++)
+    {
+        if( system_task_list[i].scheduled == TRUE || system_task_list->alive == FALSE )
+            continue;
+
+        period_ms = system_task_list[i].usr_tsk.period_ms;
+        last_ran_ms = system_task_list[i].active_tick * MS_PER_TICKS;
+
+        next_exe_ms = ( sint32_t )period_ms - ( sint32_t )( system_tick - last_ran_ms );
+
+        if( next_exe_ms < sml_next_exe_ms)
+        {
+            sml_next_exe_ms = next_exe_ms;
+            next_tsk_idx = i;
+        }
+    }
+
+    /* Determine if the next task is ready to be ran */
+    if( sml_next_exe_ms <= 0 )
+    {
+        if( task_head != NULL )
+        {
+            /* Find the end of the task list and insert task */
+            //TODO
+            task_ptr = task_head;
+            while( task_ptr->next_task != NULL )
+            {
+                task_ptr = task_head->next_task;
+            }
+
+            task_ptr->next_task = &system_task_list[next_tsk_idx];
+            task_ptr->next_task->scheduled = TRUE;
+        }
+        /* task_head is NULL (less common case) */
+        else
+        {
+            task_head = &system_task_list[next_tsk_idx];
+            task_head->scheduled = TRUE;
+        }
+
+    }
 }
 
 /**********************************************************
@@ -380,6 +548,7 @@ static void sched_task(void)
  *      and false otherwise.
  *
  */
+
 sched_err_t sched_kill_task(sched_task_id_t task_id)
 {
     uint8_t index;
