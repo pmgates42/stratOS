@@ -150,11 +150,8 @@ static void queue_tasks(void);
 
 void sched_main(void)
 {
-    /* Local vars */
-    uint8_t i;
-
     /* Ensure scheduler was initialized */
-    if(sched_init != SCHED_INIT_KEY)
+    if(sched_init_key != SCHED_INIT_KEY)
     {
         is_sched_running = FALSE;
         return;
@@ -303,8 +300,6 @@ sched_err_t sched_register_task(sched_usr_tsk_t * task)
 
 static boolean register_new_task(sched_usr_tsk_t * task)
 {
-    uint8_t index;
-
     if(NULL == task || task_id_count < SSCHED_TSK_MAX_REGISTERED)
     {
         #ifdef SSCHED_SHOW_DEBUG_DATA
@@ -326,11 +321,6 @@ static boolean register_new_task(sched_usr_tsk_t * task)
     task_id_count++;
 
     return TRUE;
-}
-
-static boolean alive_task(sched_usr_tsk_t * task)
-{
-
 }
 
 /**********************************************************
@@ -388,9 +378,6 @@ static boolean find_available_task_index(uint8_t *index)
 static void sched_task(void)
 {
     #define DETECT_OVERRUN(tsk) ( tsk->usr_tsk.period_ms < ( ( system_tick - tsk->active_tick ) * MS_PER_TICKS ) )
-
-    /* Local vars */
-    uint64_t task_active_ms;
 
     /* Check for system tick roll over */
     if((system_tick + 1) == 0)
@@ -548,9 +535,24 @@ sched_err_t sched_kill_task(sched_task_id_t task_id)
             system_task_list[index].active = FALSE;
             system_task_list[index].alive = FALSE;
 
-            return TRUE;
+            return SCHED_ERR_NO_ERR;
         }
    }
 
-    return FALSE;
+    return SCHED_ERR_FAILED_UPDATE;
+}
+
+/**********************************************************
+ *
+ *  sched_alive_task()
+ *
+ *
+ *  DESCRIPTION:
+ *      Contracted scheduler function.
+ *
+ */
+
+sched_err_t sched_alive_task(sched_task_id_t task_id)
+{
+    return SCHED_ERR_FAILED_UPDATE;
 }

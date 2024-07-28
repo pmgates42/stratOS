@@ -54,6 +54,7 @@ typedef uint8_t sched_err_t;
 enum
 {
     SCHED_ERR_NO_ERR,           /* No error */
+    SCHED_ERR_FAILED_UPDATE,    /* Failed to update task */
     SCHED_ERR_FAILED_REG,       /* Failed to register task */
     SCHED_ERR_PARAM,            /* Invalid parameters */
     SCHED_ERR_INVLD_STATE,      /* Scheduler is in an invalid state */
@@ -99,6 +100,18 @@ sched_err_t sched_register_task(sched_usr_tsk_t * task);
  */
 
 sched_err_t sched_kill_task(sched_task_id_t task_id);
+
+/**********************************************************
+ *
+ *  sched_kill_task()
+ *
+ *  DESCRIPTION:
+ *      alive a task.
+ *
+ */
+
+sched_err_t sched_alive_task(sched_task_id_t task_id);
+
 
 /**********************************************************
  *
