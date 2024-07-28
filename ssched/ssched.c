@@ -318,6 +318,8 @@ static boolean register_new_task(sched_usr_tsk_t * task)
     /*
      * At some point in the future the task id should be
      * calculated using a perfect hashing function.
+     * 
+     * https://github.com/pmgates42/stratOS/issues/1
      */
     task->id = task_id_count;
 
