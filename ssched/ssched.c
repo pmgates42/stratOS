@@ -165,25 +165,7 @@ void sched_main(void)
 
     while(TRUE)
     {
-
-        //TODO not sure if this is the best place for dealing with this case, however it does
-        //TODO make the scheduler interface a bit easier to use because the kernel can
-        //TODO give control to the scheduler and then the first task can be registered at
-        //TODO any time after.
-        if(task_head == NULL)
-        {
-            /* Find the first available task in the active list
-               and scheduler it */
-            for(i = 0; i < SSCHED_TSK_MAX; i++)
-            {
-                if(system_task_list[i].active)
-                {
-                task_head = &system_task_list[i];
-                }
-            }
-        }
-
-        /* Main scheduler state machine */
+        /* Scheduler state machine */
         switch(scheduler_state)
         {
             /* Idle state, don't do anything */
@@ -198,11 +180,13 @@ void sched_main(void)
             /* Execute a queued task */
             case EXECUTE_TASK:
                 call_task_proc(task_head);
+                scheduler_state = IDLE;
                 break;
 
             /* Perform task queuing */
             case QUEUE_TASKS:
                 queue_tasks();
+                scheduler_state = IDLE;
                 break;
 
             /* Invalid state. Log a debug message once */
@@ -255,7 +239,7 @@ sched_err_t sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
     if( num_tasks > 0 && NULL == tasks )
     {
         #ifdef SSCHED_SHOW_DEBUG_DATA
-            printf("\nInvalid parameters passed to scheduler");
+            printf("\nInitializing scheduler with zero tasks");
         #endif
 
         return SCHED_ERR_PARAM;
@@ -311,7 +295,7 @@ sched_err_t sched_register_task(sched_usr_tsk_t * task)
  *      TODO
  *
  *      At the moment there is no distinction between
- *      user tasks and a kernel task.
+ *      user tasks and kernel tasks.
  *
  */
 
@@ -345,6 +329,11 @@ static boolean register_new_task(sched_usr_tsk_t * task)
     task_id_count++;
 
     return TRUE;
+}
+
+static boolean alive_task(sched_usr_tsk_t * task)
+{
+
 }
 
 /**********************************************************
@@ -413,13 +402,14 @@ static void sched_task(void)
 
     system_tick++;
 
-    /* Task is not ready to be scheduled */
+    /* Scheduler is not running or no task has been scheduled */
     if(!is_sched_running || task_head == NULL)
     {
         return;
     }
 
-    /* Allow active task to continue to run */
+    /* Allow active task to continue to run. Check for task 
+       overruns */
     if(TRUE == task_head->active)
     {
         if(DETECT_OVERRUN(task_head))
@@ -432,12 +422,8 @@ static void sched_task(void)
         return;
     }
 
-    /* No active task means we may want to execute a task */
-    else
-    {
-        /* If there is a next task queued up, run that immediately */
-        task_head = task_head->next_task;
-    }
+    /* Queue tasks as needed */
+    scheduler_state = QUEUE_TASKS;
 }
 
 /**********************************************************
@@ -459,6 +445,10 @@ static void call_task_proc(task_cb_t * task)
     }
 
     task->active = FALSE;
+
+    /* Task can only exist once in the task scheduling chain */
+    task->scheduled = FALSE;
+
 }
 
 /**********************************************************
@@ -467,11 +457,11 @@ static void call_task_proc(task_cb_t * task)
  *
  *
  *  DESCRIPTION:
- *      Queue tasks. This should be performed during down
- *      time. Or if there are no more queued tasks.
+ *      Queue tasks to be ran on the scheduler. This is where
+ *      the scheduler sausage is made.
  *
  *  NOTES:
- *      Function assumes that task peroid is less than the
+ *      Function assumes that the task peroid is less than the
  *      max value of a signed integer.
  *
  *      TODO handle system_tick roll over
@@ -515,7 +505,6 @@ static void queue_tasks(void)
         if( task_head != NULL )
         {
             /* Find the end of the task list and insert task */
-            //TODO
             task_ptr = task_head;
             while( task_ptr->next_task != NULL )
             {
@@ -531,7 +520,6 @@ static void queue_tasks(void)
             task_head = &system_task_list[next_tsk_idx];
             task_head->scheduled = TRUE;
         }
-
     }
 }
 
