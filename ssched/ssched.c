@@ -32,6 +32,16 @@
 #endif
 
 /**
+ * max amount of tasks that can be registered in the system task list.
+ * Arbitrarily set to 2X the allowed active tasks, may change later.
+ * 
+ * It may also be useful to have a configuration for this for boards
+ * that are more memory conscious.
+ * 
+ */
+#define SSCHED_TSK_MAX_REGISTERED ( SSCHED_TSK_MAX * 2 )
+
+/**
  * $config: SSCHED_SCHED_TICK_US. Microseconds per scheduler "tick",
  * i.e., how often the scheduler will run. It is probably best to
  * set this to a value that is in line with the same order of
@@ -78,15 +88,7 @@ enum
  *
  *      system_task_list
  *
- *          TODO this list is serving two purposes at the moment. It
- *          TODO serves as a list of all tasks that are registered
- *          TODO and also as the active task list. Eventually the idea
- *          TODO is to have multiple lists that all point to a main
- *          TODO list, e.g., an active list, a waiting list, etc.
- *
- *          List of all tasks that are currently active. Active means
- *          the task is being scheduled. Tasks that are asleep, waiting
- *          for a lock, etc. are NOT active.
+ *          List of all registered tasks.
  *
  *      is_sched_running
  *
@@ -116,11 +118,11 @@ enum
  */
 
 static int sched_init_key;
-static task_cb_t system_task_list[ SSCHED_TSK_MAX ];
+static task_cb_t system_task_list[ SSCHED_TSK_MAX_REGISTERED ];
 static boolean is_sched_running;
 static timer_id_t8 sched_timer_id;
 static uint64_t system_tick;
-static sched_task_id_t task_id_count;
+static uint32_t task_id_count;
 static scheduler_state_t scheduler_state;
 static task_cb_t * task_head;
 
@@ -303,12 +305,7 @@ static boolean register_new_task(sched_usr_tsk_t * task)
 {
     uint8_t index;
 
-    if(NULL == task)
-    {
-        return FALSE;
-    }
-
-    if(FALSE == find_available_task_index(&index))
+    if(NULL == task || task_id_count < SSCHED_TSK_MAX_REGISTERED)
     {
         #ifdef SSCHED_SHOW_DEBUG_DATA
             printf("\nFailed to register task!");
@@ -316,14 +313,12 @@ static boolean register_new_task(sched_usr_tsk_t * task)
         return FALSE;
     }
 
-    /* Insert the new task into the active scheduler list.
-     * There is a posibility that we are overwriting an
-     * inactive task here. The assumption is that this task
-     * has either been killed or is on another list waiting
-     * to be put back on the scheduler.
+    system_task_list[task_id_count].usr_tsk = *task;
+
+    /*
+     * At some point in the future the task id should be
+     * calculated using a perfect hashing function.
      */
-    system_task_list[index].alive = TRUE;
-    system_task_list[index].usr_tsk = *task;
     task->id = task_id_count;
 
     task_id_count++;
@@ -362,7 +357,7 @@ static boolean find_available_task_index(uint8_t *index)
 
     for(i = 0; i < SSCHED_TSK_MAX; i++)
     {
-        if( FALSE == system_task_list[i].active)
+        if( FALSE == system_task_list[i].active) //TODO no longer using system_task_list as the alive task list
         {
             *index = i;
             return TRUE;

@@ -32,7 +32,14 @@ typedef uint32_t sched_task_id_t;
  *
  *  id
  *
- *      Task ID. Set by scheduler.
+ *      Task ID. Set by scheduler. 
+ *
+ *      IMPORTANT:
+ *      Early versions of this scheduler will step the task id
+ *      at an incremement of 1 starting from 0. It is NOT safe
+ *      to assume that this will always be the case. The user
+ *      should assume that the task id value itself has no use
+ *      other than to interface with the simple scheduler.
  *
  */
 
