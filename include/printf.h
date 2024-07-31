@@ -1,3 +1,4 @@
+#ifdef EMBEDDED_BUILD
 /*
 File: printf.h
 
@@ -104,3 +105,4 @@ void tfp_format(void* putp,void (*putf) (void*,char),char *fmt, va_list va);
 #define sprintf tfp_sprintf
 
 #endif
+#endif 			/* EMBEDDED_BUILD */

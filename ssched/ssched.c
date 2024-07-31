@@ -12,12 +12,16 @@
  *      messages.
  *
  */
+#ifdef EMBEDDED_BUILD
+#include "printf.h"
+#else
+#include <stdio.h>
+#endif
 
 #include "sched.h"
 #include "generic.h"
 #include "uart.h"
 #include "peripherals/timer.h"
-#include "printf.h"
 #include "debug.h"
 
 /**

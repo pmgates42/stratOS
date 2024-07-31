@@ -40,4 +40,6 @@ typedef void ( *void_func_t )( void );
 
 #define list_cnt(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+#ifdef EMBEDDED_BUILD
 void memcpy(void *dest, const void *src, size_t n);
+#endif

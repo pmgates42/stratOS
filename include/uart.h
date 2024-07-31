@@ -16,4 +16,7 @@ void uart_send_uint32(uint32_t n);
 uint8_t uart_recv(void);
 void uart_send_string(char *str);
 boolean uart_is_init(void);
+
+#ifdef EMBEDDED_BUILD
 void putc(void *p, char c);
+#endif

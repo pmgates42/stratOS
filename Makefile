@@ -5,7 +5,7 @@ RPI_SUB_VERSION ?= 1
 # BOOTMNT ?= /media/parallels/boot
 ARMGCC ?= aarch64-elf
 
-COPTNS = -DRPI_VERSION=$(RPI_VERSION)  -DRPI_SUB_VERSION=$(RPI_SUB_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -Iinclude/public  -mgeneral-regs-only
+COPTNS = -DEMBEDDED_BUILD=1 -DRPI_VERSION=$(RPI_VERSION)  -DRPI_SUB_VERSION=$(RPI_SUB_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -Iinclude/public  -mgeneral-regs-only
 
 ASMOPTS = -Iinclude
 
