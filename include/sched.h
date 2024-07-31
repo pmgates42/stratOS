@@ -103,14 +103,15 @@ sched_err_t sched_kill_task(sched_task_id_t task_id);
 
 /**********************************************************
  *
- *  sched_kill_task()
+ *  sched_activate_task()
  *
  *  DESCRIPTION:
- *      alive a task.
+ *      activate a task, i.e., allow it to be ran on the
+ *      scheduler.
  *
  */
 
-sched_err_t sched_alive_task(sched_task_id_t task_id);
+sched_err_t sched_activate_task(sched_task_id_t task_id);
 
 
 /**********************************************************
