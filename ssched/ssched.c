@@ -23,6 +23,7 @@
 #include "uart.h"
 #include "peripherals/timer.h"
 #include "debug.h"
+#include "ssched.h"
 
 /**
  * $config: SSCHED_TSK_MAX. Maximum number of tasks allowed to be ran on the
@@ -166,6 +167,10 @@ enum
  *      scheduler_state
  *
  *          State that the scheduler is in.
+ *
+ *      registered_tasks
+ *
+ *          Count of registered tasks
  */
 
 static int sched_init_key;
@@ -177,6 +182,7 @@ static uint64_t system_tick;
 static uint32_t task_id_count;
 static scheduler_state_t scheduler_state;
 static task_cb_t * task_head;
+static uint32_t registered_tasks;
 
 /* Forward declares */
 
@@ -215,7 +221,7 @@ void sched_main(void)
 
     is_sched_running = FALSE;
 
-    // while(TRUE)
+    while(TRUE)
     {
         /* Scheduler state machine */
         switch(scheduler_state)
@@ -273,6 +279,7 @@ sched_err_t sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
     is_sched_running = FALSE;
     task_id_count = 0;
     system_tick = 0;
+    registered_tasks = 0;
     task_head = NULL;
     scheduler_is_booting = TRUE;
     clr_mem(system_task_list, sizeof(system_task_list));
@@ -376,6 +383,7 @@ static boolean register_new_task(sched_usr_tsk_t * task)
     task->id = task_id_count;
 
     task_id_count++;
+    registered_tasks++;
 
     return TRUE;
 }
@@ -420,11 +428,11 @@ static void schedule_isr(void)
     /* Scheduler is booted and current task has finished running */
     if( (!scheduler_is_booting) && task_head != NULL && task_head->scheduled == FALSE )
     {
-        //TODO handle start up conditions
         /* See if any tasks are ready to run */
-        for(i = 0; i < SSCHED_TSK_MAX_REGISTERED; i++)
+        for(i = 0; i < registered_tasks; i++)
         {
-            if( system_tick >= ( system_task_list[i].active_tick + system_task_list[i].usr_tsk->period_ms ) )
+            if( system_task_list[i].usr_tsk != NULL
+            &&( system_tick >= ( system_task_list[i].active_tick + system_task_list[i].usr_tsk->period_ms ) ) )
             {
                 setup_task_to_run( &system_task_list[i] );
             }
@@ -506,9 +514,6 @@ static void call_task_proc(task_cb_t * task)
             printf("Invalid state! Only scheduled tasks should be executed!");
     #endif
 
-    printf("Executing task %d usr_task_function=%d\n\n,", scheduler_state, task->usr_tsk->task_func);
-
-
         task->usr_tsk->task_func();//TODO pass in flags
     }
     /* Theoritially should never execute */
@@ -522,6 +527,10 @@ static void call_task_proc(task_cb_t * task)
     /* Task has finished running */
     task->scheduled = FALSE;
     task->cycle_end_tick = system_tick;
+
+    #ifdef SSCHED_LOG_TASK_STATS
+        ssched_log_insert_task_cycle_stat_entry();// TODO doesn't do anything yet
+    #endif
 }
 
 

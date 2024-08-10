@@ -24,8 +24,8 @@ OUTPUT = $(OUTPUT_DIR)/unit_test_ssched
 # Header files
 INCLUDES = -I$(SSCHED_DIR) -I$(PROJECT_INCLUDES) # include all project header files
 
-# options
-DEFINES = -DSSCHED_SHOW_DEBUG_DATA
+# Defines
+DEFINES = -DSSCHED_SHOW_DEBUG_DATA -DSSCHED_LOG_TASK_STATS
 
 # Default target
 all: $(OUTPUT_DIR) $(OUTPUT)

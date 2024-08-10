@@ -28,31 +28,48 @@ int main() {
 /* unit tests */
 static void test()
 {
-    /* init with a single task */
-    task_list[0].period_ms = 1500;
-    task_list[0].task_func = task_func;
-    sched_init(task_list, 1);
+    int i;
 
-    if (setjmp(buf) == 0) {
-        printf("Successfully set the jump point.");
+    // Test that a task registered on initialization will be executed
+    {
+        /* init with a single task */
+        task_list[0].period_ms = 1500;
+        task_list[0].task_func = task_func;
+        sched_init(task_list, 1);
 
-        schedule_isr();
-        sched_main();
-    } else {
-        printf("Task function was called!\n");
+        if (setjmp(buf) == 0) {
+            schedule_isr();
+            sched_main();
+        } else {
+            printf("Task function was called!\n");
+        }
+    }
+
+    // Test that a registered task will be called at specified rate in milliseconds
+    {
+        if (setjmp(buf) == 0) {
+            /* Push the ticks to 1500 */
+            for(i = 0; i < 1500; i++)
+            {
+            schedule_isr();
+            }
+            sched_main();
+        } else {
+            printf("Task function was called!\n");
+        }
     }
 }
 
 static void task_func(void)
 {
     task_call_count = task_call_count + 1;
-
-    printf("\njump_buf=%d\n", buf);
-    printf("\ntest=%d\n", test);
-    longjmp(buf, 1);
 }
 
-/* helper functions */
+/* hook to stop loop */
+void ssched_log_insert_task_cycle_stat_entry(void)
+{
+    longjmp(buf, 1);
+}
 
 /* mocked functions */
 
