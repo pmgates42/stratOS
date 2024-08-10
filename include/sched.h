@@ -7,6 +7,8 @@
  *
  */
 
+#pragma once    
+
 #include "generic.h"
 
 typedef uint32_t sched_task_id_t;

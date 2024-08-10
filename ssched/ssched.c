@@ -200,6 +200,10 @@ static void call_task_proc(task_cb_t * task);
 
 void sched_main(void)
 {
+#ifdef SSCHED_SHOW_DEBUG_DATA
+    static boolean invalid_state_message_shown = FALSE;
+#endif
+
     /* Ensure scheduler was initialized */
     if(sched_init_key != SCHED_INIT_KEY)
     {
@@ -210,9 +214,8 @@ void sched_main(void)
     }
 
     is_sched_running = FALSE;
-    scheduler_state = INIT;
 
-    while(TRUE)
+    // while(TRUE)
     {
         /* Scheduler state machine */
         switch(scheduler_state)
@@ -237,7 +240,6 @@ void sched_main(void)
             /* Invalid state. Log a debug message once */
             default:
             #ifdef SSCHED_SHOW_DEBUG_DATA
-                static boolean invalid_state_message_shown = FALSE;
                 if(invalid_state_message_shown == FALSE)
                 {
                     printf("\nInvalid scheduler state!");
@@ -347,10 +349,10 @@ sched_err_t sched_register_task(sched_usr_tsk_t * task)
 
 static boolean register_new_task(sched_usr_tsk_t * task)
 {
-    if(NULL == task || task_id_count < SSCHED_TSK_MAX_REGISTERED || task->task_func == NULL)
+    if(NULL == task || task_id_count > SSCHED_TSK_MAX_REGISTERED || task->task_func == NULL)
     {
     #ifdef SSCHED_SHOW_DEBUG_DATA
-        printf("\nFailed to register task!");
+        printf("\nFailed to register task! task_null=%d, max_tasks=%d, task_func_null=%d", (NULL == task), (task_id_count < SSCHED_TSK_MAX_REGISTERED), (task->task_func == NULL) );
     #endif
         return FALSE;
     }
@@ -407,6 +409,7 @@ static void schedule_isr(void)
     
     uint32_t i;
 
+
     /* Check for system tick roll over */
     if((system_tick + 1) == 0)
         // TODO handle system tick roll over
@@ -444,6 +447,7 @@ static void schedule_isr(void)
                 {
                     setup_task_to_run( &system_task_list[i] );
                     scheduler_is_booting = FALSE;
+                    break;             
                 }
         }
     }
@@ -496,11 +500,14 @@ static void schedule_isr(void)
 static void call_task_proc(task_cb_t * task)
 {
     if( task != NULL && task->usr_tsk->task_func )
-    {
+    { 
     #ifdef SSCHED_SHOW_DEBUG_DATA
         if(task->scheduled == FALSE)
             printf("Invalid state! Only scheduled tasks should be executed!");
     #endif
+
+    printf("Executing task %d usr_task_function=%d\n\n,", scheduler_state, task->usr_tsk->task_func);
+
 
         task->usr_tsk->task_func();//TODO pass in flags
     }
@@ -565,5 +572,6 @@ sched_err_t sched_kill_task(sched_task_id_t task_id)
 
 sched_err_t sched_activate_task(sched_task_id_t task_id)
 {
+    (void)task_id;
     return SCHED_ERR_FAILED_UPDATE;
 }

@@ -7,6 +7,7 @@ PROJECT_INCLUDES = ../../../include
 
 # Unit directory
 SSCHED_DIR = ../../../ssched
+
 TEST_DIR = .
 
 # Source files to include
@@ -23,6 +24,9 @@ OUTPUT = $(OUTPUT_DIR)/unit_test_ssched
 # Header files
 INCLUDES = -I$(SSCHED_DIR) -I$(PROJECT_INCLUDES) # include all project header files
 
+# options
+DEFINES = -DSSCHED_SHOW_DEBUG_DATA
+
 # Default target
 all: $(OUTPUT_DIR) $(OUTPUT)
 
@@ -38,7 +42,7 @@ bin/%.o: $(SSCHED_DIR)/%.c | $(OUTPUT_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 bin/%.o: $(TEST_DIR)/%.c | $(OUTPUT_DIR)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(DEFINES) $(CFLAGS) -c -o $@ $<
 
 # Clean up generated files
 clean:
