@@ -254,6 +254,11 @@ void sched_main(void)
             #endif
                 break;
         }
+    
+
+    #ifdef SSCHED_LOG_TASK_STATS
+        ssched_log_insert_task_cycle_stat_entry();// TODO doesn't do anything yet
+    #endif
     }
 }
 
@@ -417,7 +422,6 @@ static void schedule_isr(void)
     
     uint32_t i;
 
-
     /* Check for system tick roll over */
     if((system_tick + 1) == 0)
         // TODO handle system tick roll over
@@ -425,16 +429,27 @@ static void schedule_isr(void)
 
     system_tick++;
 
+    //TODO PMG remove this
+    // printf("system_tick=%d, task_head=%d, task_head_scheduled=%d", system_tick, (task_head != NULL), ((task_head != NULL) && task_head->scheduled == FALSE ));
+
+
     /* Scheduler is booted and current task has finished running */
     if( (!scheduler_is_booting) && task_head != NULL && task_head->scheduled == FALSE )
     {
+
         /* See if any tasks are ready to run */
         for(i = 0; i < registered_tasks; i++)
         {
+                //TODO remove this
+            // printf("system_tick=%d, active_tick=%d, period_ms=%d", system_tick, system_task_list[i].active_tick, system_task_list[i].usr_tsk->period_ms);
+
             if( system_task_list[i].usr_tsk != NULL
             &&( system_tick >= ( system_task_list[i].active_tick + system_task_list[i].usr_tsk->period_ms ) ) )
             {
                 setup_task_to_run( &system_task_list[i] );
+                //TODO PMG remove this
+                //printf("\ncalling setup_task_to_run\n: system_tick=%d\n", system_tick);
+
             }
         }
     }
@@ -514,7 +529,7 @@ static void call_task_proc(task_cb_t * task)
             printf("Invalid state! Only scheduled tasks should be executed!");
     #endif
 
-        task->usr_tsk->task_func();//TODO pass in flags
+        task->usr_tsk->task_func();//TODO pass in fags
     }
     /* Theoritially should never execute */
     else
@@ -527,10 +542,6 @@ static void call_task_proc(task_cb_t * task)
     /* Task has finished running */
     task->scheduled = FALSE;
     task->cycle_end_tick = system_tick;
-
-    #ifdef SSCHED_LOG_TASK_STATS
-        ssched_log_insert_task_cycle_stat_entry();// TODO doesn't do anything yet
-    #endif
 }
 
 

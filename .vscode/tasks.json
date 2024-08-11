@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "unit test",
+            "type": "shell",
+            "command": "make",
+            "args": ["clean", "all"],
+            "options": {
+                "cwd": "${workspaceFolder}/test/unit/ssched"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        },
+    ]
+}

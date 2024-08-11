@@ -2,4 +2,4 @@
 make clean
 make
 echo running the test...
-./bin/unit_test_ssched
+gdb ./bin/unit_test_ssched

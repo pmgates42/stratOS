@@ -12,6 +12,7 @@
 sched_usr_tsk_t task_list[MAX_NUMBER_OF_TASKS];
 
 uint64_t task_call_count = 0;
+uint64_t task_overrun_call_count = 0;
 
 jmp_buf buf;
 
@@ -43,6 +44,7 @@ static void test()
         } else {
             printf("Task function was called!\n");
         }
+        task_call_count = 0; /* reset call count */
     }
 
     // Test that a registered task will be called at specified rate in milliseconds
@@ -51,11 +53,23 @@ static void test()
             /* Push the ticks to 1500 */
             for(i = 0; i < 1500; i++)
             {
-            schedule_isr();
+                schedule_isr();
             }
             sched_main();
         } else {
-            printf("Task function was called!\n");
+            printf("Task function total call count was %d.\n", task_call_count);
+        }
+
+        if (setjmp(buf) == 0) {
+            /*  Do a few more iterations */
+            for(i = 0; i < (1500 * 2); i++)
+            {
+                schedule_isr();
+            }
+
+            sched_main();
+        } else {
+            printf("Current state=%d, task is scheduled=%d\n", scheduler_state, task_head->scheduled);
         }
     }
 }
@@ -63,6 +77,18 @@ static void test()
 static void task_func(void)
 {
     task_call_count = task_call_count + 1;
+}
+
+static void task_overrun(void)
+{
+    task_overrun_call_count = task_overrun_call_count + 1;
+
+    /* TODO */
+    /* simulate not returning from function for X cycles */
+    if(FALSE)
+    {
+        longjmp(buf, 1);
+    }
 }
 
 /* hook to stop loop */
