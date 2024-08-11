@@ -19,6 +19,8 @@ jmp_buf buf;
 /* functions */
 static void test(void);
 static void task_func(void);
+void run_single_cycle(u_int64_t period);
+void tick_system(uint64_t ticks);
 
 int main() {
     test();
@@ -29,48 +31,24 @@ int main() {
 /* unit tests */
 static void test()
 {
+    #define TASK_PERIOD 1500
     int i;
 
     // Test that a task registered on initialization will be executed
     {
         /* init with a single task */
-        task_list[0].period_ms = 1500;
+        task_list[0].period_ms = TASK_PERIOD;
         task_list[0].task_func = task_func;
         sched_init(task_list, 1);
 
-        if (setjmp(buf) == 0) {
-            schedule_isr();
-            sched_main();
-        } else {
-            printf("Task function was called!\n");
-        }
+        run_single_cycle(TASK_PERIOD);
+
         task_call_count = 0; /* reset call count */
     }
 
     // Test that a registered task will be called at specified rate in milliseconds
     {
-        if (setjmp(buf) == 0) {
-            /* Push the ticks to 1500 */
-            for(i = 0; i < 1500; i++)
-            {
-                schedule_isr();
-            }
-            sched_main();
-        } else {
-            printf("Task function total call count was %d.\n", task_call_count);
-        }
 
-        if (setjmp(buf) == 0) {
-            /*  Do a few more iterations */
-            for(i = 0; i < (1500 * 2); i++)
-            {
-                schedule_isr();
-            }
-
-            sched_main();
-        } else {
-            printf("Current state=%d, task is scheduled=%d\n", scheduler_state, task_head->scheduled);
-        }
     }
 }
 
@@ -88,6 +66,54 @@ static void task_overrun(void)
     if(FALSE)
     {
         longjmp(buf, 1);
+    }
+}
+
+/* helper functions */
+
+/**********************************************************
+ *
+ *  run_single_cycle()
+ *
+ *
+ *  DESCRIPTION:
+ *      Helper function to run scheduler for a specific
+ *      period.
+ *
+ */
+
+void run_single_cycle(u_int64_t period)
+{
+    if (setjmp(buf) == 0) {
+        tick_system(period);
+    } else {
+        return;
+    }
+}
+
+/**********************************************************
+ *
+ *  tick_system()
+ *
+ *
+ *  DESCRIPTION:
+ *      Helper function to tick the system forward in time
+ *      by simulating timer based scheduling ISR.
+ *
+ *  NOTES:
+ *      calls sched_main() for every interrupt which is not
+ *      representative of the real world, but should still
+ *      be sufficient to test scheduling behavior.
+ */
+
+void tick_system(uint64_t ticks)
+{
+    uint64_t i;
+
+    for(i = 0; i < ticks; i++)
+    {
+        schedule_isr();
+        sched_main();
     }
 }
 
