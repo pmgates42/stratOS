@@ -3,6 +3,7 @@
 #include <setjmp.h>
 #include "generic.h"
 #include "sched.h"
+#include "unity.h"
 #include "peripherals/timer.h"
 #include "../../../ssched/ssched.c"
 
@@ -22,6 +23,14 @@ static void task_func(void);
 void run_single_cycle(u_int64_t period);
 void tick_system(uint64_t ticks);
 
+void setUp(void)
+{
+}
+
+void tearDown(void)
+{
+}
+
 int main() {
     test();
 
@@ -34,22 +43,22 @@ static void test()
     #define TASK_PERIOD 1500
     int i;
 
-    // Test that a task registered on initialization will be executed
-    {
-        /* init with a single task */
-        task_list[0].period_ms = TASK_PERIOD;
-        task_list[0].task_func = task_func;
-        sched_init(task_list, 1);
+    // Test that a registered task will be executed at the rate specified in the definition block
+    task_list[0].period_ms = TASK_PERIOD;
+    task_list[0].task_func = task_func;
+    sched_init(task_list, 1);
 
+    for(i = 0; i < 38; i++)
+    {
         run_single_cycle(TASK_PERIOD);
-
-        task_call_count = 0; /* reset call count */
     }
 
-    // Test that a registered task will be called at specified rate in milliseconds
-    {
+    TEST_ASSERT_EQUAL_UINT64(38, task_call_count);
 
-    }
+    task_call_count = 0; /* reset call count */
+
+    printf("yay passed the test\n");
+
 }
 
 static void task_func(void)
@@ -85,7 +94,7 @@ static void task_overrun(void)
 void run_single_cycle(u_int64_t period)
 {
     if (setjmp(buf) == 0) {
-        tick_system(period);
+        tick_system(period / MS_PER_TICKS);
     } else {
         return;
     }
@@ -101,9 +110,10 @@ void run_single_cycle(u_int64_t period)
  *      by simulating timer based scheduling ISR.
  *
  *  NOTES:
- *      calls sched_main() for every interrupt which is not
- *      representative of the real world, but should still
- *      be sufficient to test scheduling behavior.
+ *      calls sched_main() after each task period which is
+ *      not representative of the real world execution,
+ *      sequence but should still be sufficient to test
+ *      scheduling behavior.
  */
 
 void tick_system(uint64_t ticks)
@@ -113,8 +123,8 @@ void tick_system(uint64_t ticks)
     for(i = 0; i < ticks; i++)
     {
         schedule_isr();
-        sched_main();
     }
+    sched_main();
 }
 
 /* hook to stop loop */

@@ -427,7 +427,7 @@ static void schedule_isr(void)
         // TODO handle system tick roll over
         printf("System tick roll over detected");
 
-    system_tick++;
+    system_tick ++;
 
     //TODO PMG remove this
     // printf("system_tick=%d, task_head=%d, task_head_scheduled=%d", system_tick, (task_head != NULL), ((task_head != NULL) && task_head->scheduled == FALSE ));
