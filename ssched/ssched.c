@@ -517,7 +517,7 @@ static void call_task_proc(task_cb_t * task)
             printf("Invalid state! Only scheduled tasks should be executed!");
     #endif
 
-        task->usr_tsk->task_func();//TODO pass in fags
+        task->usr_tsk->task_func();//TODO pass in flags
     }
     /* Theoritially should never execute */
     else
