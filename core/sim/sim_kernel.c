@@ -1,11 +1,13 @@
 /**********************************************************
  * 
- *  kernel.c
+ *  sim_kernel.c
  * 
  *  DESCRIPTION:
- *      Kernel boot procedures
+ *     Boot procedures fo simulated kernel
  *
  */
+
+#include <stdio.h>
 
 #include "generic.h"
 #include "cpu.h"
@@ -19,7 +21,6 @@
 #include "peripherals/drivers/hc_sr04.h"
 #include "debug.h"
 #include "utils.h"
-#include "printf.h"
 #include "usb.h"
 
 static void init(void);
@@ -28,7 +29,7 @@ static void setup_drivers(void);
 
 static sched_usr_tsk_t task_list[] =
     {
-    { 10 /* ms */, tty_task }
+    { 2000 /* ms */, tty_task }
     };
 
 /**********************************************************
@@ -36,19 +37,16 @@ static sched_usr_tsk_t task_list[] =
  *  kernel_main()
  * 
  *  DESCRIPTION:
- *     Main kernel function.     
- * 
- *  NOTES:
- *      First kernel function to be called by the boot code
+ *     Main (sim) kernel function.
  *
  */
 
-void kernel_main()
+void /*kernel_*/main()
 {
     init();
 
     printf("\nKernel initialized\n\rExecuting in EL%d\n", get_el());
-    printf("Version %d", STRATOS_VERSION);
+    printf("Version %s", STRATOS_VERSION);
 
     /* Call the main scheduler function */
     sched_main();
@@ -62,11 +60,7 @@ void kernel_main()
 static void tty_task(void)
 {
     /* echo back user input */
-    while(1)
-    {
-        debug_toggle_led();
-        // uart_send(uart_recv());
-    }
+    printf("\nTTY task is alive...\n");
 }
 
 static void init(void)
@@ -74,7 +68,6 @@ static void init(void)
     /* Initialize hardware modules */
     cpu_init();
     uart_init();
-	init_printf(0, putc);
     debug_init();
     irq_init();
     timer_init();
@@ -88,14 +81,6 @@ static void init(void)
 
     /* Set up all of the hw drivers */
     setup_drivers();
-
-    if(SNSR_ERR_NONE != snsr_init())
-    {
-        printf("\nFailed to initialize sensor manager\n");
-    }
-
-    /* Initialize the network interfaces */
-    sock_api_init();
 }
 
 /**********************************************************
@@ -109,18 +94,5 @@ static void init(void)
 
 static void setup_drivers(void)
 {
-    /* Initialize OS core drivers */
-    usb_core_init();
 
-    /* Initialize all of the driver managers */
-    hc_sr04_intf_init();
-
-    /* Configured drivers */
-
-    #ifdef HW_DRIVER_HC_SR04
-    printf("\nHC-SR04 Hardware driver(s) configured....\n");
-    hc_sr04_intf_reg_intf(hc_sr04_get_reg_intf());
-    hc_sr04_init();
-    printf("Successfully registered the HC-SR04 driver....\n\n");
-    #endif
 }

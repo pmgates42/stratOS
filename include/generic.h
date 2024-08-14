@@ -10,6 +10,11 @@
 
 #pragma once
 
+#ifndef EMBEDDED_BUILD
+#include <string.h>
+#include <stdio.h>
+#endif
+
 #ifdef EMBEDDED_BUILD
 #define NULL  0
 #endif

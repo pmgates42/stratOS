@@ -26,6 +26,15 @@
         "unordered_map": "c",
         "utility": "c",
         "chrono": "c",
-        "variant": "c"
+        "variant": "c",
+        "net.h": "c",
+        "__string": "c",
+        "atomic": "c",
+        "cstring": "c",
+        "memory": "c",
+        "uart.h": "c",
+        "snsr.h": "c",
+        "usb.h": "c",
+        "config.h": "c"
     }
 }

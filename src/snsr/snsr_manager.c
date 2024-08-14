@@ -12,14 +12,18 @@
  *
  */
 
+#ifdef EMBEDDED_BUILD
+#include "printf.h"
+#else
+#include <stdio.h>
+#endif
+
 #include "generic.h"
 #include "peripherals/snsr/snsr.h"
 #include "peripherals/snsr/snsr_dist.h"
 #include "config.h"
 #include "debug.h"
 #include "uart.h"
-#include "printf.h"
-
 
 #define MAX_NUM_SNSR_PER_TYPE  25
 
