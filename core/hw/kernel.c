@@ -48,7 +48,7 @@ void kernel_main()
     init();
 
     printf("\nKernel initialized\n\rExecuting in EL%d\n", get_el());
-    printf("Version %d", STRATOS_VERSION);
+    printf("Version %s", STRATOS_VERSION);
 
     /* Call the main scheduler function */
     sched_main();

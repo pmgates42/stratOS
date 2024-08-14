@@ -10,4 +10,4 @@
 
 #pragma once
 
-#define STRATOS_VERSION "0.0.1"
+#define STRATOS_VERSION "0.1"

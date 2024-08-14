@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+
 #include "generic.h"
 #include "cpu.h"
 #include "net.h"
@@ -28,7 +29,7 @@ static void setup_drivers(void);
 
 static sched_usr_tsk_t task_list[] =
     {
-    { 10 /* ms */, tty_task }
+    { 2000 /* ms */, tty_task }
     };
 
 /**********************************************************
@@ -45,7 +46,7 @@ void /*kernel_*/main()
     init();
 
     printf("\nKernel initialized\n\rExecuting in EL%d\n", get_el());
-    printf("Version %d", STRATOS_VERSION);
+    printf("Version %s", STRATOS_VERSION);
 
     /* Call the main scheduler function */
     sched_main();
@@ -59,11 +60,7 @@ void /*kernel_*/main()
 static void tty_task(void)
 {
     /* echo back user input */
-    while(1)
-    {
-        debug_toggle_led();
-        // uart_send(uart_recv());
-    }
+    printf("\nTTY task is alive...\n");
 }
 
 static void init(void)

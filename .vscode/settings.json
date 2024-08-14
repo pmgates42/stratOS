@@ -34,6 +34,7 @@
         "memory": "c",
         "uart.h": "c",
         "snsr.h": "c",
-        "usb.h": "c"
+        "usb.h": "c",
+        "config.h": "c"
     }
 }

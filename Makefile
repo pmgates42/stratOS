@@ -13,14 +13,13 @@ ARMGCC ?= aarch64-elf
 GCC = gcc
 COMPILER = $(GCC)
 
-
 ifdef SIMULATOR_BUILD
-COPTNS = -DRPI_VERSION=$(RPI_VERSION)  -DRPI_SUB_VERSION=$(RPI_SUB_VERSION) -Wall -Iinclude -Iinclude/public
-# Ensure linking against standard libraries
-LDFLAGS = -lc -lgcc
+	COPTNS = -DRPI_VERSION=$(RPI_VERSION)  -DRPI_SUB_VERSION=$(RPI_SUB_VERSION) -Wall -Iinclude -Iinclude/public
+	# Ensure linking against standard libraries
+	LDFLAGS = -lc -lgcc
 else
-COPTNS = -DEMBEDDED_BUILD=1 -DRPI_VERSION=$(RPI_VERSION)  -DRPI_SUB_VERSION=$(RPI_SUB_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -Iinclude/public  -mgeneral-regs-only
-ASMOPTS = -Iinclude
+	COPTNS = -DEMBEDDED_BUILD=1 -DRPI_VERSION=$(RPI_VERSION)  -DRPI_SUB_VERSION=$(RPI_SUB_VERSION) -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -Iinclude/public  -mgeneral-regs-only
+	ASMOPTS = -Iinclude
 endif
 
 #----------------------------------------
@@ -49,9 +48,9 @@ BUILD_DIR = build/$(PLATFORM)
 # Core system files
 #----------------------------------------
 ifdef SIMULATOR_BUILD
-CORE_DIR = core/sim
+	CORE_DIR = core/sim
 else
-CORE_DIR = core/hw
+	CORE_DIR = core/hw
 endif
 
 # Recursively find all C and Assembly files in CORE_DIR
@@ -80,9 +79,11 @@ clean:
 #----------------------------------------
 # Comon source files
 #----------------------------------------
-COMMON_DIR = /common
+COMMON_DIR = common
 COMMON_C_FILES := $(wildcard $(COMMON_DIR)/*.c)
-OBJ_FILES += $(COMMON_C_FILES)
+COMMON_ASM_FILES := $(wildcard $(COMMON_DIR)/*.S)
+COMMON_OBJ_FILES := $(COMMON_C_FILES:$(COMMON_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(COMMON_ASM_FILES:$(COMMON_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+OBJ_FILES += $(COMMON_OBJ_FILES)
 
 #----------------------------------------
 # Build platform (CPU) specific files
@@ -95,43 +96,43 @@ ifdef BUILD_BCM2XXX
 		$(error Invalid CPU configuration)
 	endif
 
-	$(info 	Compiler determined from targeted hardware:)
-	$(info 	aarch64-elf-gcc)
-	ARMGCC = aarch64-elf
-	COMPILER = aarch64-elf-gcc
+$(info 	Compiler determined from targeted hardware:)
+$(info 	aarch64-elf-gcc)
+ARMGCC = aarch64-elf
+COMPILER = aarch64-elf-gcc
 
-	BCM2XXX_DIR = platform/bcm2xxx
-	BCM2XXX_C_FILES := $(wildcard $(BCM2XXX_DIR)/*.c)
-	BCM2XXX_ASM_FILES := $(wildcard $(BCM2XXX_DIR)/*.S)
-	BCM2XXX_OBJ_FILES := $(BCM2XXX_C_FILES:$(BCM2XXX_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(BCM2XXX_ASM_FILES:$(BCM2XXX_DIR)/%.S=$(BUILD_DIR)/%_s.o)
-	OBJ_FILES += $(BCM2XXX_OBJ_FILES)
-	COPTNS += -I$(BCM2XXX_DIR)/include
+BCM2XXX_DIR = platform/bcm2xxx
+BCM2XXX_C_FILES := $(wildcard $(BCM2XXX_DIR)/*.c)
+BCM2XXX_ASM_FILES := $(wildcard $(BCM2XXX_DIR)/*.S)
+BCM2XXX_OBJ_FILES := $(BCM2XXX_C_FILES:$(BCM2XXX_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(BCM2XXX_ASM_FILES:$(BCM2XXX_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+OBJ_FILES += $(BCM2XXX_OBJ_FILES)
+COPTNS += -I$(BCM2XXX_DIR)/include
 
-	AARCH64_DIR = aarch64
-	AARCH64_C_FILES := $(wildcard $(AARCH64_DIR)/*.c)
-	AARCH64_ASM_FILES := $(wildcard $(AARCH64_DIR)/*.S)
-	AARCH64_OBJ_FILES := $(AARCH64_C_FILES:$(AARCH64_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(AARCH64_ASM_FILES:$(AARCH64_DIR)/%.S=$(BUILD_DIR)/%_s.o)
-	OBJ_FILES += $(AARCH64_OBJ_FILES)
-	COPTNS += -I$(AARCH64_DIR)/include
+AARCH64_DIR = aarch64
+AARCH64_C_FILES := $(wildcard $(AARCH64_DIR)/*.c)
+AARCH64_ASM_FILES := $(wildcard $(AARCH64_DIR)/*.S)
+AARCH64_OBJ_FILES := $(AARCH64_C_FILES:$(AARCH64_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(AARCH64_ASM_FILES:$(AARCH64_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+OBJ_FILES += $(AARCH64_OBJ_FILES)
+COPTNS += -I$(AARCH64_DIR)/include
 
 else ifdef SIMULATOR_BUILD
 
-	# Define the platform/sim directory
-	PLATFORM_SIM_DIR = platform/sim
+# Define the platform/sim directory
+PLATFORM_SIM_DIR = platform/sim
 
-	# Recursively find all C and assembly files in the platform/sim directory
-	PLATFORM_SIM_C_FILES := $(wildcard $(PLATFORM_SIM_DIR)/**/*.c)
-	PLATFORM_SIM_ASM_FILES := $(wildcard $(PLATFORM_SIM_DIR)/**/*.S)
+# Recursively find all C and assembly files in the platform/sim directory
+PLATFORM_SIM_C_FILES := $(wildcard $(PLATFORM_SIM_DIR)/**/*.c)
+PLATFORM_SIM_ASM_FILES := $(wildcard $(PLATFORM_SIM_DIR)/**/*.S)
 
-	# Generate object files for the C and assembly files
-	PLATFORM_SIM_OBJ_FILES := $(PLATFORM_SIM_C_FILES:$(PLATFORM_SIM_DIR)/%.c=$(BUILD_DIR)/%_c.o) \
-							$(PLATFORM_SIM_ASM_FILES:$(PLATFORM_SIM_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+# Generate object files for the C and assembly files
+PLATFORM_SIM_OBJ_FILES := $(PLATFORM_SIM_C_FILES:$(PLATFORM_SIM_DIR)/%.c=$(BUILD_DIR)/%_c.o) \
+						$(PLATFORM_SIM_ASM_FILES:$(PLATFORM_SIM_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 
-	# Add the object files to the list of objects to build
-	OBJ_FILES += $(PLATFORM_SIM_OBJ_FILES)
+# Add the object files to the list of objects to build
+OBJ_FILES += $(PLATFORM_SIM_OBJ_FILES)
 
-	# Include the platform/sim directory in the include paths
-	COPTNS += -I$(PLATFORM_SIM_DIR)/include
+# Include the platform/sim directory in the include paths
+COPTNS += -I$(PLATFORM_SIM_DIR)/include
 else
 $(info )
 $(info +---------------------------------------------+)
@@ -202,7 +203,17 @@ endif
 # Build rules
 #----------------------------------------
 
-# Rule for building C files
+# Rule for building common C files
+$(BUILD_DIR)/%_c.o: $(COMMON_DIR)/%.c
+	mkdir -p $(@D)
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+
+# Rule for building common assembly files
+$(BUILD_DIR)/%_s.o: $(COMMON_DIR)/%.S
+	mkdir -p $(@D)
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+
+# Rule for building src C files
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
