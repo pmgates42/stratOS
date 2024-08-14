@@ -2,13 +2,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Build and Debug with Makefile",
+            "name": "run unit test",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/test/unit/ssched/bin/unit_test_ssched",  // Path to the executable
+            "program": "${workspaceFolder}/test/unit/ssched/bin/unit_test_ssched",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "unit test",  // Task to build the project before launching
+            "preLaunchTask": "unit test",
+        },
+        {
+            "name": "Build and run simulator",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "simulator",
         }
     ]
 }
