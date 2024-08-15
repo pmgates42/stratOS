@@ -30,7 +30,7 @@ static void setup_drivers(void);
 static sched_usr_tsk_t task_list[] =
     {
     // { 2000 /* ms */, tty_task },
-    { 1000 /* ms */, net_proc }
+    { 1000 /*  ms */, net_proc }
     };
 
 /**********************************************************

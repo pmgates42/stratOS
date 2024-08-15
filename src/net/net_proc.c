@@ -24,7 +24,7 @@ static char in_data_buffer[ IN_DATA_BUFF_SIZE ];
 
 void net_proc()
 {
-    get_packet(&in_data_buffer, IN_DATA_BUFF_SIZE);
+    get_packet(&in_data_buffer, IN_DATA_BUFF_SIZE, 1);
 
     printf("packet_data=%s", in_data_buffer);
 }

@@ -150,13 +150,22 @@ void net_init()
  *
  */
 
-int get_packet(char *buffer, size_t buffer_size) {
+int get_packet(char *buffer, size_t buffer_size, int timeout_us) {
+    struct timeval tv;
+
     if (sock < 0) {
         perror("Socket is not initialized");
         return -1;
     }
 
-    /* Receive data from the socket */
+    tv.tv_sec = 2;  // 0 seconds
+    tv.tv_usec = timeout_us;
+
+    if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+        perror("Failed to set socket timeout");
+        return -1;
+    }
+
     int bytes_received = recvfrom(sock, buffer, buffer_size, 0, NULL, NULL);
     if (bytes_received < 0) {
         perror("Packet receive failed");
