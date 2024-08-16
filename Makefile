@@ -5,6 +5,8 @@ RPI_SUB_VERSION ?= 1
 # BOOTMNT ?= /media/parallels/boot
 ARMGCC ?= aarch64-elf
 
+CFLAGS = -Wall -Wextra -g
+
 #----------------------------------------
 # Default compiler to GCC. This will be
 # likely be overridden if doing any kind
@@ -206,7 +208,7 @@ endif
 # Rule for building common C files
 $(BUILD_DIR)/%_c.o: $(COMMON_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 # Rule for building common assembly files
 $(BUILD_DIR)/%_s.o: $(COMMON_DIR)/%.S
@@ -216,7 +218,7 @@ $(BUILD_DIR)/%_s.o: $(COMMON_DIR)/%.S
 # Rule for building src C files
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 # Rule for building assembly files
 $(BUILD_DIR)/%_s.o: $(SRC_DIR)/%.S
@@ -226,7 +228,7 @@ $(BUILD_DIR)/%_s.o: $(SRC_DIR)/%.S
 # Rule for building bcm2xxx C files
 $(BUILD_DIR)/%_c.o: $(BCM2XXX_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 # Rule for building bcm2xxx assembly files
 $(BUILD_DIR)/%_s.o: $(BCM2XXX_DIR)/%.S
@@ -241,7 +243,7 @@ $(BUILD_DIR)/%_s.o: $(CORE_DIR)/%.S
 # Rule for building core C files
 $(BUILD_DIR)/%_c.o: $(CORE_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 # Rule for building aarch64 assembly files
 $(BUILD_DIR)/%_s.o: $(AARCH64_DIR)/%.S
@@ -251,22 +253,22 @@ $(BUILD_DIR)/%_s.o: $(AARCH64_DIR)/%.S
 # Rule for building scheduler C files
 $(BUILD_DIR)/%_c.o: $(SCHED_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 # Rule for building HC-SR04 driver C files
 $(BUILD_DIR)/%_c.o: $(HW_DRIVER_HC_SR04_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 # Rule for building DWC2 driver C files
 $(BUILD_DIR)/%_c.o: $(DWC2_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 # Build rules for the platform/sim files
 $(BUILD_DIR)/%_c.o: $(PLATFORM_SIM_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 $(BUILD_DIR)/%_s.o: $(PLATFORM_SIM_DIR)/%.S
 	mkdir -p $(@D)
