@@ -1,23 +1,17 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "run unit test",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/test/unit/ssched/bin/unit_test_ssched",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "unit test",
-        },
-        {
-            "name": "Build and run simulator",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "simulator",
-        }
-    ]
+"version": "0.2.0",
+"configurations": [
+    {
+        "name": "(lldb) Launch",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/test/unit/ssched/bin/unit_test_ssched",
+        "args": [],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "lldb"
+    }
+]
 }
