@@ -29,7 +29,8 @@ static void setup_drivers(void);
 
 static sched_usr_tsk_t task_list[] =
     {
-    { 2000 /* ms */, tty_task }
+    { 2000 /* ms */, tty_task },
+    { 1000 /*  ms */, net_proc }
     };
 
 /**********************************************************
@@ -72,6 +73,13 @@ static void init(void)
     irq_init();
     timer_init();
 
+    /* Set up all of the hw drivers */
+    setup_drivers();
+
+    // TODO move this into networking module
+    set_static_ip();
+    net_init();
+
     // TODO move this to bottom of this function?
     /* Initialize modules that rely on timers */
     sched_init(task_list, list_cnt(task_list));
@@ -79,8 +87,7 @@ static void init(void)
     /* Enable system IRQs */
     irq_sys_enable();
 
-    /* Set up all of the hw drivers */
-    setup_drivers();
+
 }
 
 /**********************************************************

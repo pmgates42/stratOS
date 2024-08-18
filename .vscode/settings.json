@@ -35,6 +35,7 @@
         "uart.h": "c",
         "snsr.h": "c",
         "usb.h": "c",
-        "config.h": "c"
+        "config.h": "c",
+        "locale": "c"
     }
 }

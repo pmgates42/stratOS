@@ -15,5 +15,19 @@
             },
             "problemMatcher": []
         },
+        {
+            "label": "simulator",
+            "type": "shell",
+            "command": "./build.sh",
+            "args": ["sim"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        },
     ]
 }

@@ -1,14 +1,31 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Build and Debug with Makefile",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/test/unit/ssched/bin/unit_test_ssched",  // Path to the executable
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "unit test",  // Task to build the project before launching
-        }
-    ]
+"version": "0.2.0",
+"configurations": [
+    {
+        "name": "(lldb) Launch",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/test/unit/ssched/bin/unit_test_ssched",
+        "args": [],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "lldb",
+        "preLaunchTask": "unit test"
+    },
+    {
+        "name": "Build/Debug Simulator",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/sim/strat_os_sim",
+        "args": [],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "lldb",
+        "preLaunchTask": "simulator"
+    }
+]
 }
