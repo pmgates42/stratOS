@@ -19,6 +19,8 @@
  * 
  */
 
+#define BCM2XXX_TIMER_DEBUG
+
 #include "generic.h"
 #include "bcm2xxx_irq.h"
 #include "peripherals/base.h"
@@ -83,23 +85,30 @@ uint8_t timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ticks)
         return TIMER_ERR_INVALID_PRMTRS;
         }
 
+    assert(ticks >= 10*1000, "Minimum timer resolution is 10 ms for some reason....");
+
     /* set the value to match with the low 32-bits
      * of the free counter for the provided timer
      */
     cur_val = REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO];
-    ticks = cur_val + ticks;
-    REG_SYS_ADD_MAP_BASE->compares[bcm_tmr] = ticks;
-
-    /* register the irq callback function */
-    timer_ctrl_block[bcm_tmr].irq_cb = irq_cb;
-    timer_ctrl_block[bcm_tmr].tick_interval = ticks;
+    REG_SYS_ADD_MAP_BASE->compares[bcm_tmr] = (cur_val + ticks) + 3*10*100*1000; /* push out the first interrupt for 3 seconds */
 
     // todo give this a meaningful value
     *timer_id = 12;
 
+    /* register the irq callback function */
+    timer_ctrl_block[bcm_tmr].irq_cb = irq_cb;
+    timer_ctrl_block[bcm_tmr].tick_interval =  ticks;
+
+    #ifdef BCM2XXX_TIMER_DEBUG
+    debug_printf("\nRegistering timer with ID=%u", *timer_id);
+    debug_printf("\nTimer will run every %u miscroseconds", timer_ctrl_block[bcm_tmr].tick_interval);
+    debug_printf("\nCurrent timer value=%u", cur_val);
+    debug_printf("\nCompare ticks=%u", REG_SYS_ADD_MAP_BASE->compares[bcm_tmr]);
+    #endif
+
     return TIMER_ERR_NONE;
 }
-
 
 /**********************************************************
  * 
@@ -164,17 +173,21 @@ void bcm2xxx_timer_irq_hndlr(bcm2xxx_timer_t8 timer)
     {
         return;
     }
-
+    
     /* prepare the next interval */
     cur_val = REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO];
     ticks = cur_val + timer_ctrl_block[timer].tick_interval;
     REG_SYS_ADD_MAP_BASE->compares[timer] = ticks;
-
+    
+    #ifdef BCM2XXX_TIMER_DEBUG
+    debug_printf("\nCurrent Value=%u", cur_val);
+    debug_printf("\nTick interval=%u", timer_ctrl_block[timer].tick_interval);
+    debug_printf("\nTrigger again at=%u", (REG_SYS_ADD_MAP_BASE->compares[timer]));
+    #endif
+    
     REG_SYS_ADD_MAP_BASE->control_sts |= (1 << timer);
-
-    /* otherwise call the registered irq handler
-     * if one exists
-     */
+    
+    /* call the registered irq handler if one exists */
     if(NULL != timer_ctrl_block[timer].irq_cb)
     {
         timer_ctrl_block[timer].irq_cb();

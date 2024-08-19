@@ -27,8 +27,7 @@ endif
 #----------------------------------------
 # Define main source directory
 #----------------------------------------
-SRC_DIR = src
-
+SRC_DIR = common
 
 #----------------------------------------
 # Determine the output build directory
@@ -47,24 +46,20 @@ endif
 BUILD_DIR = build/$(PLATFORM)
 
 #----------------------------------------
-# Core system files
+# Kernel bootup code
 #----------------------------------------
-ifdef SIMULATOR_BUILD
-	CORE_DIR = core/sim
-else
-	CORE_DIR = core/hw
-endif
+BOOT_DIR = boot
 
-# Recursively find all C and Assembly files in CORE_DIR
-CORE_C_FILES := $(shell find $(CORE_DIR) -name '*.c')
-CORE_ASM_FILES := $(shell find $(CORE_DIR) -name '*.S')
+# Recursively find all C and Assembly files in BOOT_DIR
+CORE_C_FILES := $(shell find $(BOOT_DIR) -name '*.c')
+CORE_ASM_FILES := $(shell find $(BOOT_DIR) -name '*.S')
 
 # Generate object files from the found source files
-CORE_OBJ_FILES := $(CORE_C_FILES:$(CORE_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(CORE_ASM_FILES:$(CORE_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+CORE_OBJ_FILES := $(CORE_C_FILES:$(BOOT_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(CORE_ASM_FILES:$(BOOT_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(CORE_OBJ_FILES)
 
 # Include the directory for header files
-COPTNS += -I$(CORE_DIR)/include
+COPTNS += -I$(BOOT_DIR)/include
 
 #----------------------------------------
 # Define default target
@@ -77,15 +72,6 @@ endif
 
 clean:
 	rm -rf $(BUILD_DIR)
-
-#----------------------------------------
-# Comon source files
-#----------------------------------------
-COMMON_DIR = common
-COMMON_C_FILES := $(wildcard $(COMMON_DIR)/*.c)
-COMMON_ASM_FILES := $(wildcard $(COMMON_DIR)/*.S)
-COMMON_OBJ_FILES := $(COMMON_C_FILES:$(COMMON_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(COMMON_ASM_FILES:$(COMMON_DIR)/%.S=$(BUILD_DIR)/%_s.o)
-OBJ_FILES += $(COMMON_OBJ_FILES)
 
 #----------------------------------------
 # Build platform (CPU) specific files
@@ -161,6 +147,16 @@ COPTNS += -I$(SCHED_DIR)/include
 COPTNS += -DSSCHED_SHOW_DEBUG_DATA
 
 #----------------------------------------
+# Core Drivers - Build all files under drivers/core
+#----------------------------------------
+
+CORE_DRIVERS_DIR = drivers/core
+CORE_DRIVERS_C_FILES := $(shell find $(CORE_DRIVERS_DIR) -name '*.c')
+CORE_DRIVERS_ASM_FILES := $(shell find $(CORE_DRIVERS_DIR) -name '*.S')
+CORE_DRIVERS_OBJ_FILES := $(CORE_DRIVERS_C_FILES:$(CORE_DRIVERS_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(CORE_DRIVERS_ASM_FILES:$(CORE_DRIVERS_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+OBJ_FILES += $(CORE_DRIVERS_OBJ_FILES)
+
+#----------------------------------------
 # Hardware driver configurations
 #----------------------------------------
 
@@ -172,8 +168,20 @@ HW_DRIVER_HC_SR04_C_FILES := $(wildcard $(HW_DRIVER_HC_SR04_DIR)/*.c)
 HW_DRIVER_HC_SR04_ASM_FILES := $(wildcard $(HW_DRIVER_HC_SR04_DIR)/*.S)
 HW_DRIVER_HC_SR04_OBJ_FILES := $(HW_DRIVER_HC_SR04_C_FILES:$(HW_DRIVER_HC_SR04_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(HW_DRIVER_HC_SR04_ASM_FILES:$(HW_DRIVER_HC_SR04_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(HW_DRIVER_HC_SR04_OBJ_FILES)
-COPTNS += -I$(HW_DRIVER_HC_SR04_DIR)/include
 
+else
+endif
+
+#----------------------------------------
+# Common hardware files (included in all
+# hardware builds)
+#----------------------------------------
+ifndef SIMULATOR_BUILD
+	HW_COMMON_DIR = platform/hw_common
+	HW_COMMON_C_FILES := $(shell find $(HW_COMMON_DIR) -name '*.c')
+	HW_COMMON_ASM_FILES := $(shell find $(HW_COMMON_DIR) -name '*.S')
+	HW_COMMON_OBJ_FILES := $(HW_COMMON_C_FILES:$(HW_COMMON_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(HW_COMMON_ASM_FILES:$(HW_COMMON_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+	OBJ_FILES += $(HW_COMMON_OBJ_FILES)
 else
 endif
 
@@ -205,16 +213,6 @@ endif
 # Build rules
 #----------------------------------------
 
-# Rule for building common C files
-$(BUILD_DIR)/%_c.o: $(COMMON_DIR)/%.c
-	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
-
-# Rule for building common assembly files
-$(BUILD_DIR)/%_s.o: $(COMMON_DIR)/%.S
-	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
-
 # Rule for building src C files
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
@@ -235,13 +233,13 @@ $(BUILD_DIR)/%_s.o: $(BCM2XXX_DIR)/%.S
 	mkdir -p $(@D)
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
 
-# Rule for building core assembly files
-$(BUILD_DIR)/%_s.o: $(CORE_DIR)/%.S
+# Rule for building boot assembly files
+$(BUILD_DIR)/%_s.o: $(BOOT_DIR)/%.S
 	mkdir -p $(@D)
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
 
-# Rule for building core C files
-$(BUILD_DIR)/%_c.o: $(CORE_DIR)/%.c
+# Rule for building boot C files
+$(BUILD_DIR)/%_c.o: $(BOOT_DIR)/%.c
 	mkdir -p $(@D)
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
@@ -274,6 +272,24 @@ $(BUILD_DIR)/%_s.o: $(PLATFORM_SIM_DIR)/%.S
 	mkdir -p $(@D)
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
 
+$(BUILD_DIR)/%_c.o: $(CORE_DRIVERS_DIR)/%.c
+	mkdir -p $(@D)
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
+
+$(BUILD_DIR)/%_s.o: $(CORE_DRIVERS_DIR)/%.S
+	mkdir -p $(@D)
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+
+# Rule for building common hardware C files
+$(BUILD_DIR)/%_c.o: $(HW_COMMON_DIR)/%.c
+	mkdir -p $(@D)
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
+
+# Rule for building common hardware assembly files
+$(BUILD_DIR)/%_s.o: $(HW_COMMON_DIR)/%.S
+	mkdir -p $(@D)
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+
 SRC_TOP_DIR := $(SRC_DIR)
 VPATH := $(SRC_TOP_DIR):$(shell find $(SRC_TOP_DIR) -type d)
 
@@ -291,8 +307,8 @@ DEP_FILES := $(OBJ_FILES:.o=.d)
 -include $(DEP_FILES)
 
 # Build rule for kernel file using linker script and object files, then convert to a binary file
-kernel8.img: $(CORE_DIR)/linker.ld $(OBJ_FILES)
-	$(ARMGCC)-ld -T $(CORE_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf $(OBJ_FILES)
+kernel8.img: $(BOOT_DIR)/linker.ld $(OBJ_FILES)
+	$(ARMGCC)-ld -T $(BOOT_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf $(OBJ_FILES)
 	$(ARMGCC)-objcopy $(BUILD_DIR)/kernel8.elf -O binary $(BUILD_DIR)/kernel8.img
 
 armstub/build/armstub_s.o: armstub/src/armstub.S

@@ -59,7 +59,7 @@
  *
  */
 #ifndef SSCHED_SCHED_TICK_US
-#define SSCHED_SCHED_TICK_US 1000
+#define SSCHED_SCHED_TICK_US 1000*10 /* 10 ms */
     #warning Configuration SSCHED_SCHED_TICK_US not set, using default value of 1000uS.
 #endif
 
@@ -189,6 +189,7 @@ static uint32_t registered_tasks;
 static void schedule_isr(void);
 static boolean register_new_task(sched_usr_tsk_t *task);
 static void call_task_proc(task_cb_t * task);
+static void debug_print_scheduler_state();
 
 /**********************************************************
  *
@@ -201,7 +202,7 @@ static void call_task_proc(task_cb_t * task);
  *      This function is used to process the output from
  *      the scheduler which helps to minimize execution
  *      time during the system timer interrupt.
- *
+ * 
  */
 
 void sched_main(void)
@@ -312,7 +313,7 @@ sched_err_t sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
     }
 
     /* allocate a system timer */
-    if( TIMER_ERR_NONE != timer_alloc(&sched_timer_id, schedule_isr, SSCHED_SCHED_TICK_US))
+    if( TIMER_ERR_NONE != timer_alloc(&sched_timer_id, schedule_isr, SSCHED_SCHED_TICK_US)) // TODO PMG
     {
         #ifdef SSCHED_SHOW_DEBUG_DATA
             printf("\nFailed to allocate a system timer. Cannot run scheduler.");
@@ -367,7 +368,7 @@ static boolean register_new_task(sched_usr_tsk_t * task)
         return FALSE;
     }
 
-    system_task_list[task_id_count].usr_tsk = task;
+    memcpy(&system_task_list[task_id_count].usr_tsk, &task, sizeof system_task_list[task_id_count].usr_tsk);
     system_task_list[task_id_count].alive = TRUE;
 
     /* gaurd against init failure */
@@ -464,38 +465,47 @@ static void schedule_isr(void)
     }
 
     /* Handle time based events */
-
+    
     switch(scheduler_state)
     {
         /* EXECUTING A TASK */
         case EXECUTE_TASK:
         {
-        #define DETECT_OVERRUN(tsk) ( ( ( system_tick - tsk->active_tick ) * MS_PER_TICKS ) > tsk->usr_tsk->period_ms )
-
+            #define DETECT_OVERRUN(tsk) ( ( ( system_tick - tsk->active_tick ) * MS_PER_TICKS ) > tsk->usr_tsk->period_ms )
+            
             /* check for task overrun */
             if( DETECT_OVERRUN(task_head) )
             {
-            scheduler_state = TASK_OVERRUN;
-
-            //TODO $task_stats: collect overrun data here
-
-        #ifdef SSCHED_SHOW_DEBUG_DATA
-            printf("\nTask overrun has occured on task with id=%d. Consider lengthening period_ms on task registration.", task_head->usr_tsk->id);
-        #endif
+                scheduler_state = TASK_OVERRUN;
+                
+                //TODO $task_stats: collect overrun data here
+                
+                #ifdef SSCHED_SHOW_DEBUG_DATA
+                printf("\nTask overrun has occured on task with id=%d. Consider lengthening period_ms on task registration.", task_head->usr_tsk->id);
+                #endif
             }
-        #undef DETECT_OVERRUN
+            #undef DETECT_OVERRUN
         }
         break;
-
+        
         /* EXECUTING TASK HAS OVERRUN CYCLE */
         case TASK_OVERRUN:
         {
             // TODO wait a little longer and see if task finishes executing
             // TODO if crosses threshold then kill this task
-
+            
         }
         break;
     }
+    debug_print_scheduler_state();
+}
+
+static void debug_print_scheduler_state()
+{
+    debug_printf("\n");
+    debug_printf("*****DEBUG SCHEDULER ISR*****"); 
+    debug_printf("scheduler_state=%d", scheduler_state);
+    debug_printf("\n");
 }
 
 /**********************************************************
@@ -507,17 +517,22 @@ static void schedule_isr(void)
  *      Call the task procedure and update control vars.
  *
  */
-
+#include "peripherals/spi.h"
+#include "peripherals/gpio.h"
 static void call_task_proc(task_cb_t * task)
 {
     if( task != NULL && task->usr_tsk->task_func )
     { 
-    #ifdef SSCHED_SHOW_DEBUG_DATA
+        #ifdef SSCHED_SHOW_DEBUG_DATA
         if(task->scheduled == FALSE)
             printf("Invalid state! Only scheduled tasks should be executed!");
-    #endif
+        #endif
+        
+        // TODO PMG remove this
+        debug_printf("\ntask fun=%d", task->usr_tsk->task_func);
+        debug_printf("\nspi_tx_periodic fun=%d", spi_tx_periodic);
 
-        task->usr_tsk->task_func();//TODO pass in flags
+        // task->usr_tsk->task_func();//TODO this isn't working on HW for some reason
     }
     /* Theoritially should never execute */
     else

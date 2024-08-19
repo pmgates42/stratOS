@@ -36,6 +36,26 @@
         "snsr.h": "c",
         "usb.h": "c",
         "config.h": "c",
-        "locale": "c"
+        "locale": "c",
+        "compare": "cpp",
+        "cstddef": "cpp",
+        "ios": "cpp",
+        "limits": "cpp",
+        "new": "cpp",
+        "type_traits": "cpp",
+        "kernel.h": "c",
+        "debug.h": "c",
+        "cstdio": "cpp",
+        "spi.h": "c",
+        "platform_spi_interface.h": "c",
+        "stdio.h": "c",
+        "__bit_reference": "c",
+        "__node_handle": "c",
+        "__memory": "c",
+        "optional": "c",
+        "ratio": "c",
+        "system_error": "c",
+        "tuple": "c",
+        "base.h": "c"
     }
 }

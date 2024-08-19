@@ -138,7 +138,6 @@ boolean irq_enable_usb(void)
 void irq_handle_irqs(void)
 {
     reg32_t irq = REG_IRQ_BASE->irq_pending[0];
-    printf("\n%d\n", irq);
     switch (irq)
     {
 

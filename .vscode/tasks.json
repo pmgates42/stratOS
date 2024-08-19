@@ -2,18 +2,18 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "unit test",
+            "label": "Build Unit Test",
             "type": "shell",
             "command": "make",
-            "args": ["clean", "all"],
-            "options": {
-                "cwd": "${workspaceFolder}/test/unit/ssched"
-            },
+            "args": [],
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": true
             },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${fileDirname}"
+            }
         },
         {
             "label": "simulator",

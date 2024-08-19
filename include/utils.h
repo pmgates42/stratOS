@@ -11,6 +11,11 @@
 
 #include "generic.h"
 
+#define ENUM_TO_STR(x) #x
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 void delay(uint64_t n);
 void put32(uint64_t addr, uint32_t val);
 uint32_t get32(uint64_t addr);
@@ -20,3 +25,5 @@ void delay_ms(uint32_t msec);
 void delay_us(uint32_t us);
 
 void update(void);//TODO remove this after testing
+
+

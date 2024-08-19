@@ -8,6 +8,7 @@
 
 #include "net.h"
 #include "generic.h"
+#include "printf.h"
 
 #define IN_DATA_BUFF_SIZE 1200
 

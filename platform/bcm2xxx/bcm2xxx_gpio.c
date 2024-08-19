@@ -10,7 +10,7 @@
  */
 
 #include "generic.h"
-#include "bcm2xxx_pvg_gpio.h"
+#include "bcm2xxx_gpio.h"
 #include "utils.h"
 #include "peripherals/base.h"
 #include "uart.h"
@@ -138,7 +138,7 @@ void gpio_pin_setas_inp(uint32_t pin)
 void gpio_pin_enable(uint32_t pin)
 {
     /* Validate input */
-    if(pin > MAX_NMBR_GPIO_PINS)
+    if(pin >= MAX_NMBR_GPIO_PINS)
     {
         return;
     }

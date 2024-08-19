@@ -45,7 +45,7 @@ void timer_init()
  *  timer_alloc()
  * 
  *  DESCRIPTION:
- *      Allocate a timer. NOT IMPLEMENTED.
+ *      Allocate a timer.
  *
  */
 
@@ -65,6 +65,7 @@ timer_err_t8 timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ti
 }
 
 void* simulate_shed_timer_isr(void* arg) {
+    (void)arg;
 
     while (1) {
         scheduler_proc();
@@ -72,4 +73,8 @@ void* simulate_shed_timer_isr(void* arg) {
         usleep(TICKS_PER_USEC * scheduler_proc_rate);
     }
     return NULL;
+}
+
+void delay_us(uint32_t us) {
+    usleep(us);
 }
