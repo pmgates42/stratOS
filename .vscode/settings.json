@@ -36,6 +36,12 @@
         "snsr.h": "c",
         "usb.h": "c",
         "config.h": "c",
-        "locale": "c"
+        "locale": "c",
+        "compare": "cpp",
+        "cstddef": "cpp",
+        "ios": "cpp",
+        "limits": "cpp",
+        "new": "cpp",
+        "type_traits": "cpp"
     }
 }
