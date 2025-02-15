@@ -95,7 +95,7 @@ static void init(void)
     }
 
     /* Initialize the network interfaces */
-    sock_api_init();
+    // sock_api_init();
 }
 
 /**********************************************************

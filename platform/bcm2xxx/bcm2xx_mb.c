@@ -216,8 +216,8 @@ write_to_mb( VC_PROPERTY_TAG_CHNL, buff_address );
 /* Read GPU response. In this case, we would expect the
  * buffer address to be returned.
  */
-if( ( read_from_mb( VC_PROPERTY_TAG_CHNL ) != buff_address ) &&
-  ( tag_buff_data->code == TAG_CODE_RESP_SUCCESS ) )
+if( ( read_from_mb( VC_PROPERTY_TAG_CHNL ) != buff_address ) ||
+  ( tag_buff_data->code != TAG_CODE_RESP_SUCCESS ) )
 {
     printf("\nFailed request!");
     return FALSE;
@@ -253,7 +253,6 @@ static uint32_t read_from_mb(mb_channel_t chnl)
             ;
 
 		ret_data = REG_MB_0_READ;
-        printf("\nreading data %d", ret_data);
 	}
 	while ( ( ret_data & REG_MB_CHNL_MASK ) != chnl );
 
