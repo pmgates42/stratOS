@@ -42,6 +42,8 @@
         "ios": "cpp",
         "limits": "cpp",
         "new": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "kernel.h": "c",
+        "debug.h": "c"
     }
 }

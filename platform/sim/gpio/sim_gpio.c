@@ -15,10 +15,12 @@
  */
 
 #include "generic.h"
+#include "fs.h"
+#include "debug.h"
 
 #define NUMBER_OF_GPIO_PINS 50
 
-#define PIN_FILE_FNAME "sim_gpio_pin_states"
+#define PIN_FILE_FNAME "sim_gpio_pin_states.state"
 
 enum
 {
@@ -103,13 +105,21 @@ void gpio_pin_setas_inp(uint32_t pin)
 
 void gpio_maintenance_task()
 {
-    if( state_changed_flag )
+    static init = TRUE;
+
+    file_handle_t fhandle;
+    // clr_mem( &fhandle, sizeof fhandle );
+
+    if( state_changed_flag || init )
     {
+    debug_printf("State changed: Writing out simulated GPIO state....");
+
+    fs_open_file( PIN_FILE_FNAME, &fhandle, FILE_OPEN_FLAGS_WRITE | FILE_OPEN_FLAGS_CREATE | FILE_OPEN_FLAGS_OVRWRT );
+    fs_write( fhandle, "asjkdhasjkdh", 12 );
+    fs_close_file(&fhandle);
+
     state_changed_flag = FALSE;
-    }
-    else
-    {
-    
+    init = FALSE;
     }
 }
 

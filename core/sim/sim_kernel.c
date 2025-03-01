@@ -22,6 +22,7 @@
 #include "debug.h"
 #include "utils.h"
 #include "usb.h"
+#include "peripherals/gpio.h"
 
 static void init(void);
 static void tty_task(void);
@@ -30,7 +31,8 @@ static void setup_drivers(void);
 static sched_usr_tsk_t task_list[] =
     {
     { 2000 /* ms */, tty_task },
-    { 1000 /*  ms */, net_proc }
+    { 1000 /*  ms */, net_proc },
+    { 1000 /*  ms */, gpio_maintenance_task }
     };
 
 /**********************************************************

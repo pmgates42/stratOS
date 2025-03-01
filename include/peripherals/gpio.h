@@ -8,4 +8,5 @@ void gpio_pin_setas_inp(uint32_t pin);
 void gpio_pin_enable(uint32_t pin);
 void gpio_set(uint32_t pin);
 void gpio_clr(uint32_t pin);
+void gpio_maintenance_task();
 boolean gpio_get(uint32_t pin);

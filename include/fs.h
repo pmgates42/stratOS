@@ -59,6 +59,17 @@ file_err_t fs_open_file(const char * path, file_handle_t * out_handle, file_open
 
 /**********************************************************
  * 
+ *  fs_close_file()
+ * 
+ *  DESCRIPTION:
+ *     Open a file
+ *
+ */
+
+file_err_t fs_close_file(file_handle_t * out_handle);
+
+/**********************************************************
+ * 
  *  fs_read()
  * 
  *  DESCRIPTION:
