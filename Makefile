@@ -50,21 +50,21 @@ BUILD_DIR = build/$(PLATFORM)
 # Core system files
 #----------------------------------------
 ifdef SIMULATOR_BUILD
-	CORE_DIR = core/sim
+	CONSUMER_DIR = consumer/sim
 else
-	CORE_DIR = core/hw
+	CONSUMER_DIR = consumer/hw
 endif
 
-# Recursively find all C and Assembly files in CORE_DIR
-CORE_C_FILES := $(shell find $(CORE_DIR) -name '*.c')
-CORE_ASM_FILES := $(shell find $(CORE_DIR) -name '*.S')
+# Recursively find all C and Assembly files in CONSUMER_DIR
+CORE_C_FILES := $(shell find $(CONSUMER_DIR) -name '*.c')
+CORE_ASM_FILES := $(shell find $(CONSUMER_DIR) -name '*.S')
 
 # Generate object files from the found source files
-CORE_OBJ_FILES := $(CORE_C_FILES:$(CORE_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(CORE_ASM_FILES:$(CORE_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+CORE_OBJ_FILES := $(CORE_C_FILES:$(CONSUMER_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(CORE_ASM_FILES:$(CONSUMER_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(CORE_OBJ_FILES)
 
 # Include the directory for header files
-COPTNS += -I$(CORE_DIR)/include
+COPTNS += -I$(CONSUMER_DIR)/include
 
 #----------------------------------------
 # Define default target
@@ -235,13 +235,13 @@ $(BUILD_DIR)/%_s.o: $(BCM2XXX_DIR)/%.S
 	mkdir -p $(@D)
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
 
-# Rule for building core assembly files
-$(BUILD_DIR)/%_s.o: $(CORE_DIR)/%.S
+# Rule for building consumer assembly files
+$(BUILD_DIR)/%_s.o: $(CONSUMER_DIR)/%.S
 	mkdir -p $(@D)
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
 
-# Rule for building core C files
-$(BUILD_DIR)/%_c.o: $(CORE_DIR)/%.c
+# Rule for building consumer C files
+$(BUILD_DIR)/%_c.o: $(CONSUMER_DIR)/%.c
 	mkdir -p $(@D)
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
@@ -291,8 +291,8 @@ DEP_FILES := $(OBJ_FILES:.o=.d)
 -include $(DEP_FILES)
 
 # Build rule for kernel file using linker script and object files, then convert to a binary file
-kernel8.img: $(CORE_DIR)/linker.ld $(OBJ_FILES)
-	$(ARMGCC)-ld -T $(CORE_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf $(OBJ_FILES)
+kernel8.img: $(CONSUMER_DIR)/linker.ld $(OBJ_FILES)
+	$(ARMGCC)-ld -T $(CONSUMER_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf $(OBJ_FILES)
 	$(ARMGCC)-objcopy $(BUILD_DIR)/kernel8.elf -O binary $(BUILD_DIR)/kernel8.img
 
 armstub/build/armstub_s.o: armstub/src/armstub.S

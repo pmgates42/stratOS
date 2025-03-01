@@ -3,7 +3,7 @@
  *  sim_kernel.c
  * 
  *  DESCRIPTION:
- *     Boot procedures fo simulated kernel
+ *     Boot procedures fo simulated kernel.
  *
  */
 
@@ -23,17 +23,39 @@
 #include "utils.h"
 #include "usb.h"
 #include "peripherals/gpio.h"
+#include "config.h"
 
 static void init(void);
 static void test_gpio_task(void);
 static void setup_drivers(void);
+static boolean register_module_pins(void);
+
+#define declare_pin_list(pin_list)  \
+
+enum
+{
+CONFIG_MODULE_ID__SPI = 0
+};
+
+typedef struct
+{
+    config_module_id_type module_id;
+    config_pin_type       pin;
+} consumer_module_pin_config_entry_type;
+static const consumer_module_pin_config_entry_type consumer_module_pin_config_table[] =
+{
+    /* PIN0 */{  CONFIG_MODULE_ID__SPI,   0 },
+    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   1 },
+    /* PIN3 */{  CONFIG_MODULE_ID__SPI,   3 },
+    /* PIN4 */{  CONFIG_MODULE_ID__SPI,   4 },
+};
 
 static sched_usr_tsk_t  task_list[] =
     {
     /* period_ms                             task_func      */
-    { SIMULATOR_MAINT_TASK_PERIOD_MS*3,        test_gpio_task },
+    { SIMULATOR_MAINT_TASK_PERIOD_MS,        test_gpio_task },
     // { 1000,                                  net_proc },
-    { SIMULATOR_MAINT_TASK_PERIOD_MS,        gpio_maintenance_task }
+    { SIMULATOR_MAINT_TASK_PERIOD_MS,         gpio_maintenance_task }
     };
 
 /**********************************************************
@@ -65,8 +87,6 @@ static void test_gpio_task(void)
 {
 static boolean do_set = FALSE;
 static boolean task_init = FALSE;
-
-printf("made it here");
 
 if( !task_init )
 {
@@ -107,6 +127,15 @@ static void init(void)
     irq_init();
     timer_init();
 
+    /* Initialize the config module (do
+       this before drivers are initialized) */
+    config_module_init();
+   
+    if( FALSE == register_module_pins() )
+    {
+        printf("Consumer setup: Invalid pin config!");
+    }
+
     /* Set up all of the hw drivers */
     setup_drivers();
 
@@ -136,4 +165,24 @@ static void init(void)
 static void setup_drivers(void)
 {
 
+}
+
+
+static boolean register_module_pins(void)
+{
+uint8_t       i;
+config_err_t8 config_err;
+
+for(i = 0; i < list_cnt( consumer_module_pin_config_table ); i++ )
+{
+    config_err = config_register_pins_for_module( consumer_module_pin_config_table[i].module_id,
+                                                  consumer_module_pin_config_table[i].pin );
+
+    if( config_err != CONFIG_ERR_NONE )
+        {
+        return FALSE;
+        }
+}
+
+return TRUE;
 }
