@@ -89,3 +89,25 @@ file_err_t fs_read(file_handle_t handle, void * buff, size_t size);
  */
 
 file_err_t fs_write(file_handle_t handle, void * buff, size_t size);
+
+/**********************************************************
+ * 
+ *  fs_write()
+ * 
+ *  DESCRIPTION:
+ *     Write formatted text to a file, like printf.
+ *
+ */
+
+file_err_t fs_writef(file_handle_t handle, const char * format, ...);
+
+/**********************************************************
+ * 
+ *  fs_readf()
+ * 
+ *  DESCRIPTION:
+ *     Read formatted text from a file, like sscanf.
+ *
+ */
+
+file_err_t fs_readf(file_handle_t handle, const char * format, ...);

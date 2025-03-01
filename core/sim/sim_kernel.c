@@ -28,11 +28,12 @@ static void init(void);
 static void tty_task(void);
 static void setup_drivers(void);
 
-static sched_usr_tsk_t task_list[] =
+static sched_usr_tsk_t  task_list[] =
     {
-    { 2000 /* ms */, tty_task },
-    { 1000 /*  ms */, net_proc },
-    { 1000 /*  ms */, gpio_maintenance_task }
+    /* period_ms                             task_func      */
+    { 2000,                                  tty_task },
+    { 1000,                                  net_proc },
+    { SIMULATOR_MAINT_TASK_PERIOD_MS,        gpio_maintenance_task }
     };
 
 /**********************************************************

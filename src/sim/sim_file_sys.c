@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdarg.h>
 
 #define INVALID_HANDLE (file_handle_t)(-1)
 
@@ -109,3 +110,57 @@ file_err_t fs_close_file(file_handle_t * handle)
     *handle = INVALID_HANDLE;
     return FILE_ERR_NONE;
     }
+
+/**********************************************************
+* 
+*  fs_writef()
+* 
+*  DESCRIPTION:
+*     Write formatted text to a file, like printf.
+*
+*/
+
+file_err_t fs_writef(file_handle_t handle, const char * format, ...)
+{
+    char buffer[256];  /* Adjust buffer size as needed */
+    va_list args;
+    va_start(args, format);
+    int length = vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+    if (length < 0)
+        {
+        return FILE_ERR_NONE;
+        }
+
+    return fs_write(handle, buffer, length);
+}
+
+/**********************************************************
+ * 
+ *  fs_readf()
+ * 
+ *  DESCRIPTION:
+ *     Read formatted text from a file, like sscanf.
+ *
+ */
+
+file_err_t fs_readf(file_handle_t handle, const char * format, ...)
+{
+    char buffer[256];  /* Adjust buffer size as needed */
+    ssize_t bytes_read = read((int)handle, buffer, sizeof(buffer) - 1);
+
+    if (bytes_read <= 0)
+        {
+        return FILE_ERR_NONE;
+        }
+
+    buffer[bytes_read] = '\0';
+
+    va_list args;
+    va_start(args, format);
+    int matched = vsscanf(buffer, format, args);
+    va_end(args);
+
+    return (matched > 0) ? FILE_ERR_NONE : FILE_ERR_NONE;
+}
