@@ -142,21 +142,39 @@ static void write_out_pins(void)
 
 static void read_in_pins(void)
 {
-    uint8_t       i;
-    file_handle_t fhandle;
-    int           io_state, value;
+    #define LINE_SZ_BYTES   5
+
+    typedef struct
+    {
+    uint8_t io_state;
+    uint8_t dont_care_0[1];
+    uint8_t value;
+    uint8_t dont_care_1[2];
+    } state_file_line_type;
+
+    static char buf[NUMBER_OF_GPIO_PINS * LINE_SZ_BYTES]; 
+
+    uint8_t           i;
+    file_handle_t     fhandle;
+    int               io_state, value;
+    state_file_line_type
+                    * temp_line;
+    const uint8_t   * buf_ptr;
 
     fs_open_file(PIN_FILE_FNAME, &fhandle, FILE_OPEN_FLAGS_READ);
+    if( fs_read(fhandle, buf, sizeof buf) != FILE_ERR_NONE)
+        return;
 
-    for (i = 0; i < NUMBER_OF_GPIO_PINS; i++)
+    buf_ptr = buf;
+
+    for (i = 0; i < 0; i++)
     {
-        if (fs_readf(fhandle, "%d %d", &io_state, &value) != FILE_ERR_NONE)
-            {
-            break; /* Stop reading if there’s an error */
-            }
+        temp_line = (state_file_line_type *)buf_ptr;
 
-        simulated_pins[i].io_state = (uint8_t)io_state;
-        simulated_pins[i].value = (uint8_t)value;
+        simulated_pins[i].io_state = temp_line->io_state;
+        simulated_pins[i].value    = temp_line->value;
+
+        buf_ptr += LINE_SZ_BYTES;
     }
 
     fs_close_file(&fhandle);
@@ -198,7 +216,8 @@ void gpio_set(uint32_t pin)
     {
         return;
     }
-   simulated_pins[ pin ].io_state = 0x1;
+   simulated_pins[ pin ].value = 0x1;
+   state_changed_flag = TRUE;
 }
 
 /**********************************************************
@@ -217,7 +236,8 @@ void gpio_clr(uint32_t pin)
     {
         return;
     }
-    simulated_pins[ pin ].io_state = 0x0;
+    simulated_pins[ pin ].value = 0x0;
+    state_changed_flag = TRUE;
 }
 
 /**********************************************************

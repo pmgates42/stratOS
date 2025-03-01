@@ -25,14 +25,14 @@
 #include "peripherals/gpio.h"
 
 static void init(void);
-static void tty_task(void);
+static void test_gpio_task(void);
 static void setup_drivers(void);
 
 static sched_usr_tsk_t  task_list[] =
     {
     /* period_ms                             task_func      */
-    { 2000,                                  tty_task },
-    { 1000,                                  net_proc },
+    { SIMULATOR_MAINT_TASK_PERIOD_MS*3,        test_gpio_task },
+    // { 1000,                                  net_proc },
     { SIMULATOR_MAINT_TASK_PERIOD_MS,        gpio_maintenance_task }
     };
 
@@ -61,10 +61,41 @@ void /*kernel_*/main()
         ;
 }
 
-static void tty_task(void)
+static void test_gpio_task(void)
 {
-    /* echo back user input */
-    printf("\nTTY task is alive...\n");
+static boolean do_set = FALSE;
+static boolean task_init = FALSE;
+
+printf("made it here");
+
+if( !task_init )
+{
+    printf("Init Test GPIO task");
+
+    gpio_pin_enable( 0 );
+    gpio_pin_enable( 1 );
+
+    gpio_pin_setas_outp( 0 );
+    gpio_pin_setas_outp( 1 );
+
+    task_init = TRUE;
+}
+
+if( do_set )
+{
+    gpio_set( 0 );
+    gpio_set( 1 );
+
+    do_set = FALSE;
+}
+else
+{
+    gpio_clr( 0 );
+    gpio_clr( 1 );
+
+    do_set = TRUE;
+}
+
 }
 
 static void init(void)
