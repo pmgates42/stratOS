@@ -4,6 +4,53 @@
 
 /**********************************************************
  * 
+ *  spi_pin_type
+ * 
+ *  DESCRIPTION:
+ *     Pins used by the SPI module
+ *
+ */
+
+typedef config_pin_id_type spi_pin_type;
+enum
+{
+SPI_MODULE_PIN_ID__CS_0,
+SPI_MODULE_PIN_ID__SCLK_0,
+SPI_MODULE_PIN_ID__MOSI,
+SPI_MODULE_PIN_ID__MISO,
+};
+
+
+/**********************************************************
+ * 
+ *  spi_pin_type
+ * 
+ *  DESCRIPTION:
+ *     Pins used by the SPI module
+ *
+ */
+
+typedef uint8_t spi_module_error_type;
+enum
+{
+SPI_MODULE_ERR__PINS_NOT_CONFIGURED,    /* GPIO Pins for this module were not configured    */
+};
+
+
+/**********************************************************
+ * 
+ *  spi_init()
+ * 
+ *  DESCRIPTION:
+ *     Initialize the SPI module
+ *
+ */
+
+spi_module_error_type spi_init(void);
+
+
+/**********************************************************
+ * 
  *  spi_tx_periodic()
  * 
  *  DESCRIPTION:

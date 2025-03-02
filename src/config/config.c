@@ -17,6 +17,9 @@
 #include "peripherals/snsr/snsr.h"
 #include "debug.h"
 
+#define INVALID_MODULE_ENTRY_IDX  0xFF
+#define INVALID_MODULE_PIN_IDX    0xFF
+
 // todo stubbing sensor config while flash code is incomplete
 static kernel_config_t stubbed_config = {0};
 
@@ -60,7 +63,8 @@ config_err_t8 config_module_init(void)
 
         for( uint8_t j = 0; j < list_cnt( registered_module_pin_configs[i].pins ); j++ )
         {
-            registered_module_pin_configs[i].pins[j] = CFG_INVALID_PIN_NUMBER;
+            registered_module_pin_configs[i].pins[j].pin_number = CFG_INVALID_PIN_NUMBER;
+            registered_module_pin_configs[i].pins[j].id         = CFG_INVALID_PIN_ID;
         }
     }
 
@@ -76,11 +80,8 @@ config_err_t8 config_module_init(void)
  *
  */
 
-config_err_t8 config_register_pins_for_module(config_module_id_type module_id, config_pin_type pin)
+config_err_t8 config_register_pins_for_module(config_module_id_type module_id, uint16_t pin, config_pin_id_type id)
 {
-    #define INVALID_MODULE_ENTRY_IDX  0xFF
-    #define INVALID_MODULE_PIN_IDX    0xFF
-
     uint8_t         i;
     uint8_t         entry_index;
     uint8_t         pin_index;
@@ -123,7 +124,7 @@ config_err_t8 config_register_pins_for_module(config_module_id_type module_id, c
     pin_index = INVALID_MODULE_PIN_IDX;
     for( i = 0; i < list_cnt( registered_module_pin_configs[ entry_index ].pins ); i++ )
     {
-        if( registered_module_pin_configs[ entry_index ].pins[ i ] == CFG_INVALID_PIN_NUMBER )
+        if( registered_module_pin_configs[ entry_index ].pins[ i ].pin_number == CFG_INVALID_PIN_NUMBER )
         {
             pin_index = i;
             break;
@@ -132,7 +133,8 @@ config_err_t8 config_register_pins_for_module(config_module_id_type module_id, c
     
     if( pin_index != INVALID_MODULE_PIN_IDX )
     {
-        registered_module_pin_configs[ entry_index ].pins[ pin_index ] = pin;
+        registered_module_pin_configs[ entry_index ].pins[ pin_index ].pin_number = pin;
+        registered_module_pin_configs[ entry_index ].pins[ pin_index ].id         = id;
     }
     else
     {
@@ -141,4 +143,46 @@ config_err_t8 config_register_pins_for_module(config_module_id_type module_id, c
 
     return CONFIG_ERR_NONE;
 
+}
+
+/**********************************************************
+ * 
+ *  config_pin_is_registered()
+ * 
+ *  DESCRIPTION:
+ *     Check if pin with pin_id is registered to the given
+ *     module. 
+ *
+ */
+
+boolean config_pin_is_registered(config_module_id_type module_id, config_pin_id_type pin_id)
+{
+    uint8_t i;
+    uint8_t module_index = INVALID_MODULE_ENTRY_IDX;
+
+    for( i = 0; i < list_cnt(registered_module_pin_configs); i++ )
+    {
+        if( module_id == registered_module_pin_configs[i].module_id)
+            {
+            module_index = i;
+            break;
+            }
+            
+    }
+
+    /* Couldn't find module */
+    if(module_id == INVALID_MODULE_ENTRY_IDX)
+        return FALSE;
+
+    for( i = 0; i < list_cnt(registered_module_pin_configs[module_id].pins); i++ )
+    {
+        if( pin_id == registered_module_pin_configs[module_id].pins[i].id)
+            {
+            /* found pin with module id */
+            return TRUE;
+            }
+            
+    }
+
+    return FALSE;
 }

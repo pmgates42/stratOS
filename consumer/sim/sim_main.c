@@ -24,6 +24,7 @@
 #include "usb.h"
 #include "peripherals/gpio.h"
 #include "config.h"
+#include "peripherals/spi.h"
 
 static void init(void);
 static void test_gpio_task(void);
@@ -32,22 +33,19 @@ static boolean register_module_pins(void);
 
 #define declare_pin_list(pin_list)  \
 
-enum
-{
-CONFIG_MODULE_ID__SPI = 0
-};
-
 typedef struct
 {
-    config_module_id_type module_id;
-    config_pin_type       pin;
+    config_module_id_type module_id;            /* software module id number */
+    uint16_t              pin;                  /* physical hardware pin     */
+    config_pin_id_type    id;                   /* pin lookup id             */
 } consumer_module_pin_config_entry_type;
 static const consumer_module_pin_config_entry_type consumer_module_pin_config_table[] =
 {
-    /* PIN0 */{  CONFIG_MODULE_ID__SPI,   0 },
-    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   1 },
-    /* PIN3 */{  CONFIG_MODULE_ID__SPI,   3 },
-    /* PIN4 */{  CONFIG_MODULE_ID__SPI,   4 },
+    /*           module_id                pin   id                          */
+    /* PIN0 */{  CONFIG_MODULE_ID__SPI,   0,    SPI_MODULE_PIN_ID__CS_0    },
+    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   1,    SPI_MODULE_PIN_ID__SCLK_0  },
+    /* PIN3 */{  CONFIG_MODULE_ID__SPI,   3,    SPI_MODULE_PIN_ID__MOSI    },
+    /* PIN4 */{  CONFIG_MODULE_ID__SPI,   4,    SPI_MODULE_PIN_ID__MISO    },
 };
 
 static sched_usr_tsk_t  task_list[] =
@@ -176,7 +174,8 @@ config_err_t8 config_err;
 for(i = 0; i < list_cnt( consumer_module_pin_config_table ); i++ )
 {
     config_err = config_register_pins_for_module( consumer_module_pin_config_table[i].module_id,
-                                                  consumer_module_pin_config_table[i].pin );
+                                                  consumer_module_pin_config_table[i].pin,
+                                                  consumer_module_pin_config_table[i].id );
 
     if( config_err != CONFIG_ERR_NONE )
         {
