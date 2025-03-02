@@ -201,7 +201,7 @@ static void call_task_proc(task_cb_t * task);
  *      This function is used to process the output from
  *      the scheduler which helps to minimize execution
  *      time during the system timer interrupt.
- *
+ * 
  */
 
 void sched_main(void)
