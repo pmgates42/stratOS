@@ -161,6 +161,16 @@ COPTNS += -I$(SCHED_DIR)/include
 COPTNS += -DSSCHED_SHOW_DEBUG_DATA
 
 #----------------------------------------
+# Core Drivers - Build all files under drivers/core
+#----------------------------------------
+
+CORE_DRIVERS_DIR = drivers/core
+CORE_DRIVERS_C_FILES := $(shell find $(CORE_DRIVERS_DIR) -name '*.c')
+CORE_DRIVERS_ASM_FILES := $(shell find $(CORE_DRIVERS_DIR) -name '*.S')
+CORE_DRIVERS_OBJ_FILES := $(CORE_DRIVERS_C_FILES:$(CORE_DRIVERS_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(CORE_DRIVERS_ASM_FILES:$(CORE_DRIVERS_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+OBJ_FILES += $(CORE_DRIVERS_OBJ_FILES)
+
+#----------------------------------------
 # Hardware driver configurations
 #----------------------------------------
 
@@ -172,7 +182,6 @@ HW_DRIVER_HC_SR04_C_FILES := $(wildcard $(HW_DRIVER_HC_SR04_DIR)/*.c)
 HW_DRIVER_HC_SR04_ASM_FILES := $(wildcard $(HW_DRIVER_HC_SR04_DIR)/*.S)
 HW_DRIVER_HC_SR04_OBJ_FILES := $(HW_DRIVER_HC_SR04_C_FILES:$(HW_DRIVER_HC_SR04_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(HW_DRIVER_HC_SR04_ASM_FILES:$(HW_DRIVER_HC_SR04_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(HW_DRIVER_HC_SR04_OBJ_FILES)
-COPTNS += -I$(HW_DRIVER_HC_SR04_DIR)/include
 
 else
 endif
@@ -271,6 +280,14 @@ $(BUILD_DIR)/%_c.o: $(PLATFORM_SIM_DIR)/%.c
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 $(BUILD_DIR)/%_s.o: $(PLATFORM_SIM_DIR)/%.S
+	mkdir -p $(@D)
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/%_c.o: $(CORE_DRIVERS_DIR)/%.c
+	mkdir -p $(@D)
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/%_s.o: $(CORE_DRIVERS_DIR)/%.S
 	mkdir -p $(@D)
 	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
 

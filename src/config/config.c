@@ -20,11 +20,35 @@
 #define INVALID_MODULE_ENTRY_IDX  0xFF
 #define INVALID_MODULE_PIN_IDX    0xFF
 
+/**********************************************************
+ * 
+ *  registered_config_type
+ * 
+ *  DESCRIPTION:
+ *      All current configs indexed by config_id_type.
+ *      This allows us to easily dump the registered/unregistered
+ *      configs easily, or make sweeping updates if necessary.
+ *
+ */
+
+typedef struct
+{
+    boolean registered;
+
+    union
+    {
+        spi_parameter_config_type spi_params;
+    } config;
+} registered_config_type;
+
 // todo stubbing sensor config while flash code is incomplete
 static kernel_config_t stubbed_config = {0};
 
+//TODO move this into registered_config_type
 static pin_config_type registered_module_pin_configs[CFG_PIN_CFG_MAX_RGSTRD];
 static uint8_t pin_cfgs_cnt;
+
+static registered_config_type registered_configs[CONFIG_ID_COUNT];
 
 config_err_t8 config_get_sys_config(kernel_config_t * config)
 {
@@ -56,6 +80,7 @@ config_err_t8 config_module_init(void)
 
     pin_cfgs_cnt = 0;
     clr_mem( registered_module_pin_configs, sizeof registered_module_pin_configs);
+    clr_mem( registered_configs, sizeof registered_configs );
 
     for( i = 0; i < list_cnt( registered_module_pin_configs ); i++ )
     {
@@ -73,14 +98,14 @@ config_err_t8 config_module_init(void)
 
 /**********************************************************
  * 
- *  config_register_pins_for_module()
+ *  config_register_pin_for_module()
  * 
  *  DESCRIPTION:
  *     Register GPIO pins for a given module
  *
  */
 
-config_err_t8 config_register_pins_for_module(config_module_id_type module_id, uint16_t pin, config_pin_id_type id)
+config_err_t8 config_register_pin_for_module(config_module_id_type module_id, uint16_t pin, config_pin_id_type id)
 {
     uint8_t         i;
     uint8_t         entry_index;
@@ -185,4 +210,43 @@ boolean config_pin_is_registered(config_module_id_type module_id, config_pin_id_
     }
 
     return FALSE;
+}
+
+/**********************************************************
+ * 
+ *  config_register_spi_parameters()
+ * 
+ *  DESCRIPTION:
+ *     Register SPI parameters with the config module.
+ *
+ */
+
+config_err_t8 config_register_spi_parameters(spi_parameter_config_type params)
+{
+    /* validate parameters */
+    if( params.bit_order != CONFIG_BIT_ORDER_MSB || params.bit_order != CONFIG_BIT_ORDER_MSB )
+        return CONFIG_ERR_INVLD_CONFIG;
+
+    registered_configs[CONFIG_ID_SPI_PARAMS].config.spi_params = params;
+    registered_configs[CONFIG_ID_SPI_PARAMS].registered = TRUE;
+
+    return CONFIG_ERR_NONE;
+    
+}
+
+/**********************************************************
+ * 
+ *  config_get_registration_status()
+ * 
+ *  DESCRIPTION:
+ *     Check if a config is registered
+ *
+ */
+
+boolean config_get_registration_status(config_id_type config_id)
+{
+    if(config_id >= CONFIG_ID_COUNT)
+        return FALSE;
+
+    return registered_configs[CONFIG_ID_SPI_PARAMS].registered;
 }

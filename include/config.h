@@ -108,9 +108,17 @@ enum
 {
     CONFIG_ERR_NONE = 0,
     CONFIG_ERR_INVLD_CONFIG,
+    CONFIG_ERR_INVLD_CONFIG_ID,
     CONFIG_ERR_INVLD_MODULE_ID,
     CONFIG_ERR_REACHED_MAX_PIN_CFGS,
     CONFIG_ERR_MODULE_REACHED_MAX_PINS,
+};
+
+typedef uint8_t config_bit_order_type;
+enum
+{
+    CONFIG_BIT_ORDER_MSB,
+    CONFIG_BIT_ORDER_LSB,
 };
 
 typedef struct
@@ -157,10 +165,90 @@ typedef struct
     config_pin_type       pins[CFG_PIN_CFG_MAX_PINS];
 } pin_config_type;
 
+typedef uint8_t config_id_type;
+enum
+{
+    CONFIG_ID_SPI_PARAMS,
+    CONFIG_ID_COUNT,
+};
+
+/**********************************************************
+ * 
+ *  spi_parameter_config_type
+ * 
+ *  DESCRIPTION:
+ *     SPI parameters.
+ * 
+ *  NOTES:
+ *      Right now, the SPI driver is very simple so things
+ *      like polarity cs polarity transfer mode (half/full
+ *      duplex) are not necessary. Surely, this config will
+ *      be expanded in the future.
+ *
+ */
+
+typedef struct
+{
+    uint32_t slck_speed_hz;
+    uint8_t  data_size;
+    config_bit_order_type
+            bit_order;
+} spi_parameter_config_type;
+
+/**********************************************************
+ * 
+ *  config_module_init()
+ * 
+ *  DESCRIPTION:
+ *     Initialize the config module. Must be called before
+ *     any config operations can occur.
+ *
+ */
 
 config_err_t8 config_module_init(void);
 
-config_err_t8 config_register_pins_for_module(config_module_id_type module_id, uint16_t pin, config_pin_id_type id);
+/**********************************************************
+ * 
+ *  config_register_pin_for_module()
+ * 
+ *  DESCRIPTION:
+ *     Register a single pin for a single module.
+ *
+ */
+
+config_err_t8 config_register_pin_for_module(config_module_id_type module_id, uint16_t pin, config_pin_id_type id);
+
+/**********************************************************
+ * 
+ *  config_register_spi_parameters()
+ * 
+ *  DESCRIPTION:
+ *     Register SPI parameters with the config module.
+ *
+ */
+
+config_err_t8 config_register_spi_parameters(spi_parameter_config_type params);
+
+boolean config_get_registration_status(config_id_type config_id);
+
+/**********************************************************
+ * 
+ *  config_pin_is_registered()
+ * 
+ *  DESCRIPTION:
+ *     Check if a pin is registered for a module
+ *
+ */
+
 boolean config_pin_is_registered(config_module_id_type module_id, config_pin_id_type pin_id);
+
+/**********************************************************
+ * 
+ *  config_get_module_pins()
+ * 
+ *  DESCRIPTION:
+ *     Get pins for module
+ *
+ */
 
 config_err_t8 config_get_module_pins(void); //TODO
