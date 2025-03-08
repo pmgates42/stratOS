@@ -27,8 +27,7 @@ endif
 #----------------------------------------
 # Define main source directory
 #----------------------------------------
-SRC_DIR = src
-
+SRC_DIR = common
 
 #----------------------------------------
 # Determine the output build directory
@@ -77,15 +76,6 @@ endif
 
 clean:
 	rm -rf $(BUILD_DIR)
-
-#----------------------------------------
-# Comon source files
-#----------------------------------------
-COMMON_DIR = common
-COMMON_C_FILES := $(wildcard $(COMMON_DIR)/*.c)
-COMMON_ASM_FILES := $(wildcard $(COMMON_DIR)/*.S)
-COMMON_OBJ_FILES := $(COMMON_C_FILES:$(COMMON_DIR)/%.c=$(BUILD_DIR)/%_c.o) $(COMMON_ASM_FILES:$(COMMON_DIR)/%.S=$(BUILD_DIR)/%_s.o)
-OBJ_FILES += $(COMMON_OBJ_FILES)
 
 #----------------------------------------
 # Build platform (CPU) specific files
@@ -213,16 +203,6 @@ endif
 #----------------------------------------
 # Build rules
 #----------------------------------------
-
-# Rule for building common C files
-$(BUILD_DIR)/%_c.o: $(COMMON_DIR)/%.c
-	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
-
-# Rule for building common assembly files
-$(BUILD_DIR)/%_s.o: $(COMMON_DIR)/%.S
-	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
 
 # Rule for building src C files
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
