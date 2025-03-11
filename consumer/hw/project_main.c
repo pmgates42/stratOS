@@ -1,9 +1,13 @@
 /**********************************************************
  * 
- *  kernel.c
+ *  project_main.c
  * 
- *  DESCRIPTION:
- *      Kernel boot procedures
+ * DESCRIPTION:
+ *      Project side code
+ * 
+ *  NOTE:
+ *      Kernel boot procedures are done here but will
+ *      eventually be moved elsewhere.
  *
  */
 
@@ -21,15 +25,37 @@
 #include "utils.h"
 #include "printf.h"
 #include "usb.h"
+#include "peripherals/spi.h"
+
+typedef struct
+{
+    config_module_id_type module_id;            /* software module id number */
+    uint16_t              pin;                  /* physical hardware pin     */
+    config_pin_id_type    id;                   /* pin lookup id             */
+} consumer_module_pin_config_entry_type;
+static const consumer_module_pin_config_entry_type consumer_module_pin_config_table[] =
+{
+    /**
+     * https://pinout.xyz/
+     */
+    /*           module_id                pin   id                          */
+    /* PIN0 */{  CONFIG_MODULE_ID__SPI,   8,    SPI_MODULE_PIN_ID__CS_0    },
+    /* PIN0 */{  CONFIG_MODULE_ID__SPI,   7,    SPI_MODULE_PIN_ID__CS_1    },
+    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   11,   SPI_MODULE_PIN_ID__SCLK    },
+    /* PIN3 */{  CONFIG_MODULE_ID__SPI,   10,   SPI_MODULE_PIN_ID__MOSI    },
+    /* PIN4 */{  CONFIG_MODULE_ID__SPI,   9,    SPI_MODULE_PIN_ID__MISO    },
+};
+
+static sched_usr_tsk_t  task_list[] =
+    {
+    /* period_ms                              task_func      */
+    { 500,                                    spi_tx_periodic       }
+    };
 
 static void init(void);
 static void tty_task(void);
 static void setup_drivers(void);
-
-static sched_usr_tsk_t task_list[] =
-    {
-    { 10 /* ms */, tty_task }
-    };
+static boolean register_module_pins(void);
 
 /**********************************************************
  * 
@@ -79,6 +105,15 @@ static void init(void)
     irq_init();
     timer_init();
 
+    /* Initialize the config module (do
+       this before drivers are initialized) */
+    config_module_init();
+
+    if( FALSE == register_module_pins() )
+    {
+        printf("Consumer setup: Invalid pin config!");
+    }
+
     // TODO move this to bottom of this function?
     /* Initialize modules that rely on timers */
     sched_init(task_list, list_cnt(task_list));
@@ -123,4 +158,24 @@ static void setup_drivers(void)
     hc_sr04_init();
     printf("Successfully registered the HC-SR04 driver....\n\n");
     #endif
+}
+
+static boolean register_module_pins(void)
+{
+uint8_t       i;
+config_err_t8 config_err;
+
+for(i = 0; i < list_cnt( consumer_module_pin_config_table ); i++ )
+{
+    config_err = config_register_pin_for_module( consumer_module_pin_config_table[i].module_id,
+                                                  consumer_module_pin_config_table[i].pin,
+                                                  consumer_module_pin_config_table[i].id );
+
+    if( config_err != CONFIG_ERR_NONE )
+        {
+        return FALSE;
+        }
+}
+
+return TRUE;
 }

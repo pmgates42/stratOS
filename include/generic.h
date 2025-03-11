@@ -28,6 +28,8 @@
 #define BS_ALL_32 BS_ALL
 #define BS_MAX(size) ( BS_ALL & ~( 1 << ((size * 8) -1) ) )
 
+#define assert(condition, msg) \
+
 typedef int sint32_t;
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;

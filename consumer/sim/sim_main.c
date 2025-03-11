@@ -30,8 +30,6 @@ static void init(void);
 static void setup_drivers(void);
 static boolean register_module_pins(void);
 
-#define declare_pin_list(pin_list)  \
-
 typedef struct
 {
     config_module_id_type module_id;            /* software module id number */
@@ -42,7 +40,7 @@ static const consumer_module_pin_config_entry_type consumer_module_pin_config_ta
 {
     /*           module_id                pin   id                          */
     /* PIN0 */{  CONFIG_MODULE_ID__SPI,   0,    SPI_MODULE_PIN_ID__CS_0    },
-    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   1,    SPI_MODULE_PIN_ID__SCLK_0  },
+    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   1,    SPI_MODULE_PIN_ID__SCLK  },
     /* PIN3 */{  CONFIG_MODULE_ID__SPI,   3,    SPI_MODULE_PIN_ID__MOSI    },
     /* PIN4 */{  CONFIG_MODULE_ID__SPI,   4,    SPI_MODULE_PIN_ID__MISO    },
 };

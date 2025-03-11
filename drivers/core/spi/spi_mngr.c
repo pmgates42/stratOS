@@ -78,3 +78,25 @@ for(pin = 0; pin < SPI_MODULE_PIN_ID__COUNT; pin++ )
 }
 
 }
+
+
+boolean spi_lcl_get_hw_intf_data(hw_intf_data_t * out_data)
+{
+    hw_intf_data_t intf_data;
+    config_err_t8 cfg_err = CONFIG_ERR_NONE;
+ 
+    clr_mem(&intf_data, sizeof intf_data);
+
+    cfg_err |= config_lookup_pin(SPI_MODULE_PIN_ID__CS_0, &intf_data.gpio_pins.cs_0);
+    cfg_err |= config_lookup_pin(SPI_MODULE_PIN_ID__CS_1, &intf_data.gpio_pins.cs_1);
+    cfg_err |= config_lookup_pin(SPI_MODULE_PIN_ID__MISO, &intf_data.gpio_pins.miso);
+    cfg_err |= config_lookup_pin(SPI_MODULE_PIN_ID__MOSI, &intf_data.gpio_pins.mosi);
+    cfg_err |= config_lookup_pin(SPI_MODULE_PIN_ID__SCLK, &intf_data.gpio_pins.sclk);
+
+    if(cfg_err == CONFIG_ERR_NONE)
+    {
+        *out_data = intf_data;
+    }
+
+    return (cfg_err == CONFIG_ERR_NONE);
+}

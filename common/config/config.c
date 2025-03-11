@@ -250,3 +250,24 @@ boolean config_get_registration_status(config_id_type config_id)
 
     return registered_configs[CONFIG_ID_SPI_PARAMS].registered;
 }
+
+
+config_err_t8 config_lookup_pin(config_pin_id_type pin_id, uint32_t * out_ptr)
+{
+    uint8_t  i, j;
+    assert(out_ptr, "Invalid ptr");
+
+    for( i = 0; i < list_cnt(registered_module_pin_configs); i++ )
+    {
+        for( j = 0; j < list_cnt(registered_module_pin_configs[ i ].pins); j++)
+            {
+            if(registered_module_pin_configs[ i ].pins[ j ].id == pin_id)
+                {
+                *out_ptr = registered_module_pin_configs[ i ].pins[j].pin_number;
+                return CONFIG_ERR_NONE;
+                }
+            }
+    }
+
+    return CONFIG_ERR_INVLD_PIN_ID;
+}
