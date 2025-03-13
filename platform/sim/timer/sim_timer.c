@@ -73,3 +73,7 @@ void* simulate_shed_timer_isr(void* arg) {
     }
     return NULL;
 }
+
+void delay_us(uint32_t us) {
+    usleep(us);
+}

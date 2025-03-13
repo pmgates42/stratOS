@@ -40,7 +40,8 @@ static const consumer_module_pin_config_entry_type consumer_module_pin_config_ta
 {
     /*           module_id                pin   id                          */
     /* PIN0 */{  CONFIG_MODULE_ID__SPI,   0,    SPI_MODULE_PIN_ID__CS_0    },
-    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   1,    SPI_MODULE_PIN_ID__SCLK  },
+    /* PIN5 */{  CONFIG_MODULE_ID__SPI,   1,    SPI_MODULE_PIN_ID__CS_1    },
+    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   2,    SPI_MODULE_PIN_ID__SCLK    },
     /* PIN3 */{  CONFIG_MODULE_ID__SPI,   3,    SPI_MODULE_PIN_ID__MOSI    },
     /* PIN4 */{  CONFIG_MODULE_ID__SPI,   4,    SPI_MODULE_PIN_ID__MISO    },
 };
@@ -49,8 +50,8 @@ static sched_usr_tsk_t  task_list[] =
     {
     /* period_ms                              task_func      */
     // { 1000,                                  net_proc },
-    { SIMULATOR_MAINT_TASK_PERIOD_MS,         gpio_maintenance_task },
-    { 500,                                    spi_tx_periodic       }
+    { SIMULATOR_MAINT_TASK_PERIOD_MS,         gpio_maintenance_task },  /* Required Simulator GPIO task */
+    { 35000,  /*35sec*/                         spi_tx_periodic       }
     };
 
 /**********************************************************
@@ -127,9 +128,10 @@ static void setup_drivers(void)
 spi_parameter_config_type spi_params;
 spi_module_error_type     spi_err;
 
-spi_params.bit_order = CONFIG_BIT_ORDER_MSB;
 spi_params.data_size = sizeof(uint8_t);
 spi_params.slck_speed_hz = 1;
+spi_params.endianness = CONFIG_ENDIAN_BIG;
+spi_params.bit_order = CONFIG_BIT_ORDER_MSB;
 
 config_register_spi_parameters(spi_params);
 

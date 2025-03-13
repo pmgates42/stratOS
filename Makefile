@@ -265,7 +265,7 @@ $(BUILD_DIR)/%_s.o: $(PLATFORM_SIM_DIR)/%.S
 
 $(BUILD_DIR)/%_c.o: $(CORE_DRIVERS_DIR)/%.c
 	mkdir -p $(@D)
-	$(COMPILER) $(COPTNS) -MMD -c $< -o $@
+	$(COMPILER) $(COPTNS) -MMD -c $< -o $@ $(CFLAGS)
 
 $(BUILD_DIR)/%_s.o: $(CORE_DRIVERS_DIR)/%.S
 	mkdir -p $(@D)

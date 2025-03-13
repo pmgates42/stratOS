@@ -112,14 +112,53 @@ enum
     CONFIG_ERR_INVLD_MODULE_ID,
     CONFIG_ERR_REACHED_MAX_PIN_CFGS,
     CONFIG_ERR_MODULE_REACHED_MAX_PINS,
+    CONFIG_ERR_INVALID_INPUT,
+    CONFIG_ERR_UNREGISTERED,
 };
 
 typedef uint8_t config_bit_order_type;
 enum
 {
     CONFIG_BIT_ORDER_MSB,
-    CONFIG_BIT_ORDER_LSB,
+    CONFIG_BIT_ORDER_LSB
 };
+
+typedef uint8_t config_endianness_type;
+enum
+{
+    CONFIG_ENDIAN_LITTLE,
+    CONFIG_ENDIAN_BIG
+};
+
+/**********************************************************
+ * 
+ *  spi_parameter_config_type
+ * 
+ *  DESCRIPTION:
+ *     SPI parameters.
+ * 
+ *  NOTES:
+ *      Right now, the SPI driver is very simple so things
+ *      like polarity cs polarity transfer mode (half/full
+ *      duplex) are not necessary. Surely, this config will
+ *      be expanded in the future.
+ *
+ */
+
+typedef struct
+{
+    uint32_t slck_speed_hz;
+    uint8_t  data_size;
+    config_bit_order_type
+            bit_order;
+    config_endianness_type
+            endianness;
+} spi_parameter_config_type;
+
+typedef union
+{
+    spi_parameter_config_type spi_params;   /* CONFIG_ID_SPI_PARAMS */
+} config_block_t;
 
 typedef struct
 {
@@ -174,29 +213,6 @@ enum
 
 /**********************************************************
  * 
- *  spi_parameter_config_type
- * 
- *  DESCRIPTION:
- *     SPI parameters.
- * 
- *  NOTES:
- *      Right now, the SPI driver is very simple so things
- *      like polarity cs polarity transfer mode (half/full
- *      duplex) are not necessary. Surely, this config will
- *      be expanded in the future.
- *
- */
-
-typedef struct
-{
-    uint32_t slck_speed_hz;
-    uint8_t  data_size;
-    config_bit_order_type
-            bit_order;
-} spi_parameter_config_type;
-
-/**********************************************************
- * 
  *  config_module_init()
  * 
  *  DESCRIPTION:
@@ -227,7 +243,16 @@ config_err_t8 config_register_pin_for_module(config_module_id_type module_id, ui
  *
  */
 
-config_err_t8 config_register_spi_parameters(spi_parameter_config_type params);
+config_err_t8 config_register_spi_parameters(spi_parameter_config_type params); // TODO make this device specific based on the current clock
+
+/**********************************************************
+ * 
+ *  config_get_registration_status()
+ * 
+ *  DESCRIPTION:
+ *     Check if a config is registered
+ *
+ */
 
 boolean config_get_registration_status(config_id_type config_id);
 
@@ -252,3 +277,14 @@ boolean config_pin_is_registered(config_module_id_type module_id, config_pin_id_
  */
 
 config_err_t8 config_lookup_pin(config_pin_id_type pin_id, uint32_t * out_ptr);
+
+/**********************************************************
+ * 
+ *  config_read()
+ * 
+ *  DESCRIPTION:
+ *      Read a config
+ *
+ */
+
+config_err_t8 config_read(config_id_type config_id, config_block_t * out_config);

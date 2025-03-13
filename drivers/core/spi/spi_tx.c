@@ -16,6 +16,8 @@
 #include "config.h"
 #include "peripherals/gpio.h"
 #include "peripherals/spi.h"
+#include "spi_lcl.h"
+#include "utils.h"
 
 #define DATA_UNIT_TYPE      uint8_t
 #define DATA_UNIT_BYTES_SZ  sizeof( DATA_UNIT_TYPE )
@@ -44,28 +46,89 @@ static boolean buffer_empty(char * buff_ptr);
 
 void spi_tx_periodic(void)
 {
-static boolean init = FALSE;
+    // TODO PMG put these timing parameters somewhere else
+    #define DATA_SETUP_TIME_US  2000000 /* 2 seconds */
+    #define SCLK_LOW_TIME_US    1000000 /* 1 second */
+    #define SCLK_HI_TIME_US     SCLK_LOW_TIME_US
 
-DATA_UNIT_TYPE tx_unit; /* unit of data to TX   */
-DATA_UNIT_TYPE rx_unit; /* unit of data to RX   */
+    #define CS_PIN      intf_data.gpio_pins.cs_0
+    #define MOSI_PIN    intf_data.gpio_pins.mosi
+    #define MISO_PIN    intf_data.gpio_pins.miso
+    #define SCLK_PIN    intf_data.gpio_pins.sclk
 
-if( !init )
-{
-    tx_buff_ptr = tx_buffer;
+    static hw_intf_data_t intf_data;
+
+    uint8_t i, j;
+    uint8_t data_idx;
+    uint8_t polarity;   /* direction to traverse payload (hinges on current config'd LSB/MSB state) */
+    uint8_t bto_offst;  /* data transfer bit offset */
+    char byte;          /* byte we are currently working on sending */
+    char tx_buff[SPI_LCL_MAX_BUFFER_SZ];
+
+    if( spi_lcl_refresh_state() )
+    {
+        clr_mem(&intf_data, sizeof intf_data); 
+
+        spi_lcl_get_hw_intf_data(&intf_data);
+    }
+
+    /* nothing to do if the TX buffer is empty */
+    // if( spi_lcl_buffer_empty( intf_data.tx_id ) )
+    // {
+    //     return;
+    // }
+
+    /* set up parameters based on the current device */
+    if(intf_data.params.endianness == CONFIG_ENDIAN_BIG)
+    {
+        data_idx =  0;
+        polarity =  1;
+    }
+    else
+    {
+        data_idx =  (intf_data.params.data_size - 1);
+        polarity = -1;
+    }
+
+    if(intf_data.params.bit_order == CONFIG_BIT_ORDER_MSB)
+    {
+        bto_offst =  0;
+    }
+    else
+    {
+        bto_offst = -8;
+    }
+
+    spi_lcl_read_buff(intf_data.tx_id, tx_buff, intf_data.params.data_size);
+
+    gpio_clr(CS_PIN);
+    for(i = 0; i < intf_data.params.data_size; i++ )
+    {
+        delay_us(SCLK_LOW_TIME_US);
+
+        assert(data_idx < intf_data.params.data_size, "SPI driver: memory error!");
+        byte = tx_buff[data_idx];
+
+        for(j = 0; j < 8; j++)
+        {
+            delay_us(DATA_SETUP_TIME_US);
+            gpio_set(SCLK_PIN);
+
+            if( get_bit(byte, ( j + bto_offst) ) )
+            {
+                gpio_set(MOSI_PIN);
+            }
+            else
+            {
+                gpio_clr(MOSI_PIN);
+            }
+
+            delay_us(SCLK_HI_TIME_US);
+            gpio_clr(SCLK_PIN);
+        }
+    
+        data_idx += polarity;
+    }
+    gpio_set(CS_PIN);
 }
 
-if( buffer_empty( tx_buffer ) )
-    return;
-
-/* transmit the next data unit in the tx buffer */
-
-tx_unit = *tx_buff_ptr;
-
-tx_buff_ptr++;
-
-}
-
-static boolean buffer_empty(char * buff_ptr)
-{
-    return FALSE;
-}

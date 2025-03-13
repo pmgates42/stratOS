@@ -52,3 +52,7 @@ typedef void ( *void_func_t )( void );
 #ifdef EMBEDDED_BUILD
 void memcpy(void *dest, const void *src, size_t n);
 #endif
+
+static inline uint8_t get_bit(uint32_t value, uint8_t bit) {
+    return (value >> bit) & 1U;
+}

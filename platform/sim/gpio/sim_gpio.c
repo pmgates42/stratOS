@@ -49,8 +49,6 @@ typedef struct
  */
 static simulated_gpio_pin_type simulated_pins[ NUMBER_OF_GPIO_PINS ];
 
-static boolean state_changed_flag = FALSE;
-
 static void write_out_pins(void);
 static void read_in_pins(void);
 
@@ -71,7 +69,6 @@ void gpio_pin_setas_outp(uint32_t pin)
         return;
     }
     simulated_pins[ pin ].io_state = OUTPUT_PIN;
-    state_changed_flag = TRUE;
 }
 
 /**********************************************************
@@ -91,39 +88,36 @@ void gpio_pin_setas_inp(uint32_t pin)
         return;
     }
     simulated_pins[ pin ].io_state = INPUT_PIN;
-    state_changed_flag = TRUE;
 
 }
 
 /**********************************************************
  * 
- *  gpio_maintenance_task
+ *  write_out_sim_gpio_data
  * 
  * 
  *  DESCRIPTION:
- *      Update simulated hardware state
+ *      Write out the simulated GPIO data
  *
  */
 
+static void write_out_sim_gpio_data()
+{
+    write_out_pins();
+}
+
+
 void gpio_maintenance_task()
 {
-    static init = TRUE;
-
-    /* only write out pins if a change was detected. This will help to improve
-       the performance of this task */
-    if( state_changed_flag || init )
+static boolean init = TRUE; /* initialize task? */
+if( init )
     {
-    debug_printf("State changed: Writing out simulated GPIO state....");
-
-    write_out_pins();
-
-    state_changed_flag = FALSE;
+    write_out_sim_gpio_data();
     init = FALSE;
     }
 
-    read_in_pins();
+    read_in_pins(); 
 }
-
 
 static void write_out_pins(void)
 {
@@ -196,7 +190,6 @@ void gpio_pin_enable(uint32_t pin)
     {
         return;
     }
-
 }
 
 
@@ -217,7 +210,7 @@ void gpio_set(uint32_t pin)
         return;
     }
    simulated_pins[ pin ].value = 0x1;
-   state_changed_flag = TRUE;
+   write_out_pins();
 }
 
 /**********************************************************
@@ -237,7 +230,7 @@ void gpio_clr(uint32_t pin)
         return;
     }
     simulated_pins[ pin ].value = 0x0;
-    state_changed_flag = TRUE;
+    write_out_pins();
 }
 
 /**********************************************************
@@ -256,5 +249,6 @@ boolean gpio_get(uint32_t pin)
     {
         return 0x0;
     }
+    read_in_pins();
     return simulated_pins[ pin ].value;
 }

@@ -33,12 +33,8 @@
 
 typedef struct
 {
-    boolean registered;
-
-    union
-    {
-        spi_parameter_config_type spi_params;
-    } config;
+    boolean        registered;
+    config_block_t config;
 } registered_config_type;
 
 // todo stubbing sensor config while flash code is incomplete
@@ -223,15 +219,42 @@ boolean config_pin_is_registered(config_module_id_type module_id, config_pin_id_
 
 config_err_t8 config_register_spi_parameters(spi_parameter_config_type params)
 {
-    /* validate parameters */
-    if( params.bit_order != CONFIG_BIT_ORDER_MSB || params.bit_order != CONFIG_BIT_ORDER_MSB )
-        return CONFIG_ERR_INVLD_CONFIG;
-
     registered_configs[CONFIG_ID_SPI_PARAMS].config.spi_params = params;
     registered_configs[CONFIG_ID_SPI_PARAMS].registered = TRUE;
 
     return CONFIG_ERR_NONE;
     
+}
+
+/**********************************************************
+ * 
+ *  config_read()
+ * 
+ *  DESCRIPTION:
+ *      Read a config
+ *
+ */
+
+config_err_t8 config_read(config_id_type config_id, config_block_t * out_config)
+{
+    if(config_id >= CONFIG_ID_COUNT)
+    {
+        return CONFIG_ERR_INVLD_CONFIG_ID;
+    }
+
+    if(!out_config)
+    {
+        return CONFIG_ERR_INVALID_INPUT;
+    }
+
+    
+    if(!registered_configs[config_id].registered)
+    {
+        return CONFIG_ERR_UNREGISTERED ;
+    }
+    
+    memcpy(out_config, &registered_configs[config_id].config, sizeof(out_config));
+    return CONFIG_ERR_NONE;
 }
 
 /**********************************************************
@@ -259,12 +282,17 @@ config_err_t8 config_lookup_pin(config_pin_id_type pin_id, uint32_t * out_ptr)
 
     for( i = 0; i < list_cnt(registered_module_pin_configs); i++ )
     {
-        for( j = 0; j < list_cnt(registered_module_pin_configs[ i ].pins); j++)
+        for( j = 0; j < list_cnt(registered_module_pin_configs[ i ].pins ); j++ )
             {
-            if(registered_module_pin_configs[ i ].pins[ j ].id == pin_id)
+                if( registered_module_pin_configs[ i ].module_id == CFG_INVALID_MODULE_ID )
                 {
-                *out_ptr = registered_module_pin_configs[ i ].pins[j].pin_number;
-                return CONFIG_ERR_NONE;
+                    break;
+                }
+
+                if( registered_module_pin_configs[ i ].pins[ j ].id == pin_id )
+                {
+                    *out_ptr = registered_module_pin_configs[ i ].pins[ j ].pin_number;
+                    return CONFIG_ERR_NONE;
                 }
             }
     }
