@@ -253,7 +253,7 @@ config_err_t8 config_read(config_id_type config_id, config_block_t * out_config)
         return CONFIG_ERR_UNREGISTERED ;
     }
     
-    memcpy(out_config, &registered_configs[config_id].config, sizeof(out_config));
+    memcpy(out_config, &registered_configs[config_id].config, sizeof(config_block_t));
     return CONFIG_ERR_NONE;
 }
 

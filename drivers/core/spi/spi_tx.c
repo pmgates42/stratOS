@@ -61,9 +61,9 @@ void spi_tx_periodic(void)
     uint8_t i, j;
     uint8_t data_idx;
     uint8_t polarity;   /* direction to traverse payload (hinges on current config'd LSB/MSB state) */
-    uint8_t bto_offst;  /* data transfer bit offset */
-    char byte;          /* byte we are currently working on sending */
-    char tx_buff[SPI_LCL_MAX_BUFFER_SZ];
+    uint8_t byte;       /* byte we are currently working on sending */
+    uint8_t tx_buff[SPI_LCL_MAX_BUFFER_SZ];
+    sint8_t bto_offst;  /* data transfer bit offset */
 
     if( spi_lcl_refresh_state() )
     {
@@ -92,11 +92,11 @@ void spi_tx_periodic(void)
 
     if(intf_data.params.bit_order == CONFIG_BIT_ORDER_MSB)
     {
-        bto_offst =  0;
+        bto_offst =  7;
     }
     else
     {
-        bto_offst = -8;
+        bto_offst =  0;
     }
 
     spi_lcl_read_buff(intf_data.tx_id, tx_buff, intf_data.params.data_size);
@@ -104,8 +104,6 @@ void spi_tx_periodic(void)
     gpio_clr(CS_PIN);
     for(i = 0; i < intf_data.params.data_size; i++ )
     {
-        delay_us(SCLK_LOW_TIME_US);
-
         assert(data_idx < intf_data.params.data_size, "SPI driver: memory error!");
         byte = tx_buff[data_idx];
 
@@ -114,7 +112,7 @@ void spi_tx_periodic(void)
             delay_us(DATA_SETUP_TIME_US);
             gpio_set(SCLK_PIN);
 
-            if( get_bit(byte, ( j + bto_offst) ) )
+            if(GET_BIT(byte, (bto_offst - j)))
             {
                 gpio_set(MOSI_PIN);
             }

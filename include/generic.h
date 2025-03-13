@@ -31,6 +31,7 @@
 #define assert(condition, msg) \
 
 typedef int sint32_t;
+typedef char sint8_t;
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -53,6 +54,4 @@ typedef void ( *void_func_t )( void );
 void memcpy(void *dest, const void *src, size_t n);
 #endif
 
-static inline uint8_t get_bit(uint32_t value, uint8_t bit) {
-    return (value >> bit) & 1U;
-}
+#define GET_BIT(value, bit) (((value) >> (bit)) & 1U)

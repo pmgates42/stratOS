@@ -128,7 +128,7 @@ static void setup_drivers(void)
 spi_parameter_config_type spi_params;
 spi_module_error_type     spi_err;
 
-spi_params.data_size = sizeof(uint8_t);
+spi_params.data_size = sizeof(uint16_t);
 spi_params.slck_speed_hz = 1;
 spi_params.endianness = CONFIG_ENDIAN_BIG;
 spi_params.bit_order = CONFIG_BIT_ORDER_MSB;
