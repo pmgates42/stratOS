@@ -2,6 +2,7 @@
 #include "spi_lcl.h"
 #include "peripherals/spi.h"
 #include "config.h"
+#include "mock_gpio.h"
 
 typedef struct
 {

@@ -12,7 +12,7 @@ typedef struct
     boolean     in_log[GPIO_LOG_BUFFER_MAX_SZ];
 } gpio_test_data_type;
 
-static gpio_test_data_type gpio_test_data[list_cnt(consumer_module_pin_config_table)];
+static gpio_test_data_type gpio_test_data[CFG_PIN_CFG_MAX_PIN_NUM];
 
 static void set_gpio_val(boolean set, uint32_t pin);
 
@@ -43,7 +43,7 @@ static void set_gpio_val(boolean set, uint32_t pin)
     }
 }
 
-static void mock_gpio_intf_init()
+void mock_gpio_intf_init()
 {
 uint16_t i;
 
