@@ -45,6 +45,7 @@
         "type_traits": "cpp",
         "kernel.h": "c",
         "debug.h": "c",
-        "cstdio": "cpp"
+        "cstdio": "cpp",
+        "spi.h": "c"
     }
 }

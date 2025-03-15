@@ -179,7 +179,7 @@ config_err_t8 config_register_pin_for_module(config_module_id_type module_id, ui
 boolean config_pin_is_registered(config_module_id_type module_id, config_pin_id_type pin_id)
 {
     uint8_t i;
-    uint8_t module_index = INVALID_MODULE_ENTRY_IDX;
+    uint8_t module_index = INVALID_MODULE_ENTRY_IDX; // TODO module_index is not used here...
 
     for( i = 0; i < list_cnt(registered_module_pin_configs); i++ )
     {
