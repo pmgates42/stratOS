@@ -31,8 +31,8 @@ void gpio_clr(uint32_t pin)
 
 static void set_gpio_val(boolean set, uint32_t pin)
 {
-#define SET_BIT(log, bit)  ((log) |= (1U << (bit)))
-#define CLR_BIT(log, bit)  ((log) &= ~(1U << (bit)))
+#define SET_BIT(log, bit)  ((log) |= (1ULL << (bit)))
+#define CLR_BIT(log, bit)  ((log) &= ~(1ULL << (bit)))
 
     uint8_t i;
     boolean found_entry = FALSE;
@@ -98,7 +98,7 @@ for(i = 0; i < list_cnt(gpio_test_data); i++)
 
 }
 
-boolean mock_gpio_get_pin_log(uint32_t pin ,mock_gpio_log_t8 log_type, mock_gpio_pin_log_type * ret_log)
+boolean mock_gpio_get_pin_log(uint32_t pin, mock_gpio_log_t8 log_type, mock_gpio_pin_log_type * ret_log)
 {
     uint8_t i;
     boolean log_vld = FALSE;
@@ -118,7 +118,7 @@ boolean mock_gpio_get_pin_log(uint32_t pin ,mock_gpio_log_t8 log_type, mock_gpio
 
                 case MOCK_GPIO_LOG_TYPE__PIN_OUT:
                     *ret_log = gpio_test_data[i].out_log;
-                    log_vld - TRUE;
+                    log_vld = TRUE;
                     break;
 
                 default:
@@ -130,4 +130,38 @@ boolean mock_gpio_get_pin_log(uint32_t pin ,mock_gpio_log_t8 log_type, mock_gpio
         }
     }
     return log_vld;
+}
+
+boolean mock_gpio_get_pin_log_fmt(uint32_t pin, mock_gpio_log_t8 log_type, mock_gpio_pin_log_type * ret_log, mock_gpio_log_fmt_t8 frmt)
+{
+    #define REVERSE_BITS(log) \
+        ((uint64_t)((log >> 56) & 0x00000000000000FFULL) | \
+                   ((log >> 40) & 0x000000000000FF00ULL) | \
+                   ((log >> 24) & 0x0000000000FF0000ULL) | \
+                   ((log >>  8) & 0x00000000FF000000ULL) | \
+                   ((log <<  8) & 0x000000FF00000000ULL) | \
+                   ((log << 24) & 0x0000FF0000000000ULL) | \
+                   ((log << 40) & 0x00FF000000000000ULL) | \
+                   ((log << 56) & 0xFF00000000000000ULL))
+
+    if(!mock_gpio_get_pin_log(pin, log_type, ret_log))
+    {
+        return FALSE;
+    }
+
+    switch (frmt)
+    {
+    case MOCK_GPIO_LOG_FRMT__SHFT_RIGHT:
+        break;
+
+    case MOCK_GPIO_LOG_FRMT__SHIFT_LEFT:
+        *ret_log = REVERSE_BITS(*ret_log);
+        break;
+
+    default:
+        assert(FALSE, "Invalid format");
+        break;
+    }
+
+    return TRUE;
 }

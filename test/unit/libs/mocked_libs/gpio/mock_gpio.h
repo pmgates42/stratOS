@@ -7,5 +7,12 @@ enum
     MOCK_GPIO_LOG_TYPE__PIN_IN,
 };
 
+typedef uint8_t mock_gpio_log_fmt_t8;
+enum
+{
+    MOCK_GPIO_LOG_FRMT__SHFT_RIGHT,
+    MOCK_GPIO_LOG_FRMT__SHIFT_LEFT,
+};
+
 void mock_gpio_intf_init();
 boolean mock_gpio_get_pin_log(uint32_t pin ,mock_gpio_log_t8 log_type, mock_gpio_pin_log_type * ret_log);

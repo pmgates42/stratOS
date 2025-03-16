@@ -5,11 +5,20 @@
 #include "config.h"
 #include "mock_gpio.h"
 
+enum
+{
+    TEST_PHYS_PIN__CS0 = 0,
+    TEST_PHYS_PIN__CS1,
+    TEST_PHYS_PIN__SCLK,
+    TEST_PHYS_PIN__MOSI,
+    TEST_PHYS_PIN__MISO,
+};
+
 typedef struct
 {
     spi_parameter_config_type config;
-    uint8_t                   in_bytes[2];
-    uint8_t                   out_bytes[2];
+    uint64_t                  in_bytes;
+    uint64_t                  out_bytes;
 } config_test_type;
 
 typedef struct
@@ -20,12 +29,12 @@ typedef struct
 } consumer_module_pin_config_entry_type;
 static const consumer_module_pin_config_entry_type consumer_module_pin_config_table[] =
 {
-    /*           module_id                pin   id                          */
-    /* PIN0 */{  CONFIG_MODULE_ID__SPI,   0,    SPI_MODULE_PIN_ID__CS_0    },
-    /* PIN5 */{  CONFIG_MODULE_ID__SPI,   1,    SPI_MODULE_PIN_ID__CS_1    },
-    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   2,    SPI_MODULE_PIN_ID__SCLK    },
-    /* PIN3 */{  CONFIG_MODULE_ID__SPI,   3,    SPI_MODULE_PIN_ID__MOSI    },
-    /* PIN4 */{  CONFIG_MODULE_ID__SPI,   4,    SPI_MODULE_PIN_ID__MISO    },
+    /*           module_id                pin                    id                          */
+    /* PIN0 */{  CONFIG_MODULE_ID__SPI,   TEST_PHYS_PIN__CS0,    SPI_MODULE_PIN_ID__CS_0    },
+    /* PIN5 */{  CONFIG_MODULE_ID__SPI,   TEST_PHYS_PIN__CS1,    SPI_MODULE_PIN_ID__CS_1    },
+    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   TEST_PHYS_PIN__SCLK,   SPI_MODULE_PIN_ID__SCLK    },
+    /* PIN3 */{  CONFIG_MODULE_ID__SPI,   TEST_PHYS_PIN__MOSI,   SPI_MODULE_PIN_ID__MOSI    },
+    /* PIN4 */{  CONFIG_MODULE_ID__SPI,   TEST_PHYS_PIN__MISO,   SPI_MODULE_PIN_ID__MISO    },
 };
 
 static void test_configurations();
@@ -70,11 +79,11 @@ int main() {
 static void test_configurations()
 {
     config_test_type test_vars[] = {
-    /* slck_speed_hz        data_size       bit_order                   endianness                    in_bytes        out_bytes */
-    { { 100,                    1,              CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_LITTLE   }, { 0xA5, 0xF0 }, { 0xA5, 0xF0 } },
-    { { 100,                    1,              CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_LITTLE   }, { 0xA5, 0xF0 }, { 0xA5, 0xF0 } },
-    { { 100,                    1,              CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_BIG      }, { 0xA5, 0xF0 }, { 0xA5, 0xF0 } },
-    { { 100,                    1,              CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_BIG      }, { 0xA5, 0xF0 }, { 0xA5, 0xF0 } }
+    /* slck_speed_hz        data_size           bit_order                   endianness                in_bytes      out_bytes */
+    // { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_LITTLE   }, 0xA5F0,       0x0FA5 },
+    // { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_LITTLE   }, 0xA5F0,       0xF0A5 },
+    // { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_BIG      }, 0xA5F0,       0xA50F },
+    { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_BIG      }, 0xA5F0,       0xF0A5 }
     };
 
     uint8_t i;
@@ -90,29 +99,33 @@ static void test_configurations()
 
 static void test_configuration(config_test_type test_vars)
 {
-    mock_gpio_pin_log_type in_log_0;
-    mock_gpio_pin_log_type in_log_1;
+    mock_gpio_pin_log_type mosi_pin_log;
+    boolean                mosi_log_vld;
+    hw_intf_data_t         hw_intf_data;
 
+    clr_mem(&mosi_pin_log, sizeof mosi_pin_log);
+    clr_mem(&hw_intf_data, sizeof hw_intf_data);
+
+    /* Set SPI config for this test */
     setup_config_test(test_vars.config);
 
-    /* TODO remove this */
-    /* test the GPIO logger works correctly */
-    gpio_set(10);
-    gpio_set(10);
-    gpio_clr(10);
-    gpio_clr(10);
+    /* Read out the config and verify pins were set correctly */
+    spi_lcl_get_hw_intf_data(&hw_intf_data);
+    TEST_ASSERT_EQUAL_UINT32(TEST_PHYS_PIN__CS0,    hw_intf_data.gpio_pins.cs_0);
+    TEST_ASSERT_EQUAL_UINT32(TEST_PHYS_PIN__CS1,    hw_intf_data.gpio_pins.cs_1);
+    TEST_ASSERT_EQUAL_UINT32(TEST_PHYS_PIN__SCLK,   hw_intf_data.gpio_pins.sclk);
+    TEST_ASSERT_EQUAL_UINT32(TEST_PHYS_PIN__MOSI,   hw_intf_data.gpio_pins.mosi);
+    TEST_ASSERT_EQUAL_UINT32(TEST_PHYS_PIN__MISO,   hw_intf_data.gpio_pins.miso);
 
-    gpio_clr(11);
-    gpio_clr(11);
-    gpio_set(11);
-    gpio_set(11);
+    /* Call testing function */
+    spi_tx_periodic();
 
-    mock_gpio_get_pin_log(10, MOCK_GPIO_LOG_TYPE__PIN_OUT, &in_log_0);
-    mock_gpio_get_pin_log(11, MOCK_GPIO_LOG_TYPE__PIN_OUT, &in_log_1);
+    /* Verify TX'd data */
+    mosi_log_vld = mock_gpio_get_pin_log(hw_intf_data.gpio_pins.mosi, MOCK_GPIO_LOG_TYPE__PIN_OUT, &mosi_pin_log);
 
-    gpio_set(1);
-
-    // spi_tx_periodic();
+    TEST_ASSERT_EQUAL_UINT8(TRUE, mosi_log_vld);
+    TEST_ASSERT_EQUAL_UINT64(test_vars.out_bytes, mosi_pin_log);
+    
 }
 
 /* mocked functions */
