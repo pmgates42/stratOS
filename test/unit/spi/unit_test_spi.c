@@ -6,6 +6,11 @@
 
 typedef struct
 {
+    spi_parameter_config_type config;
+} config_test_type;
+
+typedef struct
+{
     config_module_id_type module_id;            /* software module id number */
     uint16_t              pin;                  /* physical hardware pin     */
     config_pin_id_type    id;                   /* pin lookup id             */
@@ -21,13 +26,26 @@ static const consumer_module_pin_config_entry_type consumer_module_pin_config_ta
 };
 
 static void test_configurations();
-static void test_configuration(spi_parameter_config_type config_ut);
+static void test_configuration(config_test_type config);
+static boolean register_module_pins(void);
+static void setup_drivers(spi_parameter_config_type spi_params);
 
-void setUp(void)
+void setUp()
 {
-    spi_init();
 
+}
+
+void setup_config_test(spi_parameter_config_type spi_params)
+{
+    /* These are in order: 
+        1. Initialize config module 
+        2. Register testing pins with the config module 
+        3. Initialize the mocked GPIO interface
+        4. Initialize the SPI driver */
+    config_module_init();
+    register_module_pins();
     mock_gpio_intf_init();
+    setup_drivers(spi_params);
 }
 
 void tearDown(void)
@@ -42,29 +60,35 @@ void resetTest(void)
 int main() {
 
     test_configurations();
+
     return 0;
 }
 
 static void test_configurations()
 {
-    spi_parameter_config_type configs[] = {
+    config_test_type test_vars[] = {
     /* slck_speed_hz        data_size       bit_order                   endianness              */
-    { 100,                    1,              CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_LITTLE   }
+    { { 100,                    1,              CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_LITTLE   }, },
+    { { 100,                    1,              CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_LITTLE   }, },
+    { { 100,                    1,              CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_BIG      }, },
+    { { 100,                    1,              CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_BIG      }, }
     };
 
     uint8_t i;
 
-    for(i = 0; i < list_cnt(configs); i++)
+    for(i = 0; i < list_cnt(test_vars); i++)
     {
         resetTest();
 
-        test_configuration(configs[i]);
+        test_configuration(test_vars[i]);
     }
 
 }
 
-static void test_configuration(spi_parameter_config_type config)
+static void test_configuration(config_test_type test_vars)
 {
+    setup_config_test(test_vars.config);
+
     spi_tx_periodic();
 }
 
@@ -75,12 +99,36 @@ void delay_us(uint32_t us)
     (void)us;
 }
 
+static boolean register_module_pins(void)
+{
+uint8_t       i;
+config_err_t8 config_err;
 
-/**********************************************************
- * 
- *  TODO
- * 
- * Move all of these functions into a utility file
- *
- */
+for(i = 0; i < list_cnt( consumer_module_pin_config_table ); i++ )
+{
+    config_err = config_register_pin_for_module( consumer_module_pin_config_table[i].module_id,
+                                                  consumer_module_pin_config_table[i].pin,
+                                                  consumer_module_pin_config_table[i].id );
 
+    if( config_err != CONFIG_ERR_NONE )
+        {
+        return FALSE;
+        }
+}
+
+return TRUE;
+}
+
+static void setup_drivers(spi_parameter_config_type spi_params)
+{
+spi_module_error_type     spi_err;
+
+config_register_spi_parameters(spi_params);
+
+/* register SPI parameters */
+spi_err = spi_init();
+if( SPI_MODULE_ERR__NONE != spi_err )
+{
+    printf("There was an error initializing the SPI module. Ensure pins and parameters are set correctly. Err: %d", spi_err);
+}
+}

@@ -1,7 +1,8 @@
 #include "generic.h"
 #include "config.h"
 
-#define GPIO_LOG_BUFFER_MAX_SZ  250
+#define GPIO_LOG_BUFFER_MAX_SZ  250         /* number of elements in each log (out and in) */
+#define TEST_CFG_PIN_CFG_MAX_PIN_NUM  10    /* max number of pins we can keep track of here */
 
 typedef struct
 {
@@ -12,7 +13,7 @@ typedef struct
     boolean     in_log[GPIO_LOG_BUFFER_MAX_SZ];
 } gpio_test_data_type;
 
-static gpio_test_data_type gpio_test_data[CFG_PIN_CFG_MAX_PIN_NUM];
+static gpio_test_data_type gpio_test_data[TEST_CFG_PIN_CFG_MAX_PIN_NUM];
 
 static void set_gpio_val(boolean set, uint32_t pin);
 
