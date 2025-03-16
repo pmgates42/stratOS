@@ -1,12 +1,15 @@
 #include "unity.h"
 #include "spi_lcl.h"
 #include "peripherals/spi.h"
+#include "peripherals/gpio.h"
 #include "config.h"
 #include "mock_gpio.h"
 
 typedef struct
 {
     spi_parameter_config_type config;
+    uint8_t                   in_bytes[2];
+    uint8_t                   out_bytes[2];
 } config_test_type;
 
 typedef struct
@@ -67,11 +70,11 @@ int main() {
 static void test_configurations()
 {
     config_test_type test_vars[] = {
-    /* slck_speed_hz        data_size       bit_order                   endianness              */
-    { { 100,                    1,              CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_LITTLE   }, },
-    { { 100,                    1,              CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_LITTLE   }, },
-    { { 100,                    1,              CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_BIG      }, },
-    { { 100,                    1,              CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_BIG      }, }
+    /* slck_speed_hz        data_size       bit_order                   endianness                    in_bytes        out_bytes */
+    { { 100,                    1,              CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_LITTLE   }, { 0xA5, 0xF0 }, { 0xA5, 0xF0 } },
+    { { 100,                    1,              CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_LITTLE   }, { 0xA5, 0xF0 }, { 0xA5, 0xF0 } },
+    { { 100,                    1,              CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_BIG      }, { 0xA5, 0xF0 }, { 0xA5, 0xF0 } },
+    { { 100,                    1,              CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_BIG      }, { 0xA5, 0xF0 }, { 0xA5, 0xF0 } }
     };
 
     uint8_t i;
@@ -87,9 +90,29 @@ static void test_configurations()
 
 static void test_configuration(config_test_type test_vars)
 {
+    mock_gpio_pin_log_type in_log_0;
+    mock_gpio_pin_log_type in_log_1;
+
     setup_config_test(test_vars.config);
 
-    spi_tx_periodic();
+    /* TODO remove this */
+    /* test the GPIO logger works correctly */
+    gpio_set(10);
+    gpio_set(10);
+    gpio_clr(10);
+    gpio_clr(10);
+
+    gpio_clr(11);
+    gpio_clr(11);
+    gpio_set(11);
+    gpio_set(11);
+
+    mock_gpio_get_pin_log(10, MOCK_GPIO_LOG_TYPE__PIN_OUT, &in_log_0);
+    mock_gpio_get_pin_log(11, MOCK_GPIO_LOG_TYPE__PIN_OUT, &in_log_1);
+
+    gpio_set(1);
+
+    // spi_tx_periodic();
 }
 
 /* mocked functions */
