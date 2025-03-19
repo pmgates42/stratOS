@@ -27,9 +27,6 @@
 #define TX_BUFF_SZ      (MAX_DATA_UNITS_PER_BUFF * DATA_UNIT_BYTES_SZ)
 #define RX_BUFF_SZ      (MAX_DATA_UNITS_PER_BUFF * DATA_UNIT_BYTES_SZ)
 
-static char   tx_buffer[TX_BUFF_SZ] = { 0xA };
-static char * tx_buff_ptr;
-
 static boolean buffer_empty(char * buff_ptr);
 
 /**********************************************************
@@ -59,8 +56,8 @@ void spi_tx_periodic(void)
     static hw_intf_data_t intf_data;
 
     uint8_t i, j;
-    uint8_t data_idx;
-    uint8_t polarity;   /* direction to traverse payload (hinges on current config'd LSB/MSB state) */
+    sint8_t data_idx;
+    sint8_t polarity;   /* direction to traverse payload (hinges on current config'd LSB/MSB state) */
     uint8_t byte;       /* byte we are currently working on sending */
     uint8_t tx_buff[SPI_LCL_MAX_BUFFER_SZ];
     sint8_t bto_offst;  /* data transfer bit offset */
@@ -81,13 +78,13 @@ void spi_tx_periodic(void)
     /* set up parameters based on the current device */
     if(intf_data.params.endianness == CONFIG_ENDIAN_BIG)
     {
-        data_idx =  0;
-        polarity =  1;
+        data_idx =  (sint8_t)(intf_data.params.data_size - 1);
+        polarity =  -1;
     }
     else
     {
-        data_idx =  (intf_data.params.data_size - 1);
-        polarity = -1;
+        data_idx =  0;
+        polarity =  1;
     }
 
     if(intf_data.params.bit_order == CONFIG_BIT_ORDER_MSB)
@@ -104,7 +101,7 @@ void spi_tx_periodic(void)
     gpio_clr(CS_PIN);
     for(i = 0; i < intf_data.params.data_size; i++ )
     {
-        assert(data_idx < intf_data.params.data_size, "SPI driver: memory error!");
+        assert(data_idx < intf_data.params.data_size && data_idx >= 0, "SPI driver: memory error!");
         byte = tx_buff[data_idx];
 
         for(j = 0; j < 8; j++)
@@ -126,7 +123,8 @@ void spi_tx_periodic(void)
         }
     
         data_idx += polarity;
+
+        gpio_set(CS_PIN);
     }
-    gpio_set(CS_PIN);
 }
 

@@ -82,8 +82,8 @@ static void test_configurations()
     /* slck_speed_hz        data_size           bit_order                   endianness                in_bytes      out_bytes */
     // { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_LITTLE   }, 0xA5F0,       0x0FA5 },
     // { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_LITTLE   }, 0xA5F0,       0xF0A5 },
-    // { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_BIG      }, 0xA5F0,       0xA50F },
-    { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_BIG      }, 0xA5F0,       0xF0A5 }
+    // { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_LSB,       CONFIG_ENDIAN_BIG      }, 0xA5F0,       0xF0A5 },
+    { { 100,                sizeof(uint16_t),   CONFIG_BIT_ORDER_MSB,       CONFIG_ENDIAN_BIG      }, 0xA5F0,          0x0FA5 }
     };
 
     uint8_t i;
@@ -121,7 +121,8 @@ static void test_configuration(config_test_type test_vars)
     spi_tx_periodic();
 
     /* Verify TX'd data */
-    mosi_log_vld = mock_gpio_get_pin_log(hw_intf_data.gpio_pins.mosi, MOCK_GPIO_LOG_TYPE__PIN_OUT, &mosi_pin_log);
+    mosi_log_vld = mock_gpio_get_pin_log_fmt(hw_intf_data.gpio_pins.mosi, MOCK_GPIO_LOG_TYPE__PIN_OUT,
+                                            &mosi_pin_log, MOCK_GPIO_LOG_FRMT__SHFT_LEFT);
 
     TEST_ASSERT_EQUAL_UINT8(TRUE, mosi_log_vld);
     TEST_ASSERT_EQUAL_UINT64(test_vars.out_bytes, mosi_pin_log);

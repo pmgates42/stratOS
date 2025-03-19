@@ -89,8 +89,8 @@ spi_module_error_type spi_init()
 
     //TODO remove this after testing
     /* copy some test data into the tx buffer */
-    tx_buffer_channel_0[0] = 0xA5;
-    tx_buffer_channel_0[1] = 0xF0;
+    tx_buffer_channel_0[0] = 0xF0;
+    tx_buffer_channel_0[1] = 0xA5;
 
     module_initialized = TRUE;
     return SPI_MODULE_ERR__NONE;

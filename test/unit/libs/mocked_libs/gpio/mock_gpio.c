@@ -87,15 +87,20 @@ static void set_gpio_val(boolean set, uint32_t pin)
 
 void mock_gpio_intf_init()
 {
-uint16_t i;
+mock_gpio_intf_reset_logs();
 
-clr_mem(gpio_test_data, sizeof gpio_test_data);
-
-for(i = 0; i < list_cnt(gpio_test_data); i++)
-{
-    gpio_test_data[i].pin = CFG_INVALID_PIN_NUMBER;
 }
 
+void mock_gpio_intf_reset_logs()
+{
+    uint16_t i;
+
+    clr_mem(gpio_test_data, sizeof gpio_test_data);
+
+    for(i = 0; i < list_cnt(gpio_test_data); i++)
+    {
+        gpio_test_data[i].pin = CFG_INVALID_PIN_NUMBER;
+    }
 }
 
 boolean mock_gpio_get_pin_log(uint32_t pin, mock_gpio_log_t8 log_type, mock_gpio_pin_log_type * ret_log)
@@ -144,24 +149,27 @@ boolean mock_gpio_get_pin_log_fmt(uint32_t pin, mock_gpio_log_t8 log_type, mock_
                    ((log << 40) & 0x00FF000000000000ULL) | \
                    ((log << 56) & 0xFF00000000000000ULL))
 
-    if(!mock_gpio_get_pin_log(pin, log_type, ret_log))
-    {
-        return FALSE;
-    }
+    boolean log_vld;
+
+    log_vld = mock_gpio_get_pin_log(pin, log_type, ret_log);
 
     switch (frmt)
     {
     case MOCK_GPIO_LOG_FRMT__SHFT_RIGHT:
+        *ret_log = REVERSE_BITS(*ret_log);
+        log_vld = TRUE;
         break;
 
-    case MOCK_GPIO_LOG_FRMT__SHIFT_LEFT:
-        *ret_log = REVERSE_BITS(*ret_log);
+    case MOCK_GPIO_LOG_FRMT__SHFT_LEFT:
+        /* Log is already stored in this format */
+        log_vld = TRUE;
         break;
 
     default:
         assert(FALSE, "Invalid format");
+        log_vld = FALSE;
         break;
     }
 
-    return TRUE;
+    return log_vld;
 }
