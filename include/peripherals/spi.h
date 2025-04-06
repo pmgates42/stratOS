@@ -5,26 +5,6 @@
 
 /**********************************************************
  * 
- *  spi_pin_type
- * 
- *  DESCRIPTION:
- *     Pins used by the SPI module
- *
- */
-
-typedef config_pin_id_type spi_pin_type;
-enum
-{
-SPI_MODULE_PIN_ID__CS_0,
-SPI_MODULE_PIN_ID__CS_1,
-SPI_MODULE_PIN_ID__SCLK,
-SPI_MODULE_PIN_ID__MOSI,
-SPI_MODULE_PIN_ID__MISO,
-};
-
-
-/**********************************************************
- * 
  *  spi_module_error_type
  * 
  *  DESCRIPTION:

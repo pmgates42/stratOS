@@ -20,6 +20,7 @@
 #include "spi_lcl.h"
 #include "config.h"
 #include "peripherals/gpio.h"
+#include "platform_spi_interface.h"
 
 typedef struct
 {
@@ -154,6 +155,12 @@ static config_err_t8 config_setup(void)
 
 static void hardware_setup(void)
 {
+    uint8_t cs_count;   /* chip select count */
+
+    /* Platform specifc initialization */
+    cs_count = PLATFORM_spi_init();
+    assert( cs_count == 1 || cs_count == 2, "Platform SPI Chips Select pins registered must be either 1 or 2." )
+
     /* Chip selects are active low */
     gpio_set(intf_data.gpio_pins.cs_0);
     gpio_set(intf_data.gpio_pins.cs_1);

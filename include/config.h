@@ -41,7 +41,7 @@
  *      A project can define its own modules in user space
  *      if say, they need to write user level drivers that
  *      only need to interface with the kernel insomuch
- *      they only care about writing to pins and such.
+ *      as they only care about writing to pins and such.
  *      To accomplish this, projects can implement Module
  *      IDs that start after CONFIG_MODULE_ID__KERNEL_LAST.
  *
@@ -187,12 +187,31 @@ typedef struct  __attribute__((packed))
 
 config_err_t8 config_get_sys_config(kernel_config_t *config);
 
-typedef uint16_t config_pin_id_type;
+/**********************************************************
+ * 
+ *  config_pin_id_type
+ * 
+ *  DESCRIPTION:
+ *     Pin IDs recognized by the OS. Physical pin mapping is
+ *     done by the supporting platform (hardware code).
+ *
+ */
+
+typedef enum
+{
+    /* SPI module pins */
+    SPI_MODULE_PIN_ID__CS_0,
+    SPI_MODULE_PIN_ID__CS_1,
+    SPI_MODULE_PIN_ID__SCLK,
+    SPI_MODULE_PIN_ID__MOSI,
+    SPI_MODULE_PIN_ID__MISO,
+
+} config_pin_id_type;
 
 typedef struct
 {
-    uint16_t           pin_number;
-    config_pin_id_type id;
+    uint16_t            pin_number;
+    config_pin_id_type  id;
 
 } config_pin_type;
 

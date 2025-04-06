@@ -28,25 +28,6 @@
 #include "peripherals/spi.h"
 #include "config.h"
 
-typedef struct
-{
-    config_module_id_type module_id;            /* software module id number */
-    uint16_t              pin;                  /* physical hardware pin     */
-    config_pin_id_type    id;                   /* pin lookup id             */
-} consumer_module_pin_config_entry_type;
-static const consumer_module_pin_config_entry_type consumer_module_pin_config_table[] =
-{
-    /**
-     * https://pinout.xyz/
-     */
-    /*           module_id                pin   id                          */
-    /* PIN0 */{  CONFIG_MODULE_ID__SPI,   8,    SPI_MODULE_PIN_ID__CS_0    },
-    /* PIN0 */{  CONFIG_MODULE_ID__SPI,   7,    SPI_MODULE_PIN_ID__CS_1    },
-    /* PIN1 */{  CONFIG_MODULE_ID__SPI,   11,   SPI_MODULE_PIN_ID__SCLK    },
-    /* PIN3 */{  CONFIG_MODULE_ID__SPI,   10,   SPI_MODULE_PIN_ID__MOSI    },
-    /* PIN4 */{  CONFIG_MODULE_ID__SPI,   9,    SPI_MODULE_PIN_ID__MISO    },
-};
-
 static sched_usr_tsk_t  task_list[] =
     {
     /* period_ms                              task_func      */
@@ -71,18 +52,7 @@ static boolean register_module_pins(void);
 
 #include "peripherals/gpio.h"
 void kernel_main()
-{
-    
-    //todo move this into pin config module
-    for(uint8_t i = 0; i < list_cnt(consumer_module_pin_config_table); i++)
-    {
-        uint32_t pin;
-        pin = consumer_module_pin_config_table[i].pin;
-
-        gpio_pin_enable(pin);
-        gpio_pin_set_func(pin, 1);  // set as output
-    }
-    
+{   
     gpio_pin_enable(DEBUG_PIN);
     gpio_pin_set_func(DEBUG_PIN, 1);
     gpio_pin_enable(ERROR_PIN);
@@ -93,15 +63,6 @@ void kernel_main()
     printf("\nKernel initialized\n\rExecuting in EL%d\n", get_el());
     printf("Version %s", STRATOS_VERSION);
 
-    //todo remove this after testing
-    for(uint8_t i = 0; i < list_cnt(consumer_module_pin_config_table); i++)
-    {
-        spi_tx_periodic();
-
-        delay_sec(30);
-    }
-    
-    
 
     /* Call the main scheduler function */
     sched_main();
@@ -194,22 +155,3 @@ static void setup_drivers(void)
     }
 }
 
-static boolean register_module_pins(void)
-{
-uint8_t       i;
-config_err_t8 config_err;
-
-for(i = 0; i < list_cnt( consumer_module_pin_config_table ); i++ )
-{
-    config_err = config_register_pin_for_module( consumer_module_pin_config_table[i].module_id,
-                                                  consumer_module_pin_config_table[i].pin,
-                                                  consumer_module_pin_config_table[i].id );
-
-    if( config_err != CONFIG_ERR_NONE )
-        {
-        return FALSE;
-        }
-}
-
-return TRUE;
-}
