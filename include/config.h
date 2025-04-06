@@ -116,14 +116,14 @@ enum
     CONFIG_ERR_UNREGISTERED,
 };
 
-typedef uint8_t config_bit_order_type;
+typedef uint8_t config_bit_order_t8;
 enum
 {
     CONFIG_BIT_ORDER_MSB,
     CONFIG_BIT_ORDER_LSB
 };
 
-typedef uint8_t config_endianness_type;
+typedef uint8_t config_endianness_t8;
 enum
 {
     CONFIG_ENDIAN_LITTLE,
@@ -145,17 +145,15 @@ enum
  *
  */
 
-typedef struct
+typedef struct __attribute__((aligned(4)))
 {
     uint32_t slck_speed_hz;
     uint8_t  data_size;
-    config_bit_order_type
-            bit_order;
-    config_endianness_type
-            endianness;
+    config_bit_order_t8 bit_order;
+    config_endianness_t8 endianness;
 } spi_parameter_config_type;
 
-typedef union
+typedef struct __attribute__((aligned(4)))
 {
     spi_parameter_config_type spi_params;   /* CONFIG_ID_SPI_PARAMS */
 } config_block_t;
@@ -208,7 +206,7 @@ typedef uint8_t config_id_type;
 enum
 {
     CONFIG_ID_SPI_PARAMS,
-    CONFIG_ID_COUNT,
+    CONFIG_ID_COUNT = CONFIG_ID_SPI_PARAMS + 20,
 };
 
 /**********************************************************

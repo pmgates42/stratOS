@@ -67,6 +67,7 @@ void spi_tx_periodic(void)
         clr_mem(&intf_data, sizeof intf_data); 
 
         spi_lcl_get_hw_intf_data(&intf_data);
+
     }
 
     /* nothing to do if the TX buffer is empty */
@@ -99,32 +100,36 @@ void spi_tx_periodic(void)
     spi_lcl_read_buff(intf_data.tx_id, tx_buff, intf_data.params.data_size);
 
     gpio_clr(CS_PIN);
-    for(i = 0; i < intf_data.params.data_size; i++ )
+    for(i = 0; i < intf_data.params.data_size; i++)
     {
         assert(data_idx < intf_data.params.data_size && data_idx >= 0, "SPI driver: memory error!");
         byte = tx_buff[data_idx];
 
         for(j = 0; j < 8; j++)
         {
+            uint8_t bit_pos = (intf_data.params.bit_order == CONFIG_BIT_ORDER_MSB) ? (7 - j) : j;
+
             delay_us(DATA_SETUP_TIME_US);
             gpio_set(SCLK_PIN);
 
-            if(GET_BIT(byte, (bto_offst - j)))
+            if(GET_BIT(byte, bit_pos))
             {
                 gpio_set(MOSI_PIN);
+                gpio_set(DEBUG_PIN);
             }
             else
             {
                 gpio_clr(MOSI_PIN);
+                gpio_clr(DEBUG_PIN);
             }
 
             delay_us(SCLK_HI_TIME_US);
             gpio_clr(SCLK_PIN);
         }
-    
-        data_idx += polarity;
 
-        gpio_set(CS_PIN);
+        data_idx += polarity;
     }
+    gpio_set(CS_PIN);
+
 }
 

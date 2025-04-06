@@ -216,14 +216,16 @@ boolean config_pin_is_registered(config_module_id_type module_id, config_pin_id_
  *     Register SPI parameters with the config module.
  *
  */
-
 config_err_t8 config_register_spi_parameters(spi_parameter_config_type params)
 {
-    registered_configs[CONFIG_ID_SPI_PARAMS].config.spi_params = params;
+
+    memcpy(&registered_configs[CONFIG_ID_SPI_PARAMS].config.spi_params, 
+           &params, 
+           sizeof(spi_parameter_config_type));
+
     registered_configs[CONFIG_ID_SPI_PARAMS].registered = TRUE;
 
     return CONFIG_ERR_NONE;
-    
 }
 
 /**********************************************************
@@ -271,7 +273,7 @@ boolean config_get_registration_status(config_id_type config_id)
     if(config_id >= CONFIG_ID_COUNT)
         return FALSE;
 
-    return registered_configs[CONFIG_ID_SPI_PARAMS].registered;
+    return registered_configs[config_id].registered;
 }
 
 

@@ -108,6 +108,7 @@ spi_module_error_type spi_init()
 static config_err_t8 config_setup(void)
 {
     config_err_t8 cfg_err = CONFIG_ERR_NONE;
+    config_block_t read_block = { 0 };
 
     /* ensure the necessary pins and parameters have been registered
       with the config module */
@@ -121,7 +122,6 @@ static config_err_t8 config_setup(void)
     {
         return SPI_MODULE_ERR__PARAMS_NOT_CONFIGURED;
     }
- 
 
     /* Read the config data */
 
@@ -132,7 +132,12 @@ static config_err_t8 config_setup(void)
     cfg_err |= config_lookup_pin(SPI_MODULE_PIN_ID__MOSI, &intf_data.gpio_pins.mosi);
     cfg_err |= config_lookup_pin(SPI_MODULE_PIN_ID__SCLK, &intf_data.gpio_pins.sclk);
 
-    cfg_err |= config_read(CONFIG_ID_SPI_PARAMS, &intf_data.params);
+    cfg_err |= config_read(CONFIG_ID_SPI_PARAMS, &read_block);
+
+    if(cfg_err == CONFIG_ERR_NONE)
+    {
+        memcpy(&intf_data.params, &read_block.spi_params, sizeof intf_data.params);
+    }
 
     intf_data.config_valid = (cfg_err == CONFIG_ERR_NONE);
 
@@ -175,7 +180,6 @@ static boolean pins_are_registered(void)
         {
             return FALSE;
         }
-        pin++;
     }
 
     return TRUE;

@@ -55,3 +55,7 @@ void memcpy(void *dest, const void *src, size_t n);
 #endif
 
 #define GET_BIT(value, bit) (((value) >> (bit)) & 1U)
+
+// TODO remove these after debugging
+#define DEBUG_PIN 18
+#define ERROR_PIN 21

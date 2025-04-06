@@ -26,6 +26,7 @@
 #include "printf.h"
 #include "usb.h"
 #include "peripherals/spi.h"
+#include "config.h"
 
 typedef struct
 {
@@ -49,11 +50,10 @@ static const consumer_module_pin_config_entry_type consumer_module_pin_config_ta
 static sched_usr_tsk_t  task_list[] =
     {
     /* period_ms                              task_func      */
-    { 500,                                    spi_tx_periodic       }
+    { 1000,                                   spi_tx_periodic,      0       }
     };
 
 static void init(void);
-static void tty_task(void);
 static void setup_drivers(void);
 static boolean register_module_pins(void);
 
@@ -69,12 +69,39 @@ static boolean register_module_pins(void);
  *
  */
 
+#include "peripherals/gpio.h"
 void kernel_main()
 {
+    
+    //todo move this into pin config module
+    for(uint8_t i = 0; i < list_cnt(consumer_module_pin_config_table); i++)
+    {
+        uint32_t pin;
+        pin = consumer_module_pin_config_table[i].pin;
+
+        gpio_pin_enable(pin);
+        gpio_pin_set_func(pin, 1);  // set as output
+    }
+    
+    gpio_pin_enable(DEBUG_PIN);
+    gpio_pin_set_func(DEBUG_PIN, 1);
+    gpio_pin_enable(ERROR_PIN);
+    gpio_pin_set_func(ERROR_PIN, 1);
+
     init();
 
     printf("\nKernel initialized\n\rExecuting in EL%d\n", get_el());
     printf("Version %s", STRATOS_VERSION);
+
+    //todo remove this after testing
+    for(uint8_t i = 0; i < list_cnt(consumer_module_pin_config_table); i++)
+    {
+        spi_tx_periodic();
+
+        delay_sec(30);
+    }
+    
+    
 
     /* Call the main scheduler function */
     sched_main();
@@ -83,16 +110,6 @@ void kernel_main()
      * back to us, just loop forever. */
     while(1)//TODO CPU optimizations, e.g., wait for interrupt?
         ;
-}
-
-static void tty_task(void)
-{
-    /* echo back user input */
-    while(1)
-    {
-        debug_toggle_led();
-        // uart_send(uart_recv());
-    }
 }
 
 static void init(void)
@@ -144,20 +161,37 @@ static void init(void)
 
 static void setup_drivers(void)
 {
+    spi_module_error_type     spi_err;
+    spi_parameter_config_type spi_params = { 0 };
+
     /* Initialize OS core drivers */
-    usb_core_init();
+    // usb_core_init();
 
     /* Initialize all of the driver managers */
-    hc_sr04_intf_init();
+    // hc_sr04_intf_init();
 
     /* Configured drivers */
 
     #ifdef HW_DRIVER_HC_SR04
-    printf("\nHC-SR04 Hardware driver(s) configured....\n");
-    hc_sr04_intf_reg_intf(hc_sr04_get_reg_intf());
-    hc_sr04_init();
-    printf("Successfully registered the HC-SR04 driver....\n\n");
+    // printf("\nHC-SR04 Hardware driver(s) configured....\n");
+    // hc_sr04_intf_reg_intf(hc_sr04_get_reg_intf());
+    // hc_sr04_init();
+    // printf("Successfully registered the HC-SR04 driver....\n\n");
     #endif
+
+    spi_params.data_size = sizeof(uint16_t);
+    spi_params.slck_speed_hz = 1;
+    spi_params.bit_order = CONFIG_BIT_ORDER_MSB;
+    spi_params.endianness = CONFIG_ENDIAN_BIG;
+
+    config_register_spi_parameters(spi_params);
+
+    spi_err = spi_init();
+
+    if( SPI_MODULE_ERR__NONE != spi_err )
+    {
+        printf("There was an error initializing the SPI module. Ensure pins and parameters are set correctly. Err: %d", spi_err);
+    }
 }
 
 static boolean register_module_pins(void)
