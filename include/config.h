@@ -16,6 +16,7 @@
 #pragma once
 
 #include "generic.h"
+#include "platform/platform_spi_interface.h"
 
 /**********************************************************
  * 
@@ -155,6 +156,9 @@ typedef struct __attribute__((aligned(4)))
     uint8_t  data_size;
     config_bit_order_t8 bit_order;
     config_endianness_t8 endianness;
+    spi_op_mode_type op_mode;
+    spi_cs_mode_type cs_mode;  
+    uint8_t          cs_count;  /* chip select count */
 } spi_parameter_config_type;
 
 typedef struct __attribute__((aligned(4)))

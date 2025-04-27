@@ -36,8 +36,3 @@ boolean cpu_init(void)
 
 return TRUE;
 }
-
-void PLATFORM_init_foundational_hw_modules()
-{
-// Nothing to do here yet...
-}

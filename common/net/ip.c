@@ -26,10 +26,12 @@ char s_packet_data[ MAX_PACKET_SIZE ];
 
 void strat_net_udp_rx( void * data, size_t size )
 {
-
+(void)data;
+(void)size;
 }
 
 void strat_net_udp_tx( void * out, size_t size )
 {
-
+(void)out;
+(void)size;
 }

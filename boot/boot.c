@@ -1,7 +1,9 @@
 /**********************************************************
  * 
- *  kernel_entry.c
- * 
+ *  boot.c
+ *
+ *  DESCRIPTION:
+ *      Kernel boot procedures
  */
 
 #include "generic.h"
@@ -22,7 +24,13 @@
 #include "config.h"
 #include "platform/platform_poweron.h"
 
-static sched_usr_tsk_t  task_list[] = // TODO move this into a project?
+/**********************************************************
+ * 
+ * Kernel Tasks
+ * 
+ */
+
+static sched_usr_tsk_t  kernel_task_list[] =
     {
     /* period_ms                              task_func      */
     { 1000,                                   spi_tx_periodic,      0       }
@@ -44,7 +52,12 @@ static void setup_drivers(void);
  */
 
 #include "peripherals/gpio.h"
+
+#ifdef EMBEDDED_BUILD
 void kernel_main()
+#else
+void main()
+#endif
 {   
     gpio_pin_enable(DEBUG_PIN);
     gpio_pin_set_func(DEBUG_PIN, 1);
@@ -71,11 +84,14 @@ static void init(void)
     /* Initialize the foundational hardware modules */
     cpu_init();
     uart_init();
+
+    #ifdef EMBEDDED_BUILD
 	init_printf(0, putc);
+    #endif
+
     debug_init();
     irq_init();
     timer_init();
-    PLATFORM_init_foundational_hw_modules();
 
     /* Initialize the config module (do
        this before drivers are initialized) */
@@ -83,7 +99,7 @@ static void init(void)
 
     // TODO move this to bottom of this function?
     /* Initialize modules that rely on timers */
-    sched_init(task_list, list_cnt(task_list));
+    sched_init(kernel_task_list, list_cnt(kernel_task_list));
 
     /* Enable system IRQs */
     irq_sys_enable();
@@ -111,7 +127,7 @@ static void init(void)
 
 static void setup_drivers(void)
 {
-    spi_module_error_type     spi_err;
+    error_type     spi_err;
 
     /* Configured drivers */
 
@@ -124,7 +140,7 @@ static void setup_drivers(void)
 
     spi_err = spi_init();
 
-    if( SPI_MODULE_ERR__NONE != spi_err )
+    if( ERR_NO_ERR != spi_err )
     {
         printf("There was an error initializing the SPI module. Ensure pins and parameters are set correctly. Err: %d", spi_err);
     }

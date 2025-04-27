@@ -65,6 +65,7 @@ timer_err_t8 timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ti
 }
 
 void* simulate_shed_timer_isr(void* arg) {
+    (void)arg;
 
     while (1) {
         scheduler_proc();

@@ -1,3 +1,5 @@
+#ifdef EMBEDDED_BUILD
+
 /**********************************************************
  * 
  *  mm.S
@@ -18,3 +20,5 @@ memzero:
     subs x1, x1, #8       /* decrement counter */
     b.gt memzero          /* if counter > 0, repeat */
     ret
+
+#endif

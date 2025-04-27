@@ -47,6 +47,7 @@
         "debug.h": "c",
         "cstdio": "cpp",
         "spi.h": "c",
-        "platform_spi_interface.h": "c"
+        "platform_spi_interface.h": "c",
+        "stdio.h": "c"
     }
 }

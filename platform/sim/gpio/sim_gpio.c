@@ -33,7 +33,7 @@ typedef struct
 {
     uint8_t io_state;
     uint8_t value : 1;  /* digital IO pin can only be 0 or 1 */
-
+    uint8_t function;   /* IO function */
 } simulated_gpio_pin_type;
 
 /*
@@ -150,7 +150,7 @@ static void read_in_pins(void)
 
     uint8_t           i;
     file_handle_t     fhandle;
-    int               io_state, value;
+    int               value;
     state_file_line_type
                     * temp_line;
     const uint8_t   * buf_ptr;
@@ -251,4 +251,9 @@ boolean gpio_get(uint32_t pin)
     }
     read_in_pins();
     return simulated_pins[ pin ].value;
+}
+
+void gpio_pin_set_func(uint32_t pin, uint8_t fnc)
+{
+    simulated_pins[ pin ].function = fnc;
 }

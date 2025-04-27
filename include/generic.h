@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "platform/platform_assert.h"
+
 #ifndef EMBEDDED_BUILD
 #include <string.h>
 #include <stdio.h>
@@ -29,6 +31,11 @@
 #define BS_MAX(size) ( BS_ALL & ~( 1 << ((size * 8) -1) ) )
 
 #define assert(condition, msg) \
+    if(!condition)   \
+        {   \
+        PLATFORM_assert_failed(msg); \
+        }   \
+
 
 typedef int sint32_t;
 typedef char sint8_t;
@@ -59,3 +66,10 @@ void memcpy(void *dest, const void *src, size_t n);
 // TODO remove these after debugging
 #define DEBUG_PIN 18
 #define ERROR_PIN 21
+
+typedef enum
+{
+    ERR_NO_ERR  = 0,
+    ERR_INVALID,
+
+} error_type;

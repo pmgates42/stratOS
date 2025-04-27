@@ -13,7 +13,7 @@
 
 /**********************************************************
  * 
- *  spi_mode_type
+ *  spi_op_mode_type
  * 
  *  DESCRIPTION:
  *     Type of device we are (master/slave)
@@ -24,10 +24,10 @@ typedef enum
     SPI_OPERATING_MODE_UNSPECIFIED,
     SPI_OPERATING_MODE__MASTER,
     SPI_OPERATING_MODE__SLAVE,
-}   spi_mode_type;
+}   spi_op_mode_type;
 
 /*
-cs_mode_type tells the high-level (logical) driver code what
+spi_cs_mode_type tells the high-level (logical) driver code what
 chip select behavior it should use.
 
 CHANNEL_OPERATING_MODE__STANDARD
@@ -58,7 +58,7 @@ typedef enum
 {
     CHANNEL_OPERATING_MODE__STANDARD,      /* default */
     CHANNEL_OPERATING_MODE__COMBINATORIAL, /* (not implemented) */
-} cs_mode_type;
+} spi_cs_mode_type;
 
 /**********************************************************
  * 
@@ -79,30 +79,7 @@ typedef enum
  *      SPI_MODULE_PIN_ID__MISO
  * 
  *  RETURNS:
- *      Number of chip selects supported. Zero will be an
- *      indication that an error has occured. More than 2
- *      will be considered invalid.
+ *      Success
  */
 
-uint8_t PLATFORM_spi_init(void);
-
-/**********************************************************
- * 
- *  PLATFORM_spi_get_operating_mode()
- * 
- *  DESCRIPTION:
- *     Get operating mode.
- */
-
-spi_mode_type PLATFORM_spi_get_operating_mode(void);
-
-/**********************************************************
- * 
- *  PLATFORM_spi_get_cs_operating_mode()
- * 
- *  DESCRIPTION:
- *     Get the SPI (CS) operating mode from the implementing
- *     platform.
- */
-
-cs_mode_type PLATFORM_spi_get_cs_operating_mode(void);
+boolean PLATFORM_spi_init(void);

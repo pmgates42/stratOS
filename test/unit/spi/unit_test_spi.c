@@ -158,13 +158,13 @@ return TRUE;
 
 static void setup_drivers(spi_parameter_config_type spi_params)
 {
-spi_module_error_type     spi_err;
+error_type     spi_err;
 
 config_register_spi_parameters(spi_params);
 
 /* register SPI parameters */
 spi_err = spi_init();
-if( SPI_MODULE_ERR__NONE != spi_err )
+if( ERR_NO_ERR != spi_err )
 {
     printf("There was an error initializing the SPI module. Ensure pins and parameters are set correctly. Err: %d", spi_err);
 }
