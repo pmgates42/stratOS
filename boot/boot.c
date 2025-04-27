@@ -33,7 +33,7 @@
 static sched_usr_tsk_t  kernel_task_list[] =
     {
     /* period_ms                              task_func      */
-    { 1000 * 5,                                  spi_tx_periodic,      0       }
+    { 10,                                  spi_tx_periodic,      0       }
     };
 
 static void init(void);

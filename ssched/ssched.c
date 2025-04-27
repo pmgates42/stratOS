@@ -189,6 +189,7 @@ static uint32_t registered_tasks;
 static void schedule_isr(void);
 static boolean register_new_task(sched_usr_tsk_t *task);
 static void call_task_proc(task_cb_t * task);
+static void debug_print_scheduler_state();
 
 /**********************************************************
  *
@@ -496,6 +497,15 @@ static void schedule_isr(void)
         }
         break;
     }
+    debug_print_scheduler_state();
+}
+
+static void debug_print_scheduler_state()
+{
+    debug_printf("\n");
+    debug_printf("*****DEBUG SCHEDULER ISR*****"); 
+    debug_printf("scheduler_state=%d", scheduler_state);
+    debug_printf("\n");
 }
 
 /**********************************************************
