@@ -99,7 +99,7 @@ error_type spi_init()
     gpio_set(intf_data.gpio_pins.cs_0);
     gpio_set(intf_data.gpio_pins.cs_1);
 
-    /*  only support a single channel right now */
+    /*  only support a single channel right now */ // TODO
     intf_data.tx_id = TX_BUFFER_CHANNEL_0;
     intf_data.rx_id = RX_BUFFER_CHANNEL_0;
 
@@ -183,6 +183,7 @@ static boolean config_setup(void)
         assert(read_block.spi_params.cs_count == 1, "Invalid chip select count value");
 
         cfg_err |= config_lookup_pin(SPI_MODULE_PIN_ID__CS_0, &intf_data.gpio_pins.cs_0);
+        intf_data.gpio_pins.cs_1 = CFG_INVALID_PIN_NUMBER;
     }
     
     /* these pins should always be configured */
