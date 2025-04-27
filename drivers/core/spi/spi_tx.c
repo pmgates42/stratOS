@@ -62,6 +62,8 @@
      uint8_t byte;       /* byte we are currently working on sending */
      char    tx_buff[SPI_LCL_MAX_BUFFER_SZ];
  
+    debug_printf("TXing SPI data");
+
      if( spi_lcl_refresh_state() )
      {
          clr_mem(&intf_data, sizeof intf_data); 
@@ -105,7 +107,6 @@
              if(GET_BIT(byte, bit_pos))
              {
                  gpio_set(MOSI_PIN);
-                 debug_printf("ALIVE");
              }
              else
              {
@@ -119,7 +120,7 @@
          data_idx += polarity;
      }
      gpio_set(CS_PIN);
- 
+     gpio_set(ERROR_PIN);
  }
  
 

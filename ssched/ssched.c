@@ -518,12 +518,11 @@ static void call_task_proc(task_cb_t * task)
             printf("Invalid state! Only scheduled tasks should be executed!");
         #endif
         
-        task->usr_tsk->task_func();//TODO pass in flags
-    
-        if( task->usr_tsk->task_func != spi_tx_periodic )
-        {
-        gpio_set(ERROR_PIN);
-        }
+        debug_printf("\ntask fun=%d", task->usr_tsk->task_func);
+        debug_printf("\nspi_tx_periodic fun=%d", spi_tx_periodic);
+
+        spi_tx_periodic();
+        // task->usr_tsk->task_func();//TODO this isn't working on HW for some reason
     }
     /* Theoritially should never execute */
     else

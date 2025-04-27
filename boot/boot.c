@@ -33,7 +33,7 @@
 static sched_usr_tsk_t  kernel_task_list[] =
     {
     /* period_ms                              task_func      */
-    { 1000,                                  spi_tx_periodic,      0       }
+    { 1000 * 5,                                  spi_tx_periodic,      0       }
     };
 
 static void init(void);
@@ -69,7 +69,7 @@ void main()
     printf("Version %s", STRATOS_VERSION);
 
     /* Call the main scheduler function */
-    // sched_main();
+    sched_main();
 
     /* If for whatever reason the scheduler gives control
      * back to us, just loop forever. */
