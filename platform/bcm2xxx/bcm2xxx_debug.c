@@ -10,6 +10,7 @@
 
 #include "peripherals/gpio.h"
 #include "bcm2xxx_gpio.h"
+#include "printf.h"
 
 #ifndef BCM2XXX_DEBUG_LED_PIN
     #define BCM2XXX_DEBUG_LED_PIN 23
@@ -43,4 +44,9 @@ void debug_toggle_led(void)
     {
         gpio_set(BCM2XXX_DEBUG_LED_PIN);
     }
+}
+
+void debug_printf(char* s,char *fmt, ...)
+{
+printf(s, fmt);
 }

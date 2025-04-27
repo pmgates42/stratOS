@@ -67,8 +67,20 @@ void uart_init()
     REG_AUX_BASE->mu_lcr = 0x3;
     REG_AUX_BASE->mu_mcr = 0x0;
 
+    #if !(RPI_SUB_VERSION == RPI_3B_PLUS)
+        #error "Only 3B+ support currently exists
+    #endif
+
+    #if !(MU_BUAD_RATE == 115200)
+        #error "Invalid baud rate!"
+    #endif
+
+    #if !(SYSTEM_CLOCK_FREQUENCY == 250000000)
+        #error "Invalid System Clock Frequency!"
+    #endif
+
     /* Baud rate = (SYSTEM_CLOCK_FREQUENCY / (8 * BAUD_RATE)) - 1; */
-    REG_AUX_BASE->mu_baudrate = 434; //TODO MU_BUAD_RATE
+    REG_AUX_BASE->mu_baudrate = REG_AUX_BASE->mu_baudrate = (unsigned int)((SYSTEM_CLOCK_FREQUENCY / (8 * MU_BUAD_RATE)) - 1);
 
     /* Enable the TX/RX */
     REG_AUX_BASE->mu_control = 0x3;

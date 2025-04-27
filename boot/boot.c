@@ -33,7 +33,7 @@
 static sched_usr_tsk_t  kernel_task_list[] =
     {
     /* period_ms                              task_func      */
-    { 1000,                                   spi_tx_periodic,      0       }
+    { 1000,                                  spi_tx_periodic,      0       }
     };
 
 static void init(void);
@@ -59,19 +59,17 @@ void kernel_main()
 void main()
 #endif
 {   
-    gpio_pin_enable(DEBUG_PIN);
-    gpio_pin_set_func(DEBUG_PIN, 1);
     gpio_pin_enable(ERROR_PIN);
     gpio_pin_set_func(ERROR_PIN, 1);
+    gpio_clr(ERROR_PIN);
 
     init();
 
     printf("\nKernel initialized\n\rExecuting in EL%d\n", get_el());
     printf("Version %s", STRATOS_VERSION);
 
-
     /* Call the main scheduler function */
-    sched_main();
+    // sched_main();
 
     /* If for whatever reason the scheduler gives control
      * back to us, just loop forever. */

@@ -464,35 +464,35 @@ static void schedule_isr(void)
     }
 
     /* Handle time based events */
-
+    
     switch(scheduler_state)
     {
         /* EXECUTING A TASK */
         case EXECUTE_TASK:
         {
-        #define DETECT_OVERRUN(tsk) ( ( ( system_tick - tsk->active_tick ) * MS_PER_TICKS ) > tsk->usr_tsk->period_ms )
-
+            #define DETECT_OVERRUN(tsk) ( ( ( system_tick - tsk->active_tick ) * MS_PER_TICKS ) > tsk->usr_tsk->period_ms )
+            
             /* check for task overrun */
             if( DETECT_OVERRUN(task_head) )
             {
-            scheduler_state = TASK_OVERRUN;
-
-            //TODO $task_stats: collect overrun data here
-
-        #ifdef SSCHED_SHOW_DEBUG_DATA
-            printf("\nTask overrun has occured on task with id=%d. Consider lengthening period_ms on task registration.", task_head->usr_tsk->id);
-        #endif
+                scheduler_state = TASK_OVERRUN;
+                
+                //TODO $task_stats: collect overrun data here
+                
+                #ifdef SSCHED_SHOW_DEBUG_DATA
+                printf("\nTask overrun has occured on task with id=%d. Consider lengthening period_ms on task registration.", task_head->usr_tsk->id);
+                #endif
             }
-        #undef DETECT_OVERRUN
+            #undef DETECT_OVERRUN
         }
         break;
-
+        
         /* EXECUTING TASK HAS OVERRUN CYCLE */
         case TASK_OVERRUN:
         {
             // TODO wait a little longer and see if task finishes executing
             // TODO if crosses threshold then kill this task
-
+            
         }
         break;
     }
@@ -507,17 +507,23 @@ static void schedule_isr(void)
  *      Call the task procedure and update control vars.
  *
  */
-
+#include "peripherals/spi.h"
+#include "peripherals/gpio.h"
 static void call_task_proc(task_cb_t * task)
 {
     if( task != NULL && task->usr_tsk->task_func )
     { 
-    #ifdef SSCHED_SHOW_DEBUG_DATA
+        #ifdef SSCHED_SHOW_DEBUG_DATA
         if(task->scheduled == FALSE)
             printf("Invalid state! Only scheduled tasks should be executed!");
-    #endif
-
+        #endif
+        
         task->usr_tsk->task_func();//TODO pass in flags
+    
+        if( task->usr_tsk->task_func != spi_tx_periodic )
+        {
+        gpio_set(ERROR_PIN);
+        }
     }
     /* Theoritially should never execute */
     else

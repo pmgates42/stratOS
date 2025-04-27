@@ -48,6 +48,13 @@
         "cstdio": "cpp",
         "spi.h": "c",
         "platform_spi_interface.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "__bit_reference": "c",
+        "__node_handle": "c",
+        "__memory": "c",
+        "optional": "c",
+        "ratio": "c",
+        "system_error": "c",
+        "tuple": "c"
     }
 }

@@ -40,7 +40,7 @@ static const consumer_module_pin_config_entry_type consumer_module_pin_config_ta
     {  9,    SPI_MODULE_PIN_ID__MISO, BCM2XXX_GPIO_FUNC_INPUT  },
 };
 
-uint8_t PLATFORM_spi_init(void)
+boolean PLATFORM_spi_init(void)
 {
     uint8_t                   i;
     config_err_t8             config_err;

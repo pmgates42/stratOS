@@ -65,7 +65,7 @@ void memcpy(void *dest, const void *src, size_t n);
 
 // TODO remove these after debugging
 #define DEBUG_PIN 18
-#define ERROR_PIN 21
+#define ERROR_PIN 16
 
 typedef enum
 {
