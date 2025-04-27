@@ -27,7 +27,7 @@
 #define TX_BUFF_SZ      (MAX_DATA_UNITS_PER_BUFF * DATA_UNIT_BYTES_SZ)
 #define RX_BUFF_SZ      (MAX_DATA_UNITS_PER_BUFF * DATA_UNIT_BYTES_SZ)
 
-static boolean buffer_empty(char * buff_ptr);
+// static boolean buffer_empty(char * buff_ptr);
 
 /**********************************************************
  * 
@@ -59,8 +59,7 @@ void spi_tx_periodic(void)
     sint8_t data_idx;
     sint8_t polarity;   /* direction to traverse payload (hinges on current config'd LSB/MSB state) */
     uint8_t byte;       /* byte we are currently working on sending */
-    uint8_t tx_buff[SPI_LCL_MAX_BUFFER_SZ];
-    sint8_t bto_offst;  /* data transfer bit offset */
+    char    tx_buff[SPI_LCL_MAX_BUFFER_SZ];
 
     if( spi_lcl_refresh_state() )
     {
@@ -88,22 +87,13 @@ void spi_tx_periodic(void)
         polarity =  1;
     }
 
-    if(intf_data.params.bit_order == CONFIG_BIT_ORDER_MSB)
-    {
-        bto_offst =  7;
-    }
-    else
-    {
-        bto_offst =  0;
-    }
-
     spi_lcl_read_buff(intf_data.tx_id, tx_buff, intf_data.params.data_size);
 
     gpio_clr(CS_PIN);
     for(i = 0; i < intf_data.params.data_size; i++)
     {
         assert(data_idx < intf_data.params.data_size && data_idx >= 0, "SPI driver: memory error!");
-        byte = tx_buff[data_idx];
+        byte = (uint8_t)tx_buff[(uint8_t)data_idx];
 
         for(j = 0; j < 8; j++)
         {

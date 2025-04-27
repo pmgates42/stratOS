@@ -9,7 +9,7 @@
  */
 
 #include "peripherals/gpio.h"
-#include "bcm2xxx_pvg_gpio.h"
+#include "bcm2xxx_gpio.h"
 
 #ifndef BCM2XXX_DEBUG_LED_PIN
     #define BCM2XXX_DEBUG_LED_PIN 23

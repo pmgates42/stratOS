@@ -5,9 +5,26 @@ import sys
 import subprocess
 import shutil
 
+def run_make_command(args):
+    try:
+        result = subprocess.run(
+            ["make"] + args,
+            check=True,
+            text=True,
+            capture_output=True
+        )
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print("Build failed!")
+        print("stdout:")
+        print(e.stdout)
+        print("stderr:")
+        print(e.stderr)
+        sys.exit(e.returncode)
+
 def main():
     if len(sys.argv) < 2:
-        print("Usage: {} [-a] [sim|hw] [run]".format(sys.argv[0]))
+        print(f"Usage: {sys.argv[0]} [-a] [sim|hw] [run]")
         sys.exit(1)
     
     # Check if -a flag is present
@@ -17,7 +34,7 @@ def main():
     args = [arg for arg in sys.argv[1:] if arg != "-a"]
     
     if len(args) < 1:
-        print("Usage: {} [-a] [sim|hw] [run]".format(sys.argv[0]))
+        print(f"Usage: {sys.argv[0]} [-a] [sim|hw] [run]")
         sys.exit(1)
     
     build_type = args[0]
@@ -28,12 +45,12 @@ def main():
         shutil.rmtree("build")
     
     if build_type == "hw":
-        subprocess.run(["make", "BUILD_BCM2XXX=1", "RPI_3B_PLUS=1", "HW_DRIVER_HC_SR04=1"], check=True)
+        run_make_command(["BUILD_BCM2XXX=1", "RPI_3B_PLUS=1", "HW_DRIVER_HC_SR04=1"])
     elif build_type == "sim":
-        subprocess.run(["make", "SIMULATOR_BUILD=1"], check=True)
+        run_make_command(["SIMULATOR_BUILD=1"])
     else:
         print("Invalid argument:", build_type)
-        print("Usage: {} [-a] [sim|hw] [run]".format(sys.argv[0]))
+        print(f"Usage: {sys.argv[0]} [-a] [sim|hw] [run]")
         sys.exit(1)
 
     if build_type == "hw":
@@ -54,9 +71,14 @@ def main():
     if run_app:
         if build_type == "hw":
             print("Running hardware application...")
+            # you could add hardware run logic here if needed
         elif build_type == "sim":
             print("Running simulator application...")
-            subprocess.run(["./build/sim/strat_os_sim"], check=True)
+            try:
+                subprocess.run(["./build/sim/strat_os_sim"], check=True)
+            except subprocess.CalledProcessError as e:
+                print("Simulator run failed!")
+                sys.exit(e.returncode)
 
 if __name__ == "__main__":
     main()

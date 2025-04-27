@@ -279,6 +279,7 @@ static void flush_mb(void)
  */
 void bcm2xxx_power_on(bcm2xxx_power_on_t type)
 {
+    (void)type;
     process_vc_request();
 
     //TODO

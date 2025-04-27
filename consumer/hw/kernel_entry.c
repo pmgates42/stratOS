@@ -1,14 +1,7 @@
 /**********************************************************
  * 
- *  project_main.c
+ *  kernel_entry.c
  * 
- * DESCRIPTION:
- *      Project side code
- * 
- *  NOTE:
- *      Kernel boot procedures are done here but will
- *      eventually be moved elsewhere.
- *
  */
 
 #include "generic.h"
@@ -27,8 +20,9 @@
 #include "usb.h"
 #include "peripherals/spi.h"
 #include "config.h"
+#include "platform/platform_poweron.h"
 
-static sched_usr_tsk_t  task_list[] =
+static sched_usr_tsk_t  task_list[] = // TODO move this into a project?
     {
     /* period_ms                              task_func      */
     { 1000,                                   spi_tx_periodic,      0       }
@@ -36,17 +30,16 @@ static sched_usr_tsk_t  task_list[] =
 
 static void init(void);
 static void setup_drivers(void);
-static boolean register_module_pins(void);
 
 /**********************************************************
  * 
  *  kernel_main()
  * 
  *  DESCRIPTION:
- *     Main kernel function.     
+ *     Main kernel entry function.     
  * 
  *  NOTES:
- *      First kernel function to be called by the boot code
+ *      First StratOS function to be called by the boot code
  *
  */
 
@@ -75,22 +68,18 @@ void kernel_main()
 
 static void init(void)
 {
-    /* Initialize hardware modules */
+    /* Initialize the foundational hardware modules */
     cpu_init();
     uart_init();
 	init_printf(0, putc);
     debug_init();
     irq_init();
     timer_init();
+    PLATFORM_init_foundational_hw_modules();
 
     /* Initialize the config module (do
        this before drivers are initialized) */
     config_module_init();
-
-    if( FALSE == register_module_pins() )
-    {
-        printf("Consumer setup: Invalid pin config!");
-    }
 
     // TODO move this to bottom of this function?
     /* Initialize modules that rely on timers */
@@ -123,13 +112,6 @@ static void init(void)
 static void setup_drivers(void)
 {
     spi_module_error_type     spi_err;
-    spi_parameter_config_type spi_params = { 0 };
-
-    /* Initialize OS core drivers */
-    // usb_core_init();
-
-    /* Initialize all of the driver managers */
-    // hc_sr04_intf_init();
 
     /* Configured drivers */
 
@@ -139,13 +121,6 @@ static void setup_drivers(void)
     // hc_sr04_init();
     // printf("Successfully registered the HC-SR04 driver....\n\n");
     #endif
-
-    spi_params.data_size = sizeof(uint16_t);
-    spi_params.slck_speed_hz = 1;
-    spi_params.bit_order = CONFIG_BIT_ORDER_MSB;
-    spi_params.endianness = CONFIG_ENDIAN_BIG;
-
-    config_register_spi_parameters(spi_params);
 
     spi_err = spi_init();
 

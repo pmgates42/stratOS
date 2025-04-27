@@ -10,7 +10,7 @@
  */
 
 #include "generic.h"
-#include "bcm2xxx_pvg_gpio.h"
+#include "bcm2xxx_gpio.h"
 #include "utils.h"
 #include "peripherals/base.h"
 #include "uart.h"

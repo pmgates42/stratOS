@@ -46,6 +46,7 @@
         "kernel.h": "c",
         "debug.h": "c",
         "cstdio": "cpp",
-        "spi.h": "c"
+        "spi.h": "c",
+        "platform_spi_interface.h": "c"
     }
 }

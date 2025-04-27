@@ -4,15 +4,22 @@
  *  spi_params.c
  * 
  *  DESCRIPTION:
- *     This file manages the SPI driver subsystem. Here
- *     we are responsible for handling things such as:
+ *     This file manages the SPI driver subsystem. This
+ *     module is not hardware specific and just like other
+ *     modules in the core/spi code, it operates at the logical
+ *     level defering to the platform when necessary.
+ * 
+ *     Here we are responsible for handling things such as:
  * 
  *     1. Setting SPI parameters such as SCLK, transmit
- *        unit size, etc.
+ *        unit size, etc. These will be sourced from the
+ *        implementing platform.
  * 
  *     2. Initializing new slave channels and adjusting
- *        parameters accordingly.
+ *        parameters accordingly (again, from the platform)
  *
+ *     3. Basicaly anything that a SPI driver can do that is
+ *        not platform specific.
  */
 
 #include "generic.h"
@@ -20,7 +27,7 @@
 #include "spi_lcl.h"
 #include "config.h"
 #include "peripherals/gpio.h"
-#include "platform_spi_interface.h"
+#include "platform/platform_spi_interface.h"
 
 typedef struct
 {
@@ -35,6 +42,7 @@ static void hardware_setup(void);
 static boolean spi_module_reset_state;
 static hw_intf_data_t intf_data;
 static boolean module_initialized;
+static spi_mode_type device_operating_mode;
 
 enum
 {
@@ -75,6 +83,9 @@ spi_module_error_type spi_init()
 
     spi_module_reset_state = TRUE;
 
+    device_operating_mode = SPI_OPERATING_MODE_UNSPECIFIED;
+
+    hardware_setup();
     cfg_err = config_setup();
 
     if(cfg_err != CONFIG_ERR_NONE)
@@ -82,7 +93,9 @@ spi_module_error_type spi_init()
         return SPI_MODULE_ERR__INVALID_CONFIG;
     }
 
-    hardware_setup();
+    /* Chip selects are active low */
+    gpio_set(intf_data.gpio_pins.cs_0);
+    gpio_set(intf_data.gpio_pins.cs_1);
 
     /*  only support a single channel right now */
     intf_data.tx_id = TX_BUFFER_CHANNEL_0;
@@ -158,27 +171,24 @@ static void hardware_setup(void)
     uint8_t cs_count;   /* chip select count */
 
     /* Platform specifc initialization */
-    cs_count = PLATFORM_spi_init();
-    assert( cs_count == 1 || cs_count == 2, "Platform SPI Chips Select pins registered must be either 1 or 2." )
 
-    /* Chip selects are active low */
-    gpio_set(intf_data.gpio_pins.cs_0);
-    gpio_set(intf_data.gpio_pins.cs_1);
+    cs_count = PLATFORM_spi_init();
+    assert( cs_count == 1 || cs_count == 2, "Platform SPI Chips Select pins registered must be either 1 or 2." );
+
+    if( PLATFORM_spi_get_cs_operating_mode() != CHANNEL_OPERATING_MODE__STANDARD )
+        {
+        assert( FALSE, "Only standard operating mode is supported currently." );
+        }
+
+    device_operating_mode = PLATFORM_spi_get_operating_mode();
+    assert( device_operating_mode == SPI_OPERATING_MODE__MASTER
+           || device_operating_mode == SPI_OPERATING_MODE__SLAVE,
+           "Invalid operating mode!" );
 }
 
+/* Ensure pins were correctly registered by the platform */
 static boolean pins_are_registered(void)
 {
-/* Ensure pins were correctly registered
-   
-   NOTE: this is done to ensure GPIO pins for the SPI module
-         have been set up correctly. This is necessary because
-         OS builds/configs may or may not expose the pin config
-         for this module to the end consumer project.
-
-         In otherwords, we may be down the callstack from a
-         non-prvillaged user task and we want to make sure they
-         didn't fudge something up.
-*/
     uint8_t pin;
 
     for(pin = SPI_MODULE_PIN_ID__FIRST; pin < SPI_MODULE_PIN_ID__COUNT; pin++)

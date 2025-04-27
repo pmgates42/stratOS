@@ -18,7 +18,7 @@
  * 
  */
 
-#include "include/bcm2xxx_pvg_gpio.h"
+#include "include/bcm2xxx_gpio.h"
 #include "peripherals/aux.h"
 #include "cpu_impl.h"
 #include "uart.h"
@@ -205,5 +205,6 @@ void uart_send_string(char* str)
 
 void putc (void* p, char c)
 {
+    (void)p;
 	uart_send(c);
 }

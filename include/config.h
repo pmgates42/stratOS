@@ -142,7 +142,11 @@ enum
  *      like polarity cs polarity transfer mode (half/full
  *      duplex) are not necessary. Surely, this config will
  *      be expanded in the future.
- *
+ * 
+ *      TODO
+ *      Right now, we define a single set of parameters for
+ *      all devices, the SPI driver will be expanded to be
+ *      more dynamic in the future.
  */
 
 typedef struct __attribute__((aligned(4)))
