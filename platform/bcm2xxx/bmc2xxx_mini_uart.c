@@ -63,7 +63,7 @@ void uart_init()
     /* Enable the mini uart */
     REG_AUX_BASE->enables = 0x1;
     REG_AUX_BASE->mu_control = 0x0;
-    REG_AUX_BASE->mu_ier = 0x0;
+    REG_AUX_BASE->mu_ier = 0xD; /* Bits 3:2 are NOT don't care: https://elinux.org/BCM2835_datasheet_errata#p12 */
     REG_AUX_BASE->mu_lcr = 0x3;
     REG_AUX_BASE->mu_mcr = 0x0;
 

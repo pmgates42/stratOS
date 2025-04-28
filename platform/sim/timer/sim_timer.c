@@ -45,7 +45,7 @@ void timer_init()
  *  timer_alloc()
  * 
  *  DESCRIPTION:
- *      Allocate a timer. NOT IMPLEMENTED.
+ *      Allocate a timer.
  *
  */
 

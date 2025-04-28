@@ -59,7 +59,7 @@
  *
  */
 #ifndef SSCHED_SCHED_TICK_US
-#define SSCHED_SCHED_TICK_US 1000
+#define SSCHED_SCHED_TICK_US 1000*10 /* 10 ms */
     #warning Configuration SSCHED_SCHED_TICK_US not set, using default value of 1000uS.
 #endif
 
@@ -313,7 +313,7 @@ sched_err_t sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
     }
 
     /* allocate a system timer */
-    if( TIMER_ERR_NONE != timer_alloc(&sched_timer_id, schedule_isr, SSCHED_SCHED_TICK_US))
+    if( TIMER_ERR_NONE != timer_alloc(&sched_timer_id, schedule_isr, SSCHED_SCHED_TICK_US)) // TODO PMG
     {
         #ifdef SSCHED_SHOW_DEBUG_DATA
             printf("\nFailed to allocate a system timer. Cannot run scheduler.");
@@ -368,7 +368,7 @@ static boolean register_new_task(sched_usr_tsk_t * task)
         return FALSE;
     }
 
-    system_task_list[task_id_count].usr_tsk = task;
+    memcpy(&system_task_list[task_id_count].usr_tsk, &task, sizeof system_task_list[task_id_count].usr_tsk);
     system_task_list[task_id_count].alive = TRUE;
 
     /* gaurd against init failure */
@@ -528,10 +528,10 @@ static void call_task_proc(task_cb_t * task)
             printf("Invalid state! Only scheduled tasks should be executed!");
         #endif
         
+        // TODO PMG remove this
         debug_printf("\ntask fun=%d", task->usr_tsk->task_func);
         debug_printf("\nspi_tx_periodic fun=%d", spi_tx_periodic);
 
-        spi_tx_periodic();
         // task->usr_tsk->task_func();//TODO this isn't working on HW for some reason
     }
     /* Theoritially should never execute */
