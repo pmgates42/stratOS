@@ -11,6 +11,7 @@
 #include "peripherals/gpio.h"
 #include "bcm2xxx_gpio.h"
 #include "printf.h"
+#include "uart.h"
 #include <stdarg.h>
 
 #ifndef BCM2XXX_DEBUG_LED_PIN
@@ -51,6 +52,6 @@ void debug_printf(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    vprintf(fmt, ap);
+    tfp_format(0, putc, (char*)fmt, ap);
     va_end(ap);
 }

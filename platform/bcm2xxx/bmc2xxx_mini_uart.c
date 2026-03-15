@@ -68,7 +68,7 @@ void uart_init()
     REG_AUX_BASE->mu_mcr = 0x0;
 
     #if !(RPI_SUB_VERSION == RPI_3B_PLUS)
-        #error "Only 3B+ support currently exists
+        #error "Only 3B+ support currently exists"
     #endif
 
     #if !(MU_BUAD_RATE == 115200)

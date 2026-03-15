@@ -207,7 +207,7 @@ vc_end_tag_t32 * end_tag_ptr = ( vc_end_tag_t32 * )( tag_buff_data->data + sizeo
 *end_tag_ptr = TAG_RQUST_END_TAG;
 
 /* Get buffer bus address */
-uint32_t buff_address = BUS_ADDRESS( ( uint32_t )tag_buff_data );
+uint32_t buff_address = BUS_ADDRESS((uint32_t)(size_t)tag_buff_data);
 
 /* Write the buffer address to the mailbox */
 flush_mb();

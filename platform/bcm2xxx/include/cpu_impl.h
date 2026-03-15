@@ -26,8 +26,8 @@
         #define MU_BUAD_RATE 115200
     #else
         #define MU_BUAD_RATE 115200
+        #warning "Only the Raspberry Pi 3B+ is supported and tested at this time"
     #endif
-    #warning "Only the Raspberry Pi 3B+ is supported and tested at this time"
 #else
     #define MU_BUAD_RATE 115200
     #warning "Only the Raspberry Pi 3B+ is supported and tested at this time"

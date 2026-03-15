@@ -8,6 +8,9 @@
                 "-DEMBEDDED_BUILD=1",
                 "-DRPI_VERSION=3",
                 "-DRPI_SUB_VERSION=1",
+                "-DBCM2XXX_DEBUG_LED_PIN=23",
+                "-DSSCHED_TSK_MAX=20",
+                "-DSSCHED_SCHED_TICK_US=10000",
                 "-Wall",
                 "-nostdlib",
                 "-nostartfiles",
@@ -78,7 +81,7 @@
 
         {
             "name": "core_drivers",
-            "sources": ["drivers/core/**/*.c", "drivers/core/**/*.S"],
+            "sources": ["drivers/core/**/*.c"],
             "includes": ["drivers/core"]
         },
 
@@ -90,19 +93,19 @@
 
         {
             "name": "bcm2xxx",
-            "sources": ["platform/bcm2xxx/*.c", "platform/bcm2xxx/*.S"],
+            "sources": ["platform/bcm2xxx/*.c"],
             "includes": ["platform/bcm2xxx/include", "aarch64/include"]
         },
 
         {
             "name": "aarch64",
-            "sources": ["aarch64/*.c", "aarch64/*.S"],
+            "sources": ["aarch64/*.S"],
             "includes": ["aarch64/include"]
         },
 
         {
             "name": "hw_common",
-            "sources": ["platform/hw_common/**/*.c", "platform/hw_common/**/*.S"],
+            "sources": ["platform/hw_common/**/*.c"],
             "includes": ["platform/hw_common"]
         },
 
@@ -114,7 +117,7 @@
 
         {
             "name": "hc_sr04",
-            "sources": ["drivers/hc_sr04/*.c", "drivers/hc_sr04/*.S"],
+            "sources": ["drivers/hc_sr04/*.c"],
             "includes": ["drivers/hc_sr04"]
         },
 

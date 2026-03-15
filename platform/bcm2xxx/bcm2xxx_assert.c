@@ -19,6 +19,6 @@
 
  void PLATFORM_assert_failed(const char * msg)
  {
-     printf(msg);
+     printf((char*)msg);
     //  exit(1); // TODO
  }
