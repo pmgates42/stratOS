@@ -8,32 +8,8 @@ import subprocess
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
-MAKEFILE = REPO_ROOT / 'Makefile'
 BUILD_JSON = REPO_ROOT / 'build.json'
 BUILD_DIR = REPO_ROOT / 'build'
-
-
-def parse_makefile_vars(makefile_path):
-    vars = {}
-    if not makefile_path.exists():
-        return vars
-    with open(makefile_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith('#') or not line:
-                continue
-            # simple parses like: NAME ?= value or NAME = value
-            for sep in ('?=', '='):
-                if sep in line:
-                    parts = line.split(sep, 1)
-                    name = parts[0].strip()
-                    val = parts[1].strip()
-                    # ignore complex assignments
-                    if ' ' in name or '(' in name or ')' in name:
-                        continue
-                    vars[name] = val
-                    break
-    return vars
 
 
 def load_build_json(path):
@@ -164,8 +140,6 @@ def main():
     rebuild = ('--rebuild' in sys.argv) or ('-r' in sys.argv)
 
     cfg = load_build_json(BUILD_JSON)
-    mfvars = parse_makefile_vars(MAKEFILE)
-
     # Load platform aliases (default + optional user overrides)
     alias_default_path = REPO_ROOT / 'default_alias.json'
     alias_user_path = REPO_ROOT / 'alias.json'
@@ -209,14 +183,12 @@ def main():
     cflags = platform_cfg.get('cflags', []) or []
     ldflags = platform_cfg.get('ldflags', []) or []
 
-    # fallback to Makefile vars if compiler not provided
+    # fallback heuristics if compiler not provided
     if not compiler:
-        # heuristics: use ARMGCC for bcm-like platforms, else use GCC/COMPILER
         if platform_name.lower().find('bcm') != -1 or platform_name.lower().find('rpi') != -1 or platform_name.lower().find('hw') != -1:
-            armgcc = mfvars.get('ARMGCC') or 'aarch64-elf'
-            compiler = f"{armgcc}-gcc"
+            compiler = 'aarch64-elf-gcc'
         else:
-            compiler = mfvars.get('COMPILER') or mfvars.get('GCC') or 'gcc'
+            compiler = 'gcc'
 
     # Verify compiler exists
     if shutil.which(compiler) is None:

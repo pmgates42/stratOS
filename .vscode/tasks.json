@@ -2,32 +2,18 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build Unit Test",
-            "type": "shell",
-            "command": "make",
-            "args": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [],
-            "options": {
-                "cwd": "${fileDirname}"
-            }
-        },
-        {
             "label": "simulator",
             "type": "shell",
-            "command": "./build.sh",
-            "args": ["sim"],
+            "command": "bash",
+            "args": ["./sim_build.sh"],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": true
             },
             "problemMatcher": []
-        },
+        }
     ]
 }
