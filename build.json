@@ -1,0 +1,129 @@
+{
+    "platforms":
+    [
+        {
+            "name": "bcm",
+            "compiler": "aarch64-none-elf-gcc",
+            "cflags": [
+                "-DEMBEDDED_BUILD=1",
+                "-DRPI_VERSION=3",
+                "-DRPI_SUB_VERSION=1",
+                "-Wall",
+                "-nostdlib",
+                "-nostartfiles",
+                "-ffreestanding",
+                "-Iinclude",
+                "-Iinclude/public",
+                "-mgeneral-regs-only"
+            ],
+            "ldflags": [],
+            "link": false,
+            "modules": [
+                "boot",
+                "bcm2xxx",
+                "aarch64",
+                "hw_common",
+                "ssched",
+                "core_drivers",
+                "dwc2",
+                "hc_sr04",
+                "config",
+                "snsr"
+            ]
+        },
+
+        {
+            "name": "sim",
+            "compiler": "gcc",
+            "cflags": [
+                "-DRPI_VERSION=3",
+                "-DRPI_SUB_VERSION=1",
+                "-Wall",
+                "-Iinclude",
+                "-Iinclude/public",
+                "-g",
+                "-Wextra"
+            ],
+            "ldflags": ["-lws2_32"],
+            "modules": [
+                "boot",
+                "platform_sim",
+                "ssched",
+                "core_drivers",
+                "config",
+                "snsr"
+            ]
+        }        
+
+    ],
+
+
+    "modules": [
+        {
+            "name": "boot",
+            "sources": ["boot/*.c", "boot/*.S"],
+            "includes": ["boot/include", "aarch64/include"]
+        },
+
+        {
+            "name": "ssched",
+            "sources": ["ssched/ssched.c"],
+            "includes": ["ssched/include"],
+            "cflags": ["-DSSCHED_SHOW_DEBUG_DATA"]
+        },
+
+        {
+            "name": "core_drivers",
+            "sources": ["drivers/core/**/*.c", "drivers/core/**/*.S"],
+            "includes": ["drivers/core"]
+        },
+
+        {
+            "name": "platform_sim",
+            "sources": ["platform/sim/**/*.c", "platform/sim/**/*.S"],
+            "includes": ["platform/sim/include"]
+        },
+
+        {
+            "name": "bcm2xxx",
+            "sources": ["platform/bcm2xxx/*.c", "platform/bcm2xxx/*.S"],
+            "includes": ["platform/bcm2xxx/include", "aarch64/include"]
+        },
+
+        {
+            "name": "aarch64",
+            "sources": ["aarch64/*.c", "aarch64/*.S"],
+            "includes": ["aarch64/include"]
+        },
+
+        {
+            "name": "hw_common",
+            "sources": ["platform/hw_common/**/*.c", "platform/hw_common/**/*.S"],
+            "includes": ["platform/hw_common"]
+        },
+
+        {
+            "name": "dwc2",
+            "sources": ["drivers/usb/dwc2/*.c"],
+            "includes": ["drivers/usb/dwc2"]
+        },
+
+        {
+            "name": "hc_sr04",
+            "sources": ["drivers/hc_sr04/*.c", "drivers/hc_sr04/*.S"],
+            "includes": ["drivers/hc_sr04"]
+        },
+
+        {
+            "name": "config",
+            "sources": ["common/config/*.c"],
+            "includes": ["common/config"]
+        },
+
+        {
+            "name": "snsr",
+            "sources": ["common/snsr/*.c", "common/snsr/dist/*.c"],
+            "includes": ["common/snsr", "common/snsr/dist"]
+        }
+    ]
+}

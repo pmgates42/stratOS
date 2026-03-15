@@ -45,7 +45,10 @@ typedef unsigned short uint16_t;
 typedef unsigned long long uint64_t;
 typedef volatile uint32_t reg32_t;
 typedef char boolean;
+
+#ifdef EMBEDDED_BUILD
 typedef unsigned long size_t;
+#endif
 
 typedef void ( *void_func_t )( void );
 

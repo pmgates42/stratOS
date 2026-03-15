@@ -9,7 +9,7 @@
 
 #include "generic.h"
 
-static initialized;
+static boolean initialized = FALSE;
 
 /**********************************************************
  * 

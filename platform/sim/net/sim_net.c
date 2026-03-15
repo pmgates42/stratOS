@@ -1,11 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+typedef int socklen_t;
+#define CLOSESOCKET closesocket
+#else
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <unistd.h>
+#define CLOSESOCKET close
+#endif
 
 /**
  * 
@@ -47,6 +57,17 @@ static int sock = -1;             /* Socket descriptor */
 
 void set_static_ip()
 {
+#ifdef _WIN32
+    /* Setting interface addresses requires elevated privileges and
+       different APIs on Windows (Netsh/Win32 IP Helper). For the
+       simulator on Windows we skip actually modifying the host
+       network configuration. */
+    (void)INTERFACE_NAME;
+    (void)STATIC_IP;
+    (void)NETMASK;
+    (void)GATEWAY;
+    return;
+#else
     struct ifreq ifr;
     struct sockaddr_in *sin;
 
@@ -66,7 +87,7 @@ void set_static_ip()
     inet_pton(AF_INET, STATIC_IP, &sin->sin_addr);
     if (ioctl(sock, SIOCSIFADDR, &ifr) < 0) {
         perror("Failed to set IP address");
-        close(sock);
+        CLOSESOCKET(sock);
         return;
     }
 
@@ -74,20 +95,20 @@ void set_static_ip()
     inet_pton(AF_INET, NETMASK, &sin->sin_addr);
     if (ioctl(sock, SIOCSIFNETMASK, &ifr) < 0) {
         perror("Failed to set netmask");
-        close(sock);
+        CLOSESOCKET(sock);
         return;
     }
 
     /* Bring up the interface (it's alive!) */
     if (ioctl(sock, SIOCGIFFLAGS, &ifr) < 0) {
         perror("Failed to get interface flags");
-        close(sock);
+        CLOSESOCKET(sock);
         return;
     }
     ifr.ifr_flags |= IFF_UP | IFF_RUNNING;
     if (ioctl(sock, SIOCSIFFLAGS, &ifr) < 0) {
         perror("Failed to bring up the interface");
-        close(sock);
+        CLOSESOCKET(sock);
         return;
     }
 
@@ -107,21 +128,33 @@ void set_static_ip()
     // route.rt_flags = RTF_UP | RTF_GATEWAY;
     // if (ioctl(sock, SIOCADDRT, &route) < 0) {
     //     perror("Failed to set gateway");
-    //     close(sock);
+    //     CLOSESOCKET(sock);
     //     return;
     // }
 
-    close(sock);
+    CLOSESOCKET(sock);
+#endif
 }
 
 void net_init()
 {
     struct sockaddr_in addr;
 
+#ifdef _WIN32
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
+        fprintf(stderr, "WSAStartup failed\n");
+        return;
+    }
+#endif
+
     /* Create a socket */
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         perror("Socket creation failed");
+#ifdef _WIN32
+        WSACleanup();
+#endif
         return;
     }
 
@@ -133,8 +166,11 @@ void net_init()
 
     if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("Bind failed");
-        close(sock);
+        CLOSESOCKET(sock);
         sock = -1;
+#ifdef _WIN32
+        WSACleanup();
+#endif
         return;
     }
 }
@@ -161,14 +197,23 @@ int get_packet(char *buffer, size_t buffer_size, int timeout_us) {
     tv.tv_sec = 2;  // 0 seconds
     tv.tv_usec = timeout_us;
 
+#ifndef _WIN32
     if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
         perror("Failed to set socket timeout");
         return -1;
     }
+#endif
 
     int bytes_received = recvfrom(sock, buffer, buffer_size, 0, NULL, NULL);
     if (bytes_received < 0) {
+#ifdef _WIN32
+        int err = WSAGetLastError();
+        if (err != WSAETIMEDOUT) {
+            fprintf(stderr, "Packet receive failed: WSA error %d\n", err);
+        }
+#else
         perror("Packet receive failed");
+#endif
     }
 
     return bytes_received;

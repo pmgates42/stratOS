@@ -19,7 +19,7 @@
  */
 
 #include "include/bcm2xxx_gpio.h"
-#include "peripherals/aux.h"
+#include "peripherals/auxil.h"
 #include "cpu_impl.h"
 #include "uart.h"
 
