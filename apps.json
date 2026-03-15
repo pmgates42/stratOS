@@ -1,0 +1,15 @@
+{
+    "applications": [
+        {
+            "name": "default",
+            "sources": [
+                "common/uapi/strat_os_sched.c",
+                "apps/default/app_default.c"
+            ],
+            "includes": [
+                "common/uapi",
+                "apps/default"
+            ]
+        }
+    ]
+}

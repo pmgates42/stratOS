@@ -19,6 +19,7 @@
 #include "debug.h"
 
 #define NUMBER_OF_GPIO_PINS 50
+#define GPIO_WRITE_FLUSH_INTERVAL 32
 
 #define PIN_FILE_FNAME "build/sim/sim_gpio_pin_states.state"
 
@@ -48,9 +49,11 @@ typedef struct
   the OS more "reset-able".
  */
 static simulated_gpio_pin_type simulated_pins[ NUMBER_OF_GPIO_PINS ];
+static uint32_t pending_pin_writes;
 
 static void write_out_pins(void);
 static void read_in_pins(void);
+static void maybe_flush_pin_state(void);
 
 /**********************************************************
  * 
@@ -117,6 +120,19 @@ if( init )
     }
 
     read_in_pins(); 
+    write_out_pins();
+    pending_pin_writes = 0;
+}
+
+static void maybe_flush_pin_state(void)
+{
+    pending_pin_writes++;
+
+    if(pending_pin_writes >= GPIO_WRITE_FLUSH_INTERVAL)
+    {
+        write_out_pins();
+        pending_pin_writes = 0;
+    }
 }
 
 static void write_out_pins(void)
@@ -209,7 +225,7 @@ void gpio_set(uint32_t pin)
         return;
     }
    simulated_pins[ pin ].value = 0x1;
-   write_out_pins();
+   maybe_flush_pin_state();
 }
 
 /**********************************************************
@@ -229,7 +245,7 @@ void gpio_clr(uint32_t pin)
         return;
     }
     simulated_pins[ pin ].value = 0x0;
-    write_out_pins();
+    maybe_flush_pin_state();
 }
 
 /**********************************************************

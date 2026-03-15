@@ -9,6 +9,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
 BUILD_JSON = REPO_ROOT / 'build.json'
+APPS_JSON = REPO_ROOT / 'apps.json'
 BUILD_DIR = REPO_ROOT / 'build'
 
 
@@ -20,10 +21,25 @@ def load_build_json(path):
         return json.load(f)
 
 
+def load_optional_json(path):
+    if not path.exists():
+        return {}
+
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
 def find_platform(cfg, name):
     for p in cfg.get('platforms', []):
         if p.get('name') == name:
             return p
+    return None
+
+
+def find_application(app_cfg, name):
+    for app in app_cfg.get('applications', []):
+        if app.get('name') == name:
+            return app
     return None
 
 
@@ -132,14 +148,24 @@ def clean_platform(platform_name):
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: compile.py <platform> [--clean]')
+        print('Usage: compile.py <platform|application> [--app <application>] [--clean] [--rebuild]')
         sys.exit(1)
 
-    platform_name = sys.argv[1]
-    clean = '--clean' in sys.argv
-    rebuild = ('--rebuild' in sys.argv) or ('-r' in sys.argv)
+    target_name = sys.argv[1]
+    args = sys.argv[2:]
+    clean = '--clean' in args
+    rebuild = ('--rebuild' in args) or ('-r' in args)
+
+    app_name = None
+    if '--app' in args:
+        app_idx = args.index('--app')
+        if app_idx + 1 >= len(args):
+            print('ERROR: --app requires an application name')
+            sys.exit(1)
+        app_name = args[app_idx + 1]
 
     cfg = load_build_json(BUILD_JSON)
+    app_cfg = load_optional_json(APPS_JSON)
     # Load platform aliases (default + optional user overrides)
     alias_default_path = REPO_ROOT / 'default_alias.json'
     alias_user_path = REPO_ROOT / 'alias.json'
@@ -159,11 +185,40 @@ def main():
     # normalize alias keys to lower-case for case-insensitive lookup
     alias_map = {k.lower(): v for k, v in aliases.items() if isinstance(k, str) and isinstance(v, str)}
 
+    inferred_platform_from_app = False
+    selected_app = None
+
+    if app_name is not None:
+        selected_app = find_application(app_cfg, app_name)
+        if not selected_app:
+            print(f'Application "{app_name}" not found in {APPS_JSON}')
+            sys.exit(1)
+        platform_name = target_name
+    else:
+        selected_app = find_application(app_cfg, target_name)
+        if selected_app:
+            app_name = target_name
+            platform_name = selected_app.get('platform')
+            inferred_platform_from_app = True
+            if not platform_name:
+                print(f'Application "{app_name}" does not declare a platform and no platform argument was provided')
+                sys.exit(1)
+        else:
+            platform_name = target_name
+
     # If platform_name is an alias, map it to the canonical platform name
     if platform_name.lower() in alias_map:
         mapped = alias_map[platform_name.lower()]
         print(f"Using alias: {platform_name} -> {mapped}")
         platform_name = mapped
+
+    if selected_app and selected_app.get('platform') and not inferred_platform_from_app:
+        declared_platform = selected_app.get('platform')
+        if declared_platform.lower() in alias_map:
+            declared_platform = alias_map[declared_platform.lower()]
+        if declared_platform != platform_name:
+            print(f'ERROR: application "{app_name}" targets platform "{declared_platform}" but build target is "{platform_name}"')
+            sys.exit(1)
 
     platform_cfg = find_platform(cfg, platform_name)
     if not platform_cfg:
@@ -205,6 +260,23 @@ def main():
     if not modules:
         print('No modules found to build')
         sys.exit(1)
+
+    # Application sources are configured outside build.json and injected at build time.
+    modules = [m for m in modules if m.get('name') != 'app']
+
+    if selected_app:
+        app_sources = selected_app.get('sources', []) or []
+        if not app_sources:
+            print(f'ERROR: application "{app_name}" has no sources configured in {APPS_JSON}')
+            sys.exit(1)
+
+        app_module = {
+            'name': f'app_{app_name}',
+            'sources': app_sources,
+            'includes': selected_app.get('includes', []) or [],
+            'cflags': selected_app.get('cflags', []) or []
+        }
+        modules.append(app_module)
 
     platform_includes = []
     for inc in platform_cfg.get('includes', []) if platform_cfg.get('includes') else []:

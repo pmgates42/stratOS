@@ -23,18 +23,13 @@
 #include "peripherals/spi.h"
 #include "config.h"
 #include "platform/platform_poweron.h"
+#include "application/app_interface.h"
 
 /**********************************************************
  *
  * Kernel Tasks
  *
  */
-
-static sched_usr_tsk_t  kernel_task_list[] =
-    {
-    /* period_ms                              task_func      */
-    { 25,                                  spi_tx_periodic,      0       }
-    };
 
 static void init(void);
 static void setup_drivers(void);
@@ -99,9 +94,11 @@ static void init(void)
        this before drivers are initialized) */
     config_module_init();
 
-    // TODO move this to bottom of this function?
-    /* Initialize modules that rely on timers */
-    sched_init(kernel_task_list, list_cnt(kernel_task_list));
+    /* Let the application provide scheduler tasks. */
+    if(FALSE == APP_sched_configure())
+    {
+        printf("\nFailed to configure app scheduler tasks\n");
+    }
 
     /* Enable system IRQs */
     irq_sys_enable();

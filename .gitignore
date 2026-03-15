@@ -9,3 +9,5 @@ build
 
 # user alias overrides
 alias.json
+
+*.pyc
