@@ -2,7 +2,7 @@
     "platforms":
     [
         {
-            "name": "bcm",
+            "name": "bcm2xxx",
             "compiler": "aarch64-none-elf-gcc",
             "cflags": [
                 "-DEMBEDDED_BUILD=1",
@@ -34,7 +34,7 @@
         },
 
         {
-            "name": "sim",
+            "name": "win-sim",
             "compiler": "gcc",
             "cflags": [
                 "-DRPI_VERSION=3",

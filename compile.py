@@ -166,20 +166,30 @@ def main():
     cfg = load_build_json(BUILD_JSON)
     mfvars = parse_makefile_vars(MAKEFILE)
 
-    # If user requested --all, build every platform by invoking this script per-platform.
-    if '--all' in sys.argv:
-        platforms = [p.get('name') for p in cfg.get('platforms', []) if p.get('name')]
-        if not platforms:
-            print('No platforms defined in build.json')
-            sys.exit(1)
-        for p in platforms:
-            print(f"\n=== Building platform: {p} ===")
-            res = subprocess.run([sys.executable, str(Path(__file__).resolve()), p])
-            if res.returncode != 0:
-                print(f"ERROR: build failed for platform {p} (code {res.returncode})")
-                sys.exit(res.returncode)
-        print('\nAll platforms built successfully')
-        return
+    # Load platform aliases (default + optional user overrides)
+    alias_default_path = REPO_ROOT / 'default_alias.json'
+    alias_user_path = REPO_ROOT / 'alias.json'
+    aliases = {}
+    if alias_default_path.exists():
+        try:
+            with open(alias_default_path, 'r', encoding='utf-8') as f:
+                aliases.update(json.load(f))
+        except Exception:
+            pass
+    if alias_user_path.exists():
+        try:
+            with open(alias_user_path, 'r', encoding='utf-8') as f:
+                aliases.update(json.load(f))
+        except Exception:
+            pass
+    # normalize alias keys to lower-case for case-insensitive lookup
+    alias_map = {k.lower(): v for k, v in aliases.items() if isinstance(k, str) and isinstance(v, str)}
+
+    # If platform_name is an alias, map it to the canonical platform name
+    if platform_name.lower() in alias_map:
+        mapped = alias_map[platform_name.lower()]
+        print(f"Using alias: {platform_name} -> {mapped}")
+        platform_name = mapped
 
     platform_cfg = find_platform(cfg, platform_name)
     if not platform_cfg:
