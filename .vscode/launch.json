@@ -2,30 +2,51 @@
 "version": "0.2.0",
 "configurations": [
     {
-        "name": "(lldb) Build and Launch Unit Test",
+        "name": "Build + Debug Simulator (WSL)",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${fileDirname}/bin/unit_test",
-        "args": [],
-        "stopAtEntry": false,
-        "cwd": "${fileDirname}",
-        "environment": [],
-        "externalConsole": false,
-        "MIMode": "lldb",
-        "preLaunchTask": "Build Unit Test"
-    },
-    {
-        "name": "Build/Debug Simulator",
-        "type": "cppdbg",
-        "request": "launch",
-        "program": "${workspaceFolder}/build/sim/strat_os_sim",
+        "program": "/mnt/c/Users/paulm/repos/stratOS/build/sim/strat_os_sim",
         "args": [],
         "stopAtEntry": true,
-        "cwd": "${workspaceFolder}",
+        "cwd": "/mnt/c/Users/paulm/repos/stratOS",
         "environment": [],
         "externalConsole": false,
-        "MIMode": "lldb",
-        "preLaunchTask": "simulator"
+        "MIMode": "gdb",
+        "preLaunchTask": "simulator",
+        "pipeTransport": {
+            "pipeProgram": "C:/Windows/System32/wsl.exe",
+            "pipeArgs": ["--"],
+            "pipeCwd": "${workspaceFolder}",
+            "debuggerPath": "/usr/bin/gdb",
+            "quoteArgs": false
+        },
+        "sourceFileMap": {
+            "/mnt/c": "C:\\"
+        },
+        "setupCommands": [
+            {
+                "description": "Enable pretty-printing",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+            }
+        ]
+    },
+    {
+        "name": "Attach Simulator (WSL)",
+        "type": "cppdbg",
+        "request": "attach",
+        "processId": "${command:pickProcess}",
+        "MIMode": "gdb",
+        "pipeTransport": {
+            "pipeProgram": "C:/Windows/System32/wsl.exe",
+            "pipeArgs": ["--"],
+            "pipeCwd": "${workspaceFolder}",
+            "debuggerPath": "/usr/bin/gdb",
+            "quoteArgs": false
+        },
+        "sourceFileMap": {
+            "/mnt/c": "C:\\"
+        }
     }
 ]
 }
