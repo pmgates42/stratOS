@@ -179,7 +179,7 @@ config_err_t8 config_register_pin_for_module(config_module_id_type module_id, ui
 boolean config_pin_is_registered(config_module_id_type module_id, config_pin_id_type pin_id)
 {
     uint8_t i;
-    uint8_t module_index = INVALID_MODULE_ENTRY_IDX; // TODO module_index is not used here...
+    uint8_t module_index = INVALID_MODULE_ENTRY_IDX;
 
     for( i = 0; i < list_cnt(registered_module_pin_configs); i++ )
     {
@@ -192,12 +192,12 @@ boolean config_pin_is_registered(config_module_id_type module_id, config_pin_id_
     }
 
     /* Couldn't find module */
-    if(module_id == INVALID_MODULE_ENTRY_IDX)
+    if(module_index == INVALID_MODULE_ENTRY_IDX)
         return FALSE;
 
-    for( i = 0; i < list_cnt(registered_module_pin_configs[module_id].pins); i++ )
+    for( i = 0; i < list_cnt(registered_module_pin_configs[module_index].pins); i++ )
     {
-        if( pin_id == registered_module_pin_configs[module_id].pins[i].id)
+        if( pin_id == registered_module_pin_configs[module_index].pins[i].id)
             {
             /* found pin with module id */
             return TRUE;

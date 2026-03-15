@@ -214,10 +214,6 @@ static boolean config_setup(void)
 
 static void hardware_setup(void)
 {
-    boolean init_success;   /* chip select count */
-
-    /* Platform specifc initialization */
-
     if( FALSE ==  PLATFORM_spi_init() )
     {
         assert( FALSE, "Platform SPI initialization failed." );

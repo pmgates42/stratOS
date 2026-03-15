@@ -22,6 +22,13 @@
 
 void PLATFORM_assert_failed(const char * msg)
 {
-    printf(msg);
+    if (msg)
+    {
+        fprintf(stderr, "Assertion failed: %s\n", msg);
+    }
+    else
+    {
+        fprintf(stderr, "Assertion failed\n");
+    }
     exit(1);
 }

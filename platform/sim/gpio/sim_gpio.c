@@ -150,7 +150,6 @@ static void read_in_pins(void)
 
     uint8_t           i;
     file_handle_t     fhandle;
-    int               value;
     state_file_line_type
                     * temp_line;
     const uint8_t   * buf_ptr;
@@ -159,9 +158,9 @@ static void read_in_pins(void)
     if( fs_read(fhandle, buf, sizeof buf) != FILE_ERR_NONE)
         return;
 
-    buf_ptr = buf;
+    buf_ptr = (uint8_t *)buf;
 
-    for (i = 0; i < 0; i++)
+    for (i = 0; i < list_cnt(simulated_pins); i++)
     {
         temp_line = (state_file_line_type *)buf_ptr;
 

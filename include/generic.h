@@ -31,10 +31,7 @@
 #define BS_MAX(size) ( BS_ALL & ~( 1 << ((size * 8) -1) ) )
 
 #define assert(condition, msg) \
-    if(!condition)   \
-        {   \
-        PLATFORM_assert_failed(msg); \
-        }   \
+    do { if (!(condition)) { PLATFORM_assert_failed(msg); } } while(0)
 
 
 typedef int sint32_t;

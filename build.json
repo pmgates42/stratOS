@@ -43,7 +43,9 @@
                 "-Iinclude",
                 "-Iinclude/public",
                 "-g",
-                "-Wextra"
+                "-Wextra",
+                "-DSSCHED_TSK_MAX=20",
+                "-DSSCHED_SCHED_TICK_US=10000"
             ],
             "ldflags": [],
             "includes": ["platform/sim/include"],
@@ -63,7 +65,7 @@
     "modules": [
         {
             "name": "boot",
-            "sources": ["boot/*.c", "boot/*.S"],
+            "sources": ["boot/*.c"],
             "includes": ["boot/include", "aarch64/include"]
         },
 

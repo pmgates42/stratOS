@@ -1,7 +1,7 @@
 /**********************************************************
- * 
+ *
  *  sim_timer.c
- * 
+ *
  *  DESCRIPTION:
  *      Simluated timer module.
  *
@@ -16,7 +16,7 @@
 
 #define TICKS_PER_USEC 1 /* System timer runs at 1Mhz */
 #define TICKS_PER_MS ( 1000 * TICKS_PER_USEC )
-#define TICKS_PER_SECOND ( 1000 * TICKS_PER_MS ) 
+#define TICKS_PER_SECOND ( 1000 * TICKS_PER_MS )
 
 #define MS_TO_USEC (1000)
 #define US_TO_MSEC (1/US_TO_MSEC)
@@ -27,9 +27,9 @@ void_func_t scheduler_proc;
 void* simulate_shed_timer_isr(void* arg);
 
 /**********************************************************
- * 
+ *
  *  timer_init()
- * 
+ *
  *  DESCRIPTION:
  *      Initialize timer system
  *
@@ -41,9 +41,9 @@ void timer_init()
 }
 
 /**********************************************************
- * 
+ *
  *  timer_alloc()
- * 
+ *
  *  DESCRIPTION:
  *      Allocate a timer.
  *
@@ -52,6 +52,8 @@ void timer_init()
 timer_err_t8 timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ticks)
 {
     pthread_t thread;
+
+    (void)timer_id; /* multiple sim timers not yet supported -- implement when needed */
 
     scheduler_proc = irq_cb;
     scheduler_proc_rate = ticks;

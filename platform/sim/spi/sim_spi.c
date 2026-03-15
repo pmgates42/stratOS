@@ -44,13 +44,6 @@ boolean PLATFORM_spi_init(void)
             }
     }
 
-    /* Enable the pins and set the appropriate function (In/Out) */
-    for(i = 0; i < list_cnt(consumer_module_pin_config_table); i++)
-    {
-        uint32_t pin;
-        pin = consumer_module_pin_config_table[i].phy_pin;
-    }
-
     /* Register SPI parameters */
     spi_params.data_size     = sizeof(uint8_t);
     spi_params.slck_speed_hz = 1;

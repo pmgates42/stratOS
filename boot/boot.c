@@ -1,5 +1,5 @@
 /**********************************************************
- * 
+ *
  *  boot.c
  *
  *  DESCRIPTION:
@@ -25,9 +25,9 @@
 #include "platform/platform_poweron.h"
 
 /**********************************************************
- * 
+ *
  * Kernel Tasks
- * 
+ *
  */
 
 static sched_usr_tsk_t  kernel_task_list[] =
@@ -40,12 +40,12 @@ static void init(void);
 static void setup_drivers(void);
 
 /**********************************************************
- * 
+ *
  *  kernel_main()
- * 
+ *
  *  DESCRIPTION:
- *     Main kernel entry function.     
- * 
+ *     Main kernel entry function.
+ *
  *  NOTES:
  *      First StratOS function to be called by the boot code
  *
@@ -56,9 +56,9 @@ static void setup_drivers(void);
 #ifdef EMBEDDED_BUILD
 void kernel_main()
 #else
-void main()
+int main()
 #endif
-{   
+{
     gpio_pin_enable(ERROR_PIN);
     gpio_pin_set_func(ERROR_PIN, 1);
     gpio_clr(ERROR_PIN);
@@ -75,6 +75,10 @@ void main()
      * back to us, just loop forever. */
     while(1)//TODO CPU optimizations, e.g., wait for interrupt?
         ;
+
+#if !defined(EMBEDDED_BUILD)
+    return 0;
+#endif
 }
 
 static void init(void)
@@ -115,12 +119,12 @@ static void init(void)
 }
 
 /**********************************************************
- * 
+ *
  *  setup_drivers()
- * 
+ *
  *  DESCRIPTION:
  *     Setup the hardware drivers
- * 
+ *
  */
 
 static void setup_drivers(void)
