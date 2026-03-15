@@ -10,7 +10,7 @@
         "stopAtEntry": true,
         "cwd": "/mnt/c/Users/paulm/repos/stratOS",
         "environment": [],
-        "externalConsole": false,
+        "externalConsole": true,
         "MIMode": "gdb",
         "preLaunchTask": "simulator",
         "pipeTransport": {
@@ -36,7 +36,6 @@
         "type": "cppdbg",
         "request": "attach",
         "program": "/mnt/c/Users/paulm/repos/stratOS/build/win-sim/strat_os_sim",
-        "preLaunchTask": "simulator",
         "processId": "${command:pickProcess}",
         "MIMode": "gdb",
         "pipeTransport": {
