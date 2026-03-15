@@ -224,6 +224,11 @@ def main():
         print('No modules found to build')
         sys.exit(1)
 
+    platform_includes = []
+    for inc in platform_cfg.get('includes', []) if platform_cfg.get('includes') else []:
+        p = REPO_ROOT / inc
+        platform_includes.append(str(p) if p.exists() else str(inc))
+
     built_objects = []
 
     for mod in modules:
@@ -240,6 +245,11 @@ def main():
                 include_dirs.append(str(p))
             else:
                 include_dirs.append(str(inc))
+
+        # Prepend platform includes so they're searched first, preserve order
+        for pi in reversed(platform_includes):
+            if pi not in include_dirs:
+                include_dirs.insert(0, pi)
 
         # expand sources (glob patterns)
         src_paths = expand_sources(sources)

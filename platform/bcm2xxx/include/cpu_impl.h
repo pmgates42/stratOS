@@ -1,7 +1,7 @@
 /**********************************************************
- * 
+ *
  *  cpu_impl.h
- * 
+ *
  *  DESCRIPTION:
  *      Contains common definitions and interfaces
  *      for the Raspberry Pi.

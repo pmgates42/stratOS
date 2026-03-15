@@ -18,6 +18,7 @@
             ],
             "ldflags": [],
             "link": false,
+            "includes": ["platform/bcm2xxx/include"],
             "modules": [
                 "boot",
                 "bcm2xxx",
@@ -44,7 +45,8 @@
                 "-g",
                 "-Wextra"
             ],
-            "ldflags": ["-lws2_32"],
+            "ldflags": [],
+            "includes": ["platform/sim/include"],
             "modules": [
                 "boot",
                 "platform_sim",

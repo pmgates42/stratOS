@@ -1,0 +1,4 @@
+#pragma once
+
+#define SYSTEM_CLOCK_FREQUENCY 1000000
+#define MU_BUAD_RATE 115200
