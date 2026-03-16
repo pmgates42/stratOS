@@ -1,0 +1,26 @@
+{
+    "applications": [
+        {
+            "name": "sched_rate_test",
+            "platform": "win-sim",
+            "platform_cflags": [
+                "-USSCHED_SHOW_DEBUG_DATA",
+                "-USSCHED_SCHED_TICK_US",
+                "-DSSCHED_SCHED_TICK_US=10000"
+            ],
+            "sources": [
+                "common/uapi/strat_os_sched.c",
+                "apps/sched_rate_test/app_sched_rate_test.c",
+                "test/unit/libs/unity/src/unity.c"
+            ],
+            "includes": [
+                "common/uapi",
+                "apps/sched_rate_test",
+                "test/unit/libs/unity/src"
+            ],
+            "cflags": [
+                "-DUNITY_EXCLUDE_STDINT_H"
+            ]
+        }
+    ]
+}

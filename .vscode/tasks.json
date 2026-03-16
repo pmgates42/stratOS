@@ -14,6 +14,26 @@
                 "isDefault": true
             },
             "problemMatcher": []
+        },
+        {
+            "label": "simulator sched_rate_test",
+            "type": "shell",
+            "command": "wsl",
+            "args": [
+                "python3",
+                "compile.py",
+                "sim",
+                "--app",
+                "sched_rate_test",
+                "--apps-config",
+                "test_apps/apps.json",
+                "--rebuild"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": []
         }
     ]
 }

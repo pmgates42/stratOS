@@ -9,7 +9,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
 BUILD_JSON = REPO_ROOT / 'build.json'
-APPS_JSON = REPO_ROOT / 'apps.json'
+DEFAULT_APPS_JSON = REPO_ROOT / 'apps.json'
 BUILD_DIR = REPO_ROOT / 'build'
 
 
@@ -148,7 +148,7 @@ def clean_platform(platform_name):
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: compile.py <platform|application> [--app <application>] [--clean] [--rebuild]')
+        print('Usage: compile.py <platform|application> [--app <application>] [--apps-config <path>] [--clean] [--rebuild]')
         sys.exit(1)
 
     target_name = sys.argv[1]
@@ -164,8 +164,24 @@ def main():
             sys.exit(1)
         app_name = args[app_idx + 1]
 
+    apps_config_arg = None
+    if '--apps-config' in args:
+        cfg_idx = args.index('--apps-config')
+        if cfg_idx + 1 >= len(args):
+            print('ERROR: --apps-config requires a file path')
+            sys.exit(1)
+        apps_config_arg = args[cfg_idx + 1]
+
+    apps_cfg_path = apps_config_arg or os.environ.get('STRATOS_APPS_JSON')
+    if apps_cfg_path:
+        apps_cfg_path = Path(apps_cfg_path)
+        if not apps_cfg_path.is_absolute():
+            apps_cfg_path = REPO_ROOT / apps_cfg_path
+    else:
+        apps_cfg_path = DEFAULT_APPS_JSON
+
     cfg = load_build_json(BUILD_JSON)
-    app_cfg = load_optional_json(APPS_JSON)
+    app_cfg = load_optional_json(apps_cfg_path)
     # Load platform aliases (default + optional user overrides)
     alias_default_path = REPO_ROOT / 'default_alias.json'
     alias_user_path = REPO_ROOT / 'alias.json'
@@ -191,7 +207,7 @@ def main():
     if app_name is not None:
         selected_app = find_application(app_cfg, app_name)
         if not selected_app:
-            print(f'Application "{app_name}" not found in {APPS_JSON}')
+            print(f'Application "{app_name}" not found in {apps_cfg_path}')
             sys.exit(1)
         platform_name = target_name
     else:
@@ -267,7 +283,7 @@ def main():
     if selected_app:
         app_sources = selected_app.get('sources', []) or []
         if not app_sources:
-            print(f'ERROR: application "{app_name}" has no sources configured in {APPS_JSON}')
+            print(f'ERROR: application "{app_name}" has no sources configured in {apps_cfg_path}')
             sys.exit(1)
 
         app_module = {
@@ -277,6 +293,13 @@ def main():
             'cflags': selected_app.get('cflags', []) or []
         }
         modules.append(app_module)
+
+    # The OS is highly configurable. To reduce per-module flag setup, we support
+    # this precedence order: app defaults -> platform defaults -> module overrides.
+    # Module flags are applied last so module-specific settings can win.
+    app_global_cflags = []
+    if selected_app:
+        app_global_cflags = selected_app.get('platform_cflags', []) or selected_app.get('global_cflags', []) or []
 
     platform_includes = []
     for inc in platform_cfg.get('includes', []) if platform_cfg.get('includes') else []:
@@ -324,7 +347,7 @@ def main():
 
             out_obj = BUILD_DIR / platform_name / mod_name / obj_name
 
-            compile_source(compiler, cflags + mod_cflags, src_path, out_obj, include_dirs)
+            compile_source(compiler, app_global_cflags + cflags + mod_cflags, src_path, out_obj, include_dirs)
             built_objects.append(str(out_obj))
 
     # Basic link for simulator platform

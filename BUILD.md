@@ -21,6 +21,16 @@ Quick usage
   or
   python3 compile.py <platform> -r
 
+- Build a specific application profile from apps.json:
+  python3 compile.py sim --app default
+  python3 compile.py sim --app sched_rate_test
+
+- Build by app name (when app declares a platform):
+  python3 compile.py sched_rate_test
+
+- Run the simulator after building:
+  ./build/win-sim/strat_os_sim
+
 What compile.py does
 
 - Reads `build.json` to determine platforms and modules.
