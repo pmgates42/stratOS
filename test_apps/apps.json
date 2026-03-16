@@ -3,10 +3,10 @@
         {
             "name": "sched_rate_test",
             "platform": "win-sim",
-            "platform_cflags": [
+            "override_cflags": [
                 "-USSCHED_SHOW_DEBUG_DATA",
                 "-USSCHED_SCHED_TICK_US",
-                "-DSSCHED_SCHED_TICK_US=10000"
+                "-DSSCHED_SCHED_TICK_US=1000"
             ],
             "sources": [
                 "common/uapi/strat_os_sched.c",

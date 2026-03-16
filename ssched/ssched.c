@@ -104,7 +104,6 @@ static uint32_t task_id_count;
 static volatile scheduler_state_t scheduler_state;
 static task_cb_t * task_head;
 static uint32_t registered_tasks;
-static volatile boolean tick_event_pending;
 static uint32_t rr_next_index;
 
 /* Forward declares */
@@ -207,6 +206,8 @@ static void run_task(task_cb_t * task)
 
 void sched_main(void)
 {
+    uint64_t processed_tick;
+
     if(sched_init_key != SCHED_INIT_KEY)
     {
     #ifdef SSCHED_SHOW_DEBUG_DATA
@@ -216,28 +217,35 @@ void sched_main(void)
     }
 
     is_sched_running = TRUE;
+    processed_tick = system_tick;
 
     while(TRUE)
     {
         uint64_t now_tick;
         task_cb_t * ready_task;
 
-        if(tick_event_pending == FALSE)
+        if(processed_tick >= system_tick)
         {
             continue;
         }
 
-        tick_event_pending = FALSE;
-        now_tick = system_tick;
+        while(processed_tick < system_tick)
+        {
+            processed_tick++;
+            now_tick = processed_tick;
 
-        ready_task = find_next_ready_task(now_tick);
-        if(ready_task != NULL)
-        {
-            run_task(ready_task);
-        }
-        else
-        {
-            scheduler_state = IDLE;
+            /* Drain all tasks that are ready at this tick before moving to the next tick. */
+            while(TRUE)
+            {
+                ready_task = find_next_ready_task(now_tick);
+                if(ready_task == NULL)
+                {
+                    scheduler_state = IDLE;
+                    break;
+                }
+
+                run_task(ready_task);
+            }
         }
 
         debug_print_scheduler_state();
@@ -259,7 +267,6 @@ sched_err_t sched_init(sched_usr_tsk_t *tasks, uint32_t num_tasks)
     registered_tasks = 0;
     task_head = NULL;
     scheduler_state = INIT;
-    tick_event_pending = FALSE;
     rr_next_index = 0;
     clr_mem(system_task_list, sizeof(system_task_list));
 
@@ -342,7 +349,6 @@ static boolean register_new_task(sched_usr_tsk_t * task)
 static void schedule_isr(void)
 {
     system_tick++;
-    tick_event_pending = TRUE;
 }
 
 static void debug_print_scheduler_state(void)

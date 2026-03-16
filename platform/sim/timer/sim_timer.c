@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
+#include <errno.h>
 
 #include "generic.h"
 #include "peripherals/timer.h"
@@ -35,6 +37,27 @@ static sim_timer_ctrl_t sim_timers[SIM_MAX_TIMERS];
 static pthread_mutex_t sim_timer_lock = PTHREAD_MUTEX_INITIALIZER;
 
 void* simulate_shed_timer_isr(void* arg);
+static void timespec_add_us(struct timespec * ts, uint32_t us);
+
+static void timespec_add_us(struct timespec * ts, uint32_t us)
+{
+    uint64_t add_nsec;
+
+    if(ts == NULL)
+    {
+        return;
+    }
+
+    add_nsec = (uint64_t)us * 1000ULL;
+    ts->tv_sec += (time_t)(add_nsec / 1000000000ULL);
+    ts->tv_nsec += (long)(add_nsec % 1000000000ULL);
+
+    if(ts->tv_nsec >= 1000000000L)
+    {
+        ts->tv_sec += 1;
+        ts->tv_nsec -= 1000000000L;
+    }
+}
 
 /**********************************************************
  *
@@ -115,8 +138,15 @@ timer_err_t8 timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ti
 
 void* simulate_shed_timer_isr(void* arg) {
     sim_timer_ctrl_t * timer = (sim_timer_ctrl_t *)arg;
+    struct timespec next_wakeup;
+    int sleep_err;
 
     if(NULL == timer)
+    {
+        return NULL;
+    }
+
+    if(clock_gettime(CLOCK_MONOTONIC, &next_wakeup) != 0)
     {
         return NULL;
     }
@@ -127,7 +157,21 @@ void* simulate_shed_timer_isr(void* arg) {
             timer->irq_cb();
         }
 
-        usleep(TICKS_PER_USEC * timer->tick_rate);
+        timespec_add_us(&next_wakeup, timer->tick_rate);
+
+        do
+        {
+            sleep_err = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next_wakeup, NULL);
+        } while(sleep_err == EINTR);
+
+        if(sleep_err != 0)
+        {
+            usleep(TICKS_PER_USEC * timer->tick_rate);
+            if(clock_gettime(CLOCK_MONOTONIC, &next_wakeup) != 0)
+            {
+                return NULL;
+            }
+        }
     }
     return NULL;
 }

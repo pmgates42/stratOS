@@ -301,6 +301,12 @@ def main():
     if selected_app:
         app_global_cflags = selected_app.get('platform_cflags', []) or selected_app.get('global_cflags', []) or []
 
+    # Optional hard overrides applied after module flags.
+    # Use this when a app must force a value regardless of platform/module defaults.
+    app_override_cflags = []
+    if selected_app:
+        app_override_cflags = selected_app.get('override_cflags', []) or []
+
     platform_includes = []
     for inc in platform_cfg.get('includes', []) if platform_cfg.get('includes') else []:
         p = REPO_ROOT / inc
@@ -347,7 +353,7 @@ def main():
 
             out_obj = BUILD_DIR / platform_name / mod_name / obj_name
 
-            compile_source(compiler, app_global_cflags + cflags + mod_cflags, src_path, out_obj, include_dirs)
+            compile_source(compiler, app_global_cflags + cflags + mod_cflags + app_override_cflags, src_path, out_obj, include_dirs)
             built_objects.append(str(out_obj))
 
     # Basic link for simulator platform
