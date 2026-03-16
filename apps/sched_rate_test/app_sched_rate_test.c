@@ -9,7 +9,8 @@
 
 #define SCHED_RATE_TEST_WINDOW_MS            12000U
 #define SCHED_RATE_TEST_VERIFIER_PERIOD_MS   100U
-#define SCHED_RATE_TEST_TOLERANCE_US         50000ULL
+#define SCHED_RATE_TEST_TOLERANCE_US         1000ULL
+#define SCHED_RATE_TEST_WARMUP_INTERVALS     3U
 #define SCHED_RATE_TEST_MIN_INTERVAL_SAMPLES 3U
 
 typedef struct
@@ -17,6 +18,7 @@ typedef struct
     uint32_t period_ms;
     volatile uint32_t run_count;
     uint32_t interval_count;
+    uint32_t checked_interval_count;
     uint64_t first_run_us;
     uint64_t last_run_us;
     uint64_t total_interval_us;
@@ -25,15 +27,15 @@ typedef struct
 
 static sched_rate_stat_t g_stats[] =
 {
-    { 20U,   0U, 0U, 0U, 0U, 0U, 0U },
-    { 30U,   0U, 0U, 0U, 0U, 0U, 0U },
-    { 40U,   0U, 0U, 0U, 0U, 0U, 0U },
-    { 50U,   0U, 0U, 0U, 0U, 0U, 0U },
-    { 80U,   0U, 0U, 0U, 0U, 0U, 0U },
-    { 120U,  0U, 0U, 0U, 0U, 0U, 0U },
-    { 200U,  0U, 0U, 0U, 0U, 0U, 0U },
-    { 500U,  0U, 0U, 0U, 0U, 0U, 0U },
-    { 1000U, 0U, 0U, 0U, 0U, 0U, 0U }
+    { 20U,   0U, 0U, 0U, 0U, 0U, 0U, 0U },
+    { 30U,   0U, 0U, 0U, 0U, 0U, 0U, 0U },
+    { 40U,   0U, 0U, 0U, 0U, 0U, 0U, 0U },
+    { 50U,   0U, 0U, 0U, 0U, 0U, 0U, 0U },
+    { 80U,   0U, 0U, 0U, 0U, 0U, 0U, 0U },
+    { 120U,  0U, 0U, 0U, 0U, 0U, 0U, 0U },
+    { 200U,  0U, 0U, 0U, 0U, 0U, 0U, 0U },
+    { 500U,  0U, 0U, 0U, 0U, 0U, 0U, 0U },
+    { 1000U, 0U, 0U, 0U, 0U, 0U, 0U, 0U }
 };
 
 static volatile boolean g_test_finished;
@@ -84,6 +86,7 @@ boolean APP_sched_configure(void)
     {
         g_stats[i].run_count = 0U;
         g_stats[i].interval_count = 0U;
+        g_stats[i].checked_interval_count = 0U;
         g_stats[i].first_run_us = 0U;
         g_stats[i].last_run_us = 0U;
         g_stats[i].total_interval_us = 0U;
@@ -136,9 +139,13 @@ static void record_task_run(uint32_t idx)
         g_stats[idx].interval_count++;
         g_stats[idx].total_interval_us += interval_us;
 
-        if(abs_error_us > g_stats[idx].max_abs_error_us)
+        if(g_stats[idx].interval_count > SCHED_RATE_TEST_WARMUP_INTERVALS)
         {
-            g_stats[idx].max_abs_error_us = abs_error_us;
+            g_stats[idx].checked_interval_count++;
+            if(abs_error_us > g_stats[idx].max_abs_error_us)
+            {
+                g_stats[idx].max_abs_error_us = abs_error_us;
+            }
         }
     }
 
@@ -172,10 +179,11 @@ static void print_rate_summary(uint64_t elapsed_ms)
             avg_interval_us = g_stats[i].total_interval_us / g_stats[i].interval_count;
         }
 
-        printf("[sched_rate_test] period_ms=%u runs=%u intervals=%u avg_interval_us=%llu max_abs_error_us=%llu\n",
+         printf("[sched_rate_test] period_ms=%u runs=%u intervals=%u checked=%u avg_interval_us=%llu max_abs_error_us=%llu\n",
                (unsigned int)g_stats[i].period_ms,
                (unsigned int)g_stats[i].run_count,
                (unsigned int)g_stats[i].interval_count,
+             (unsigned int)g_stats[i].checked_interval_count,
                (unsigned long long)avg_interval_us,
                (unsigned long long)g_stats[i].max_abs_error_us);
     }
@@ -188,7 +196,7 @@ static void test_three_tasks_execute_at_configured_rate(void)
     for(i = 0U; i < (uint32_t)list_cnt(g_stats); i++)
     {
         TEST_ASSERT_GREATER_THAN_UINT32(0U, g_stats[i].run_count);
-        TEST_ASSERT_GREATER_OR_EQUAL_UINT32(SCHED_RATE_TEST_MIN_INTERVAL_SAMPLES, g_stats[i].interval_count);
+        TEST_ASSERT_GREATER_OR_EQUAL_UINT32(SCHED_RATE_TEST_MIN_INTERVAL_SAMPLES, g_stats[i].checked_interval_count);
         TEST_ASSERT_LESS_OR_EQUAL_UINT64(SCHED_RATE_TEST_TOLERANCE_US, g_stats[i].max_abs_error_us);
     }
 }
