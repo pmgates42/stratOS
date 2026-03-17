@@ -193,3 +193,19 @@ void bcm2xxx_timer_irq_hndlr(bcm2xxx_timer_t8 timer)
         timer_ctrl_block[timer].irq_cb();
     }
 }
+
+uint64_t timer_get_time_us(void)
+{
+    uint32_t hi_1;
+    uint32_t lo;
+    uint32_t hi_2;
+
+    do
+    {
+        hi_1 = REG_SYS_ADD_MAP_BASE->counter[COUNTER_HI];
+        lo = REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO];
+        hi_2 = REG_SYS_ADD_MAP_BASE->counter[COUNTER_HI];
+    } while(hi_1 != hi_2);
+
+    return (((uint64_t)hi_2 << 32U) | (uint64_t)lo);
+}

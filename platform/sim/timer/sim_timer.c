@@ -179,3 +179,15 @@ void* simulate_shed_timer_isr(void* arg) {
 void delay_us(uint32_t us) {
     usleep(us);
 }
+
+uint64_t timer_get_time_us(void)
+{
+    struct timespec ts;
+
+    if(clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
+    {
+        return 0U;
+    }
+
+    return ((uint64_t)ts.tv_sec * 1000000ULL) + ((uint64_t)ts.tv_nsec / 1000ULL);
+}

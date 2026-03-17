@@ -24,3 +24,4 @@ enum
 
 void timer_init();
 timer_err_t8 timer_alloc(timer_id_t8 * timer_id, void_func_t irq_cb, uint32_t ticks);
+uint64_t timer_get_time_us(void);

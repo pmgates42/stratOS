@@ -1,11 +1,22 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
+#ifndef EMBEDDED_BUILD
+    #include <stdio.h>
+    #include <stdlib.h>
+#else
+    #include "printf.h"
+    #undef printf
+    #undef sprintf
+#endif
 
 #include "generic.h"
 #include "application/app_interface.h"
 #include "uapi/strat_os_sched.h"
+#include "peripherals/timer.h"
 #include "unity.h"
+
+#ifdef EMBEDDED_BUILD
+    #define printf tfp_printf
+    #define sprintf tfp_sprintf
+#endif
 
 #define SCHED_RATE_TEST_WINDOW_MS            12000U
 #define SCHED_RATE_TEST_VERIFIER_PERIOD_MS   100U
@@ -55,6 +66,7 @@ static void sched_task_8(void);
 static void sched_rate_verifier_task(void);
 static void test_three_tasks_execute_at_configured_rate(void);
 static void print_rate_summary(uint64_t elapsed_ms);
+static void finish_test(int unity_result);
 
 void setUp(void)
 {
@@ -101,10 +113,7 @@ boolean APP_sched_configure(void)
 
 static uint64_t get_time_us(void)
 {
-    struct timeval tv;
-
-    (void)gettimeofday(&tv, NULL);
-    return ((uint64_t)tv.tv_sec * 1000000ULL) + (uint64_t)tv.tv_usec;
+    return timer_get_time_us();
 }
 
 static void record_task_run(uint32_t idx)
@@ -231,5 +240,26 @@ static void sched_rate_verifier_task(void)
 
     print_rate_summary(elapsed_ms);
 
+    finish_test(unity_result);
+}
+
+static void finish_test(int unity_result)
+{
+#ifdef EMBEDDED_BUILD
+    if(unity_result == 0)
+    {
+        printf("\n[sched_rate_test] COMPLETE PASS\n");
+    }
+    else
+    {
+        printf("\n[sched_rate_test] COMPLETE FAIL\n");
+    }
+
+    while(TRUE)
+    {
+        /* Hold terminal state for hardware runs after result is printed. */
+    }
+#else
     exit(unity_result == 0 ? 0 : 1);
+#endif
 }

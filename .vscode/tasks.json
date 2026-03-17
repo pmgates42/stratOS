@@ -16,24 +16,31 @@
             "problemMatcher": []
         },
         {
-            "label": "simulator sched_rate_test",
+            "label": "build selected test app",
             "type": "shell",
             "command": "wsl",
             "args": [
-                "python3",
-                "compile.py",
-                "sim",
-                "--app",
-                "sched_rate_test",
-                "--apps-config",
-                "test_apps/apps.json",
-                "--rebuild"
+                "bash",
+                "-lc",
+                "python3 compile.py ${input:testAppConfig} --apps-config test_apps/apps.json --rebuild"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "group": "build",
             "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "testAppConfig",
+            "type": "pickString",
+            "description": "Select test app configuration",
+            "options": [
+                "sim_sched_rate_test",
+                "bcm2xx_sched_rate"
+            ],
+            "default": "sim_sched_rate_test"
         }
     ]
 }
