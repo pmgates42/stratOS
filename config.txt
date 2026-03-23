@@ -4,5 +4,8 @@ dtoverlay=miniuart-bt
 
 armstub=armstub-new.bin
 
+enable_uart=1
+core_freq=250
+
 [pi]
 kernel=kernel8.img
