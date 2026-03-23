@@ -22,7 +22,7 @@
             "args": [
                 "bash",
                 "-lc",
-                "python3 compile.py ${input:testAppConfig} --apps-config test_apps/apps.json --rebuild"
+                "python3 strat_build.py ${input:testAppConfig} --apps-config test_apps/apps.json --rebuild"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

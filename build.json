@@ -20,10 +20,28 @@
                 "-mgeneral-regs-only"
             ],
             "ldflags": [],
-            "link": false,
+            "link": {
+                "enabled": true,
+                "tool": "aarch64-none-elf-ld",
+                "script": "boot/linker.ld",
+                "output": "kernel8.elf",
+                "flags": [],
+                "post_link": [
+                    {
+                        "tool": "aarch64-none-elf-objcopy",
+                        "args": [
+                            "{elf}",
+                            "-O",
+                            "binary",
+                            "{build_dir}/kernel8.img"
+                        ]
+                    }
+                ]
+            },
             "includes": ["platform/bcm2xxx/include"],
             "modules": [
                 "boot",
+                "boot_mem",
                 "bcm2xxx",
                 "aarch64",
                 "hw_common",
@@ -32,7 +50,8 @@
                 "dwc2",
                 "hc_sr04",
                 "config",
-                "snsr"
+                "snsr",
+                "common_generic"
             ]
         },
 
@@ -69,6 +88,12 @@
         {
             "name": "boot",
             "sources": ["boot/*.c"],
+            "includes": ["boot/include", "aarch64/include"]
+        },
+
+        {
+            "name": "boot_mem",
+            "sources": ["boot/mm.S"],
             "includes": ["boot/include", "aarch64/include"]
         },
 
@@ -125,6 +150,12 @@
             "name": "config",
             "sources": ["common/config/*.c"],
             "includes": ["common/config"]
+        },
+
+        {
+            "name": "common_generic",
+            "sources": ["common/generic.c"],
+            "includes": ["common"]
         },
 
         {

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 compile.py sim --app default "$@"
+python3 strat_build.py default "$@"

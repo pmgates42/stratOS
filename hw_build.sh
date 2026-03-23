@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 compile.py bcm --app default "$@"
+python3 strat_build.py default_bcm "$@"

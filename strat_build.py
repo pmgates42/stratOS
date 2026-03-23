@@ -7,7 +7,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = Path.cwd().resolve()
 BUILD_JSON = REPO_ROOT / 'build.json'
 DEFAULT_APPS_JSON = REPO_ROOT / 'apps.json'
 BUILD_DIR = REPO_ROOT / 'build'
@@ -139,6 +139,129 @@ def link_executable(compiler, objects, out_exe, ldflags=None):
         sys.exit(e.returncode)
 
 
+def resolve_executable(tool_name):
+    if not tool_name:
+        return None
+    if shutil.which(tool_name) is not None:
+        return tool_name
+    if sys.platform == 'win32' and not tool_name.endswith('.exe') and shutil.which(tool_name + '.exe'):
+        return tool_name + '.exe'
+    return None
+
+
+def run_checked_command(cmd, missing_tool_message, failure_message):
+    print('Running:', ' '.join(cmd))
+    try:
+        subprocess.run(cmd, check=True)
+    except FileNotFoundError:
+        print(missing_tool_message)
+        sys.exit(2)
+    except subprocess.CalledProcessError as e:
+        print(f"{failure_message} (returncode {e.returncode})")
+        sys.exit(e.returncode)
+
+
+def render_tokenized_args(args, context):
+    rendered = []
+    for arg in args:
+        if not isinstance(arg, str):
+            rendered.append(str(arg))
+            continue
+
+        out = arg
+        for key, value in context.items():
+            out = out.replace('{' + key + '}', value)
+        rendered.append(out)
+    return rendered
+
+
+def run_platform_link_pipeline(platform_cfg, compiler, built_objects, platform_name, selected_app, ldflags):
+    link_cfg = platform_cfg.get('link', True)
+    if isinstance(link_cfg, bool):
+        if not link_cfg:
+            return
+
+        output_name = 'app'
+        if selected_app:
+            output_name = selected_app.get('output_name', selected_app.get('name', 'app'))
+        out_exe = BUILD_DIR / platform_name / output_name
+        link_executable(compiler, built_objects, out_exe, ldflags)
+        return
+
+    if not isinstance(link_cfg, dict):
+        print(f"ERROR: platform '{platform_name}' has invalid 'link' configuration type")
+        sys.exit(1)
+
+    if not link_cfg.get('enabled', True):
+        return
+
+    link_tool_raw = link_cfg.get('tool', compiler)
+    link_tool = resolve_executable(link_tool_raw)
+    if not link_tool:
+        print(f"ERROR: linker '{link_tool_raw}' not found. Ensure it is available in PATH or use a full path in {BUILD_JSON}.")
+        sys.exit(2)
+
+    link_flags = link_cfg.get('flags', []) or []
+    linker_script = link_cfg.get('script')
+
+    output_name = 'app'
+    if selected_app:
+        output_name = selected_app.get('output_name', selected_app.get('name', 'app'))
+
+    elf_output_name = link_cfg.get('output') or link_cfg.get('elf_output') or output_name
+    out_elf = BUILD_DIR / platform_name / elf_output_name
+    out_elf.parent.mkdir(parents=True, exist_ok=True)
+
+    link_cmd = [link_tool]
+    if linker_script:
+        script_path = Path(linker_script)
+        if not script_path.is_absolute():
+            script_path = REPO_ROOT / script_path
+        link_cmd += ['-T', str(script_path)]
+
+    link_cmd += link_flags
+    link_cmd += built_objects
+    link_cmd += ['-o', str(out_elf)]
+
+    run_checked_command(
+        link_cmd,
+        f"ERROR: linker '{link_tool_raw}' not found. Install toolchain or update build.json.",
+        'ERROR: platform link step failed'
+    )
+
+    post_link_steps = link_cfg.get('post_link', []) or platform_cfg.get('post_link', []) or []
+    token_context = {
+        'elf': str(out_elf),
+        'build_dir': str(BUILD_DIR / platform_name),
+        'platform': platform_name,
+        'app': selected_app.get('name', 'app') if selected_app else 'app'
+    }
+
+    for idx, step in enumerate(post_link_steps, start=1):
+        if not isinstance(step, dict):
+            print(f"ERROR: post_link step #{idx} must be an object")
+            sys.exit(1)
+
+        step_tool_raw = step.get('tool')
+        if not step_tool_raw:
+            print(f"ERROR: post_link step #{idx} is missing 'tool'")
+            sys.exit(1)
+
+        step_tool = resolve_executable(step_tool_raw)
+        if not step_tool:
+            print(f"ERROR: post_link tool '{step_tool_raw}' not found. Ensure it is available in PATH or use a full path in {BUILD_JSON}.")
+            sys.exit(2)
+
+        step_args = render_tokenized_args(step.get('args', []) or [], token_context)
+        step_cmd = [step_tool] + step_args
+
+        run_checked_command(
+            step_cmd,
+            f"ERROR: post_link tool '{step_tool_raw}' not found. Install toolchain or update build.json.",
+            f'ERROR: post_link step #{idx} failed'
+        )
+
+
 def clean_platform(platform_name):
     path = BUILD_DIR / platform_name
     if path.exists():
@@ -148,21 +271,13 @@ def clean_platform(platform_name):
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: compile.py <platform|application> [--app <application>] [--apps-config <path>] [--clean] [--rebuild]')
+        print('Usage: strat_build.py <application> [--apps-config <path>] [--clean] [--rebuild]')
         sys.exit(1)
 
-    target_name = sys.argv[1]
+    app_name = sys.argv[1]
     args = sys.argv[2:]
     clean = '--clean' in args
     rebuild = ('--rebuild' in args) or ('-r' in args)
-
-    app_name = None
-    if '--app' in args:
-        app_idx = args.index('--app')
-        if app_idx + 1 >= len(args):
-            print('ERROR: --app requires an application name')
-            sys.exit(1)
-        app_name = args[app_idx + 1]
 
     apps_config_arg = None
     if '--apps-config' in args:
@@ -201,40 +316,21 @@ def main():
     # normalize alias keys to lower-case for case-insensitive lookup
     alias_map = {k.lower(): v for k, v in aliases.items() if isinstance(k, str) and isinstance(v, str)}
 
-    inferred_platform_from_app = False
-    selected_app = None
+    selected_app = find_application(app_cfg, app_name)
+    if not selected_app:
+        print(f'Application "{app_name}" not found in {apps_cfg_path}')
+        sys.exit(1)
 
-    if app_name is not None:
-        selected_app = find_application(app_cfg, app_name)
-        if not selected_app:
-            print(f'Application "{app_name}" not found in {apps_cfg_path}')
-            sys.exit(1)
-        platform_name = target_name
-    else:
-        selected_app = find_application(app_cfg, target_name)
-        if selected_app:
-            app_name = target_name
-            platform_name = selected_app.get('platform')
-            inferred_platform_from_app = True
-            if not platform_name:
-                print(f'Application "{app_name}" does not declare a platform and no platform argument was provided')
-                sys.exit(1)
-        else:
-            platform_name = target_name
+    platform_name = selected_app.get('platform')
+    if not platform_name:
+        print(f'ERROR: application "{app_name}" must declare "platform" in {apps_cfg_path}')
+        sys.exit(1)
 
     # If platform_name is an alias, map it to the canonical platform name
     if platform_name.lower() in alias_map:
         mapped = alias_map[platform_name.lower()]
         print(f"Using alias: {platform_name} -> {mapped}")
         platform_name = mapped
-
-    if selected_app and selected_app.get('platform') and not inferred_platform_from_app:
-        declared_platform = selected_app.get('platform')
-        if declared_platform.lower() in alias_map:
-            declared_platform = alias_map[declared_platform.lower()]
-        if declared_platform != platform_name:
-            print(f'ERROR: application "{app_name}" targets platform "{declared_platform}" but build target is "{platform_name}"')
-            sys.exit(1)
 
     platform_cfg = find_platform(cfg, platform_name)
     if not platform_cfg:
@@ -254,23 +350,15 @@ def main():
     cflags = platform_cfg.get('cflags', []) or []
     ldflags = platform_cfg.get('ldflags', []) or []
 
-    # fallback heuristics if compiler not provided
     if not compiler:
-        if platform_name.lower().find('bcm') != -1 or platform_name.lower().find('rpi') != -1 or platform_name.lower().find('hw') != -1:
-            compiler = 'aarch64-elf-gcc'
-        else:
-            compiler = 'gcc'
+        raise Exception(f"No compiler specified for platform '{platform_name}' in {BUILD_JSON}")
 
     # Verify compiler exists
-    if shutil.which(compiler) is None:
-        # try adding .exe on Windows
-        if sys.platform == 'win32' and not compiler.endswith('.exe') and shutil.which(compiler + '.exe'):
-            compiler = compiler + '.exe'
-        else:
-            print(f"ERROR: compiler '{compiler}' not found in PATH.")
-            print("Install a compatible compiler (e.g. MSYS2/mingw-w64 gcc) or run build inside WSL.")
-            print("You can also set an absolute path to the compiler in build.json under the platform 'compiler' field.")
-            sys.exit(2)
+    compiler_resolved = resolve_executable(compiler)
+    if not compiler_resolved:
+        print(f"ERROR: compiler '{compiler}' not found. Ensure compiler is available in path or use full path in {BUILD_JSON}.")
+        sys.exit(2)
+    compiler = compiler_resolved
 
     modules = collect_modules(cfg, platform_cfg)
     if not modules:
@@ -356,10 +444,7 @@ def main():
             compile_source(compiler, app_global_cflags + cflags + mod_cflags + app_override_cflags, src_path, out_obj, include_dirs)
             built_objects.append(str(out_obj))
 
-    # Basic link for simulator platform
-    if platform_name.lower() in ('sim', 'simulator') or platform_cfg.get('link', True):
-        out_exe = BUILD_DIR / platform_name / 'strat_os_sim'
-        link_executable(compiler, built_objects, out_exe, ldflags)
+    run_platform_link_pipeline(platform_cfg, compiler, built_objects, platform_name, selected_app, ldflags)
 
     print('Build complete')
 

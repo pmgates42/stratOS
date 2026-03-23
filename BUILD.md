@@ -2,38 +2,35 @@ Build instructions for stratOS
 
 Overview
 
-This repository includes a small Python-based build driver `compile.py` that compiles the project per-platform using the declarative manifest `build.json`.
+This repository includes a small Python-based build driver `strat_build.py` that compiles app profiles declared in `apps.json` (or another apps config file).
 
 Quick usage
 
-- Build a single platform (simulator or bcm):
-  python3 compile.py sim
-  python3 compile.py bcm
+- Build the default simulator app profile:
+  python3 strat_build.py default
 
-- Build every platform (in order) and stop on first failure:
-  python3 compile.py --all
+- Build the default bare-metal app profile:
+  python3 strat_build.py default_bcm
 
-- Remove build artifacts for a platform:
-  python3 compile.py <platform> --clean
+- Remove build artifacts for an app's platform:
+  python3 strat_build.py <application> --clean
 
-- Rebuild (clean then build) a platform:
-  python3 compile.py <platform> --rebuild
+- Rebuild (clean then build) an app:
+  python3 strat_build.py <application> --rebuild
   or
-  python3 compile.py <platform> -r
+  python3 strat_build.py <application> -r
 
-- Build a specific application profile from apps.json:
-  python3 compile.py sim --app default
-  python3 compile.py sim --app sched_rate_test
+- Build with a non-default apps config file:
+  python3 strat_build.py sim_sched_rate_test --apps-config test_apps/apps.json
 
-- Build by app name (when app declares a platform):
-  python3 compile.py sched_rate_test
+- Run a built simulator app:
+  ./build/win-sim/default
 
-- Run the simulator after building:
-  ./build/win-sim/strat_os_sim
-
-What compile.py does
+What strat_build.py does
 
 - Reads `build.json` to determine platforms and modules.
+- Reads app profiles from `apps.json` (or `--apps-config` input).
+- Requires each app profile to declare a `platform`.
 - Compiles sources into `build/<platform>/...` object files.
 - By default it links only platforms that request a host-style link. The `bcm` (bare-metal) platform in the default manifest has linking disabled (`"link": false`) because final bare-metal linking requires careful linker-script and objcopy steps.
 
@@ -59,7 +56,7 @@ Bare-metal AArch64 (bcm)
 
 Notes about final bare-metal linking
 
-- `compile.py` compiles object files for the `bcm` platform but does not perform the final link / objcopy / image creation steps that the original Makefile performs. To produce a bootable kernel image (kernel8.img) you should run the project's Makefile from a POSIX environment (WSL recommended) with a properly installed cross-toolchain:
+- `strat_build.py` compiles object files for the `bcm` platform but does not perform the final link / objcopy / image creation steps that the original Makefile performs. To produce a bootable kernel image (kernel8.img) you should run the project's Makefile from a POSIX environment (WSL recommended) with a properly installed cross-toolchain:
   make BUILD_BCM2XXX=1 ARMGCC=aarch64-none-elf
 
 - If you prefer, the Python builder can be extended to run the exact linker command + objcopy sequence. Open an issue or request this and it can be added.
@@ -67,7 +64,7 @@ Notes about final bare-metal linking
 Developer notes
 
 - The build manifest is `build.json` and defines platforms and module source lists.
-- The Python driver supports these command-line options: `--all`, `--clean`, `--rebuild` (`-r`).
+- The Python driver supports these command-line options: `--apps-config`, `--clean`, `--rebuild` (`-r`).
 
 Commit message suggestion
 
@@ -79,9 +76,9 @@ Change:
 
 	can now compile project by running:
 
-	python3 compile.py [bcm|sim]  # specified platform
-				    [--all] # Build all platforms
-				    [--clean] remove generated build artifacts
-				    [--rebuild|-r] # Clean and build specified platform
+  python3 strat_build.py <application>
+            [--apps-config <path>] # app config file override
+            [--clean] remove generated build artifacts for app platform
+            [--rebuild|-r] # Clean and build application
 
 If you want this file moved/renamed or additional details added (linker scripts, exact Makefile link commands, Windows/MSYS2 steps), tell me which items to include and I will update the file.

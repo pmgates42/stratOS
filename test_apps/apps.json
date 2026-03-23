@@ -2,6 +2,7 @@
     "applications": [
         {
             "name": "sim_sched_rate_test",
+            "output_name": "sim_sched_rate_test",
             "platform": "win-sim",
             "override_cflags": [
                 "-USSCHED_SHOW_DEBUG_DATA",
@@ -24,6 +25,7 @@
         },
         {
             "name": "bcm2xx_sched_rate",
+            "output_name": "bcm2xx_sched_rate",
             "platform": "bcm2xxx",
             "sources": [
                 "common/uapi/strat_os_sched.c",
