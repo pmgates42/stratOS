@@ -271,7 +271,7 @@ def clean_platform(platform_name):
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: strat_build.py <application> [--apps-config <path>] [--clean] [--rebuild]')
+        print('Usage: strat_build.py <application> [--apps-config <path> | --app-config <path>] [--clean] [--rebuild]')
         sys.exit(1)
 
     app_name = sys.argv[1]
@@ -280,12 +280,14 @@ def main():
     rebuild = ('--rebuild' in args) or ('-r' in args)
 
     apps_config_arg = None
-    if '--apps-config' in args:
-        cfg_idx = args.index('--apps-config')
-        if cfg_idx + 1 >= len(args):
-            print('ERROR: --apps-config requires a file path')
-            sys.exit(1)
-        apps_config_arg = args[cfg_idx + 1]
+    for cfg_flag in ['--apps-config', '--app-config']:
+        if cfg_flag in args:
+            cfg_idx = args.index(cfg_flag)
+            if cfg_idx + 1 >= len(args):
+                print(f'ERROR: {cfg_flag} requires a file path')
+                sys.exit(1)
+            apps_config_arg = args[cfg_idx + 1]
+            break
 
     apps_cfg_path = apps_config_arg or os.environ.get('STRATOS_APPS_JSON')
     if apps_cfg_path:

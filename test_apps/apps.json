@@ -38,7 +38,13 @@
                 "test/unit/libs/unity/src"
             ],
             "cflags": [
-                "-DUNITY_EXCLUDE_STDINT_H"
+                "-DUNITY_EXCLUDE_STDINT_H",
+                "-DUNITY_EXCLUDE_FLOAT",
+                "-DUNITY_EXCLUDE_DOUBLE",
+                "-DUNITY_EXCLUDE_FLOAT_PRINT",
+                "-DUNITY_EXCLUDE_SETJMP_H",
+                "-DUNITY_OUTPUT_CHAR(a)=putc(0,(char)(a))",
+                "-DUNITY_OUTPUT_CHAR_HEADER_DECLARATION=putc(void* p,char c)"
             ]
         }
     ]
