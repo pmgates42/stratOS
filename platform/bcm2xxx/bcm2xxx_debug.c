@@ -21,6 +21,7 @@
 
 void debug_init(void)
 {
+    printf("\bDebug pin set to GPIO %u\n", BCM2XXX_DEBUG_LED_PIN);
     /* Initialize debug LED */
     gpio_pin_set_func(BCM2XXX_DEBUG_LED_PIN, BCM2XXX_GPIO_FUNC_OUTPUT);
     gpio_pin_enable(BCM2XXX_DEBUG_LED_PIN);

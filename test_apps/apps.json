@@ -46,6 +46,38 @@
                 "-DUNITY_OUTPUT_CHAR(a)=putc(0,(char)(a))",
                 "-DUNITY_OUTPUT_CHAR_HEADER_DECLARATION=putc(void* p,char c)"
             ]
+        },
+        {
+            "name": "sim_timer",
+            "output_name": "sim_timer",
+            "platform": "win-sim",
+            "override_cflags": [
+                "-USSCHED_SHOW_DEBUG_DATA"
+            ],
+            "sources": [
+                "common/uapi/strat_os_sched.c",
+                "apps/timer/app_timer.c"
+            ],
+            "includes": [
+                "common/uapi",
+                "apps/timer"
+            ]
+        },
+        {
+            "name": "bcm2xx_timer",
+            "output_name": "bcm2xx_timer",
+            "platform": "bcm2xxx",
+            "override_cflags": [
+                "-USSCHED_SHOW_DEBUG_DATA"
+            ],
+            "sources": [
+                "common/uapi/strat_os_sched.c",
+                "apps/timer/app_timer.c"
+            ],
+            "includes": [
+                "common/uapi",
+                "apps/timer"
+            ]
         }
     ]
 }

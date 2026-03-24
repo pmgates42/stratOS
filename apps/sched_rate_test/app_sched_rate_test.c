@@ -1,3 +1,5 @@
+/* #define DEBUG_TEST */
+
 #ifndef EMBEDDED_BUILD
     #include <stdio.h>
     #include <stdlib.h>
@@ -18,9 +20,13 @@
     #define sprintf tfp_sprintf
 #endif
 
+#if defined(DEBUG_TEST)
+#include "debug.h"
+#endif
+
 #define SCHED_RATE_TEST_WINDOW_MS            12000U
 #define SCHED_RATE_TEST_VERIFIER_PERIOD_MS   100U
-#define SCHED_RATE_TEST_TOLERANCE_US         1000ULL
+#define SCHED_RATE_TEST_TOLERANCE_US         10ULL
 #define SCHED_RATE_TEST_WARMUP_INTERVALS     3U
 #define SCHED_RATE_TEST_MIN_INTERVAL_SAMPLES 3U
 
@@ -68,6 +74,21 @@ static void test_three_tasks_execute_at_configured_rate(void);
 static void print_rate_summary(uint64_t elapsed_ms);
 static void finish_test(int unity_result);
 
+static void debug_print_task_func_ptr(const char * label, void (*task_func)(void))
+{
+    size_t raw_ptr = (size_t)task_func;
+    uint64_t raw_ptr64 = (uint64_t)raw_ptr;
+    uint32_t hi = 0U;
+    uint32_t lo = (uint32_t)(raw_ptr & 0xFFFFFFFFUL);
+
+    if(sizeof(size_t) > sizeof(uint32_t))
+    {
+        hi = (uint32_t)((raw_ptr64 >> 32U) & 0xFFFFFFFFULL);
+    }
+
+    printf("\n%s=0x%08x%08x", label, (unsigned int)hi, (unsigned int)lo);
+}
+
 void setUp(void)
 {
 }
@@ -108,6 +129,15 @@ boolean APP_sched_configure(void)
     g_test_finished = FALSE;
     g_test_start_us = get_time_us();
 
+    printf("\nInitializing scheduler with %u tasks\n", (unsigned int)list_cnt(app_tasks));
+
+    #if defined(EMBEDDED_BUILD) && defined(DEBUG_TEST)
+        debug_init();
+        debug_set_led();
+    #endif
+
+    debug_print_task_func_ptr("sched_task_0", sched_task_0);
+
     return (STRAT_OS_SCHED_init(app_tasks, list_cnt(app_tasks)) == STRAT_OS_SCHED_ERR__NO_ERROR);
 }
 
@@ -121,10 +151,7 @@ static void record_task_run(uint32_t idx)
     uint64_t now_us;
     uint64_t expected_interval_us;
 
-    if(idx >= (uint32_t)list_cnt(g_stats))
-    {
-        return;
-    }
+    assert( idx < (uint32_t)list_cnt(g_stats), "Invalid task index" );
 
     now_us = get_time_us();
     g_stats[idx].run_count++;
@@ -175,9 +202,9 @@ static void print_rate_summary(uint64_t elapsed_ms)
 {
     uint32_t i;
 
-    printf("\n[sched_rate_test] elapsed_ms=%llu, tolerance_us=%llu\n",
-           (unsigned long long)elapsed_ms,
-           (unsigned long long)SCHED_RATE_TEST_TOLERANCE_US);
+    printf("\n[sched_rate_test] elapsed_ms=%u, tolerance_us=%u\n",
+           (unsigned int)elapsed_ms,
+           (unsigned int)SCHED_RATE_TEST_TOLERANCE_US);
 
     for(i = 0U; i < (uint32_t)list_cnt(g_stats); i++)
     {
@@ -188,13 +215,13 @@ static void print_rate_summary(uint64_t elapsed_ms)
             avg_interval_us = g_stats[i].total_interval_us / g_stats[i].interval_count;
         }
 
-         printf("[sched_rate_test] period_ms=%u runs=%u intervals=%u checked=%u avg_interval_us=%llu max_abs_error_us=%llu\n",
+           printf("[sched_rate_test] period_ms=%u runs=%u intervals=%u checked=%u avg_interval_us=%u max_abs_error_us=%u\n",
                (unsigned int)g_stats[i].period_ms,
                (unsigned int)g_stats[i].run_count,
                (unsigned int)g_stats[i].interval_count,
-             (unsigned int)g_stats[i].checked_interval_count,
-               (unsigned long long)avg_interval_us,
-               (unsigned long long)g_stats[i].max_abs_error_us);
+               (unsigned int)g_stats[i].checked_interval_count,
+               (unsigned int)avg_interval_us,
+               (unsigned int)g_stats[i].max_abs_error_us);
     }
 }
 

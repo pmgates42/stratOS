@@ -100,8 +100,7 @@
         {
             "name": "ssched",
             "sources": ["ssched/ssched.c"],
-            "includes": ["ssched/include"],
-            "cflags": ["-DSSCHED_SHOW_DEBUG_DATA"]
+            "includes": ["ssched/include"]
         },
 
         {

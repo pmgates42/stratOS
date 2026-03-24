@@ -113,7 +113,9 @@ static boolean register_new_task(sched_usr_tsk_t *task);
 static void run_task(task_cb_t * task);
 static task_cb_t * find_next_ready_task(uint64_t now_tick);
 static task_cb_t * find_task_by_id(sched_task_id_t task_id);
+#ifdef SSCHED_SHOW_DEBUG_DATA
 static void debug_print_scheduler_state(void);
+#endif
 
 static task_cb_t * find_task_by_id(sched_task_id_t task_id)
 {
@@ -186,10 +188,10 @@ static void run_task(task_cb_t * task)
     {
         scheduler_state = TASK_OVERRUN;
     #ifdef SSCHED_SHOW_DEBUG_DATA
-        printf("\nTask overrun occurred on task id=%u. elapsed_us=%llu, period_us=%llu",
+        printf("\nTask overrun occurred on task id=%u. elapsed_us=%u, period_us=%u",
                (unsigned int)task->usr_tsk->id,
-               (unsigned long long)elapsed_us,
-               (unsigned long long)period_us);
+               (unsigned int)elapsed_us,
+               (unsigned int)period_us);
     #endif
     }
     else
@@ -197,7 +199,7 @@ static void run_task(task_cb_t * task)
         scheduler_state = IDLE;
     }
 
-    task->next_release_tick = task->active_tick + task->period_ticks;
+    task->next_release_tick += task->period_ticks;
     while(task->next_release_tick <= system_tick)
     {
         task->next_release_tick += task->period_ticks;
@@ -248,7 +250,9 @@ void sched_main(void)
             }
         }
 
+    #ifdef SSCHED_SHOW_DEBUG_DATA
         debug_print_scheduler_state();
+    #endif
 
     #ifdef SSCHED_LOG_TASK_STATS
         ssched_log_insert_task_cycle_stat_entry();
@@ -351,14 +355,16 @@ static void schedule_isr(void)
     system_tick++;
 }
 
+#ifdef SSCHED_SHOW_DEBUG_DATA
 static void debug_print_scheduler_state(void)
 {
     debug_printf("\n");
     debug_printf("*****DEBUG SCHEDULER*****");
     debug_printf("scheduler_state=%d", scheduler_state);
-    debug_printf(" system_tick=%llu", (unsigned long long)system_tick);
+    debug_printf(" system_tick=%u", (unsigned int)system_tick);
     debug_printf("\n");
 }
+#endif
 
 sched_err_t sched_kill_task(sched_task_id_t task_id)
 {

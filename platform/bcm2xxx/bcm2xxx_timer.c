@@ -18,8 +18,7 @@
  *          counter.
  * 
  */
-
-#define BCM2XXX_TIMER_DEBUG
+//#define BCM2XXX_TIMER_DEBUG
 
 #include "generic.h"
 #include "bcm2xxx_irq.h"
@@ -167,6 +166,7 @@ void bcm2xxx_timer_irq_hndlr(bcm2xxx_timer_t8 timer)
 {
     /* local variables */
     uint32_t ticks;
+    uint32_t now;
 
     /* input validation */
     if(timer >= BCMXXX_TIMER_CHNL_COUNT)
@@ -174,10 +174,17 @@ void bcm2xxx_timer_irq_hndlr(bcm2xxx_timer_t8 timer)
         return;
     }
     
-    /* prepare the next interval */
-    cur_val = REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO];
-    ticks = cur_val + timer_ctrl_block[timer].tick_interval;
+    /* rearm from the previous compare target to keep a stable periodic phase */
+    now = REG_SYS_ADD_MAP_BASE->counter[COUNTER_LO];
+    ticks = REG_SYS_ADD_MAP_BASE->compares[timer] + timer_ctrl_block[timer].tick_interval;
+
+    while((sint32_t)(now - ticks) >= 0)
+    {
+        ticks += timer_ctrl_block[timer].tick_interval;
+    }
+
     REG_SYS_ADD_MAP_BASE->compares[timer] = ticks;
+    cur_val = now;
     
     #ifdef BCM2XXX_TIMER_DEBUG
     debug_printf("\nCurrent Value=%u", cur_val);
@@ -200,6 +207,7 @@ uint64_t timer_get_time_us(void)
     uint32_t lo;
     uint32_t hi_2;
 
+    /* rollover protection baby */
     do
     {
         hi_1 = REG_SYS_ADD_MAP_BASE->counter[COUNTER_HI];
