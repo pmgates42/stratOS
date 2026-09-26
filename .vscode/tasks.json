@@ -48,6 +48,20 @@
             },
             "group": "build",
             "problemMatcher": []
+        },
+        {
+            "label": "create StratOS component",
+            "type": "shell",
+            "command": "wsl",
+            "args": [
+                "bash",
+                "-lc",
+                "python3 tools/scripts/create_strat_os_component.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
         }
     ]
 }

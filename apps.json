@@ -5,12 +5,7 @@
             "output_name": "default",
             "platform": "win-sim",
             "sources": [
-                "common/uapi/strat_os_sched.c",
                 "apps/default/app_default.c"
-            ],
-            "includes": [
-                "common/uapi",
-                "apps/default"
             ]
         },
         {
@@ -18,12 +13,7 @@
             "output_name": "default_bcm",
             "platform": "bcm2xxx",
             "sources": [
-                "common/uapi/strat_os_sched.c",
                 "apps/default/app_default.c"
-            ],
-            "includes": [
-                "common/uapi",
-                "apps/default"
             ]
         }
     ]

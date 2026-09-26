@@ -46,13 +46,14 @@
                 "aarch64",
                 "hw_common",
                 "ssched",
+                "strat_os",
+                "core_utils",
                 "core_drivers",
                 "dwc2",
                 "hc_sr04",
                 "config",
                 "snsr",
-                "common_generic",
-                "core_utils"
+                "common_generic"
             ]
         },
 
@@ -76,12 +77,13 @@
                 "boot",
                 "platform_sim",
                 "ssched",
+                "strat_os",
+                "core_utils",
                 "core_drivers",
                 "config",
-                "snsr",
-                "core_utils"
+                "snsr"
             ]
-        }        
+        }
 
     ],
 
@@ -106,14 +108,23 @@
         },
 
         {
-            "name": "core_drivers",
-            "sources": ["drivers/core/**/*.c"],
-            "includes": ["drivers/core"]
+            "name": "strat_os",
+            "sources": [
+                "common/uapi/strat_os_sched.c"
+            ],
+            "includes": ["common/uapi"]
         },
 
         {
             "name": "core_utils",
-            "sources": ["common/core_utils/**/*.c"]
+            "sources": ["common/core_utils/*.c"],
+            "includes": ["common/core_utils"]
+        },
+
+        {
+            "name": "core_drivers",
+            "sources": ["drivers/core/**/*.c"],
+            "includes": ["drivers/core"]
         },
 
         {

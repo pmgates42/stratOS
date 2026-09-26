@@ -2,6 +2,7 @@
 #include "application/app_interface.h"
 
 #include "app_test.h"
+#include "uapi/strat_os_core_utils.h"
 
 void APP_test_setup(void)
 {

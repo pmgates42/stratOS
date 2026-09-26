@@ -32,12 +32,7 @@
                 }
             },
             "sources": [
-                "common/uapi/strat_os_sched.c",
                 "apps/sched_rate_test/app_sched_rate_test.c"
-            ],
-            "includes": [
-                "common/uapi",
-                "apps/sched_rate_test"
             ]
         },
         {
@@ -48,12 +43,7 @@
                 "-USSCHED_SHOW_DEBUG_DATA"
             ],
             "sources": [
-                "common/uapi/strat_os_sched.c",
                 "apps/timer/app_timer.c"
-            ],
-            "includes": [
-                "common/uapi",
-                "apps/timer"
             ]
         },
         {
@@ -64,12 +54,7 @@
                 "-USSCHED_SHOW_DEBUG_DATA"
             ],
             "sources": [
-                "common/uapi/strat_os_sched.c",
                 "apps/timer/app_timer.c"
-            ],
-            "includes": [
-                "common/uapi",
-                "apps/timer"
             ]
         },
         {
