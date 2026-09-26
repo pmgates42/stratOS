@@ -4,8 +4,12 @@
         {
             "label": "simulator",
             "type": "shell",
-            "command": "bash",
-            "args": ["./sim_build.sh"],
+            "command": "wsl",
+            "args": [
+                "bash",
+                "-lc",
+                "bash ./sim_build.sh"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
