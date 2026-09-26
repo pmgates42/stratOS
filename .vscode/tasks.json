@@ -26,25 +26,28 @@
             "args": [
                 "bash",
                 "-lc",
-                "python3 strat_build.py ${input:testAppConfig} --apps-config test_apps/apps.json --rebuild"
+                "python3 tools/scripts/build_test_app.py --apps-config test_apps/apps.json --rebuild"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "group": "build",
             "problemMatcher": []
-        }
-    ],
-    "inputs": [
+        },
         {
-            "id": "testAppConfig",
-            "type": "pickString",
-            "description": "Select test app configuration",
-            "options": [
-                "sim_sched_rate_test",
-                "bcm2xx_sched_rate"
+            "label": "build selected test app for debug",
+            "type": "shell",
+            "command": "wsl",
+            "args": [
+                "bash",
+                "-lc",
+                "python3 tools/scripts/build_test_app.py --apps-config test_apps/apps.json --platform win-sim --rebuild --debug-output build/win-sim/debug_test_app"
             ],
-            "default": "sim_sched_rate_test"
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": []
         }
     ]
 }

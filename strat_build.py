@@ -5,6 +5,7 @@ import sys
 import json
 import shutil
 import subprocess
+import copy
 from pathlib import Path
 
 REPO_ROOT = Path.cwd().resolve()
@@ -41,6 +42,39 @@ def find_application(app_cfg, name):
         if app.get('name') == name:
             return app
     return None
+
+
+def application_platforms(app):
+    platforms = app.get('platforms')
+    if isinstance(platforms, list):
+        return platforms
+    platform = app.get('platform')
+    return [platform] if platform else []
+
+
+def select_application_platform(app, requested_platform):
+    platforms = application_platforms(app)
+    if requested_platform:
+        if requested_platform not in platforms:
+            print(f'ERROR: application "{app.get("name", "app")}" does not target platform "{requested_platform}"')
+            sys.exit(1)
+        return requested_platform
+    if len(platforms) == 1:
+        return platforms[0]
+    if not platforms:
+        print(f'ERROR: application "{app.get("name", "app")}" has no platforms configured')
+    else:
+        print(f'ERROR: application "{app.get("name", "app")}" targets multiple platforms; use --platform')
+    sys.exit(1)
+
+
+def apply_platform_config(app, platform_name):
+    selected = copy.deepcopy(app)
+    platform_configs = app.get('platform_config', {})
+    if isinstance(platform_configs, dict):
+        selected.update(platform_configs.get(platform_name, {}))
+    selected['platform'] = platform_name
+    return selected
 
 
 def collect_modules(cfg, platform_cfg):
@@ -271,13 +305,20 @@ def clean_platform(platform_name):
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: strat_build.py <application> [--apps-config <path> | --app-config <path>] [--clean] [--rebuild]')
+        print('Usage: strat_build.py <application> [--platform <platform>] [--apps-config <path> | --app-config <path>] [--clean] [--rebuild]')
         sys.exit(1)
 
     app_name = sys.argv[1]
     args = sys.argv[2:]
     clean = '--clean' in args
     rebuild = ('--rebuild' in args) or ('-r' in args)
+    platform_arg = None
+    if '--platform' in args:
+        platform_idx = args.index('--platform')
+        if platform_idx + 1 >= len(args):
+            print('ERROR: --platform requires a platform name')
+            sys.exit(1)
+        platform_arg = args[platform_idx + 1]
 
     apps_config_arg = None
     for cfg_flag in ['--apps-config', '--app-config']:
@@ -323,7 +364,8 @@ def main():
         print(f'Application "{app_name}" not found in {apps_cfg_path}')
         sys.exit(1)
 
-    platform_name = selected_app.get('platform')
+    platform_name = select_application_platform(selected_app, platform_arg)
+    selected_app = apply_platform_config(selected_app, platform_name)
     if not platform_name:
         print(f'ERROR: application "{app_name}" must declare "platform" in {apps_cfg_path}')
         sys.exit(1)
@@ -370,6 +412,29 @@ def main():
     # Application sources are configured outside build.json and injected at build time.
     modules = [m for m in modules if m.get('name') != 'app']
 
+    test_framework_includes = []
+    test_framework_name = selected_app.get('test_framework') if selected_app else None
+    if test_framework_name:
+        if test_framework_name is True:
+            test_framework_name = 'app_test'
+        framework_module = next(
+            (module for module in cfg.get('modules', [])
+             if module.get('name') == test_framework_name),
+            None
+        )
+        if framework_module is None:
+            print(f'ERROR: test framework module "{test_framework_name}" not found in {BUILD_JSON}')
+            sys.exit(1)
+
+        framework_module = copy.deepcopy(framework_module)
+        framework_module['cflags'] = (
+            framework_module.get('cflags', [])
+            + selected_app.get('cflags', [])
+            + selected_app.get('override_cflags', [])
+        )
+        test_framework_includes = framework_module.get('includes', []) or []
+        modules.append(framework_module)
+
     if selected_app:
         app_sources = selected_app.get('sources', []) or []
         if not app_sources:
@@ -379,7 +444,7 @@ def main():
         app_module = {
             'name': f'app_{app_name}',
             'sources': app_sources,
-            'includes': selected_app.get('includes', []) or [],
+            'includes': (selected_app.get('includes', []) or []) + test_framework_includes,
             'cflags': selected_app.get('cflags', []) or []
         }
         modules.append(app_module)
@@ -441,7 +506,7 @@ def main():
                 print(f'Skipping unknown source type: {src_path}')
                 continue
 
-            out_obj = BUILD_DIR / platform_name / mod_name / obj_name
+            out_obj = BUILD_DIR / platform_name / 'obj' / mod_name / obj_name
 
             compile_source(compiler, app_global_cflags + cflags + mod_cflags + app_override_cflags, src_path, out_obj, include_dirs)
             built_objects.append(str(out_obj))

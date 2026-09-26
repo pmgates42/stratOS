@@ -51,7 +51,8 @@
                 "hc_sr04",
                 "config",
                 "snsr",
-                "common_generic"
+                "common_generic",
+                "core_utils"
             ]
         },
 
@@ -77,7 +78,8 @@
                 "ssched",
                 "core_drivers",
                 "config",
-                "snsr"
+                "snsr",
+                "core_utils"
             ]
         }        
 
@@ -107,6 +109,23 @@
             "name": "core_drivers",
             "sources": ["drivers/core/**/*.c"],
             "includes": ["drivers/core"]
+        },
+
+        {
+            "name": "core_utils",
+            "sources": ["common/core_utils/**/*.c"]
+        },
+
+        {
+            "name": "app_test",
+            "sources": [
+                "test/app_test/app_test.c",
+                "test/unit/libs/unity/src/unity.c"
+            ],
+            "includes": [
+                "test/app_test",
+                "test/unit/libs/unity/src"
+            ]
         },
 
         {

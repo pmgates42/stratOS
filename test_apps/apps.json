@@ -1,50 +1,43 @@
 {
     "applications": [
         {
-            "name": "sim_sched_rate_test",
-            "output_name": "sim_sched_rate_test",
-            "platform": "win-sim",
-            "override_cflags": [
-                "-USSCHED_SHOW_DEBUG_DATA",
-                "-USSCHED_SCHED_TICK_US",
-                "-DSSCHED_SCHED_TICK_US=1000"
+            "name": "sched_rate_test",
+            "output_name": "sched_rate_test",
+            "platforms": [
+                "win-sim",
+                "bcm2xxx"
             ],
+            "test_framework": "app_test",
+            "platform_config": {
+                "win-sim": {
+                    "override_cflags": [
+                        "-USSCHED_SHOW_DEBUG_DATA",
+                        "-USSCHED_SCHED_TICK_US",
+                        "-DSSCHED_SCHED_TICK_US=1000"
+                    ],
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H"
+                    ]
+                },
+                "bcm2xxx": {
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H",
+                        "-DUNITY_EXCLUDE_FLOAT",
+                        "-DUNITY_EXCLUDE_DOUBLE",
+                        "-DUNITY_EXCLUDE_FLOAT_PRINT",
+                        "-DUNITY_EXCLUDE_SETJMP_H",
+                        "-DUNITY_OUTPUT_CHAR(a)=putc(0,(char)(a))",
+                        "-DUNITY_OUTPUT_CHAR_HEADER_DECLARATION=putc(void* p,char c)"
+                    ]
+                }
+            },
             "sources": [
                 "common/uapi/strat_os_sched.c",
-                "apps/sched_rate_test/app_sched_rate_test.c",
-                "test/unit/libs/unity/src/unity.c"
+                "apps/sched_rate_test/app_sched_rate_test.c"
             ],
             "includes": [
                 "common/uapi",
-                "apps/sched_rate_test",
-                "test/unit/libs/unity/src"
-            ],
-            "cflags": [
-                "-DUNITY_EXCLUDE_STDINT_H"
-            ]
-        },
-        {
-            "name": "bcm2xx_sched_rate",
-            "output_name": "bcm2xx_sched_rate",
-            "platform": "bcm2xxx",
-            "sources": [
-                "common/uapi/strat_os_sched.c",
-                "apps/sched_rate_test/app_sched_rate_test.c",
-                "test/unit/libs/unity/src/unity.c"
-            ],
-            "includes": [
-                "common/uapi",
-                "apps/sched_rate_test",
-                "test/unit/libs/unity/src"
-            ],
-            "cflags": [
-                "-DUNITY_EXCLUDE_STDINT_H",
-                "-DUNITY_EXCLUDE_FLOAT",
-                "-DUNITY_EXCLUDE_DOUBLE",
-                "-DUNITY_EXCLUDE_FLOAT_PRINT",
-                "-DUNITY_EXCLUDE_SETJMP_H",
-                "-DUNITY_OUTPUT_CHAR(a)=putc(0,(char)(a))",
-                "-DUNITY_OUTPUT_CHAR_HEADER_DECLARATION=putc(void* p,char c)"
+                "apps/sched_rate_test"
             ]
         },
         {
@@ -77,6 +70,24 @@
             "includes": [
                 "common/uapi",
                 "apps/timer"
+            ]
+        },
+        {
+            "name": "core_utils_test",
+            "output_name": "core_utils_test",
+            "platforms": [
+                "win-sim"
+            ],
+            "test_framework": "app_test",
+            "platform_config": {
+                "win-sim": {
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H"
+                    ]
+                }
+            },
+            "sources": [
+                "apps/core_utils_test/core_utils_test.c"
             ]
         }
     ]

@@ -2,14 +2,41 @@
 
 set -euo pipefail
 
-APP_NAME="bcm2xx_sched_rate"
+APP_NAME="sched_rate_test"
+APPS_CONFIG="test_apps/apps.json"
+PLATFORM="bcm2xxx"
+SKIP_BUILD=false
 
 if [[ $# -gt 0 ]]; then
 	APP_NAME="$1"
 	shift
 fi
 
-python3 strat_build.py "${APP_NAME}" --app-config test_apps/apps.json "$@"
+BUILD_ARGS=()
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		--apps-config|--app-config)
+			APPS_CONFIG="$2"
+			shift 2
+			;;
+		--platform)
+			PLATFORM="$2"
+			shift 2
+			;;
+		--skip-build)
+			SKIP_BUILD=true
+			shift
+			;;
+		*)
+			BUILD_ARGS+=("$1")
+			shift
+			;;
+	esac
+done
+
+if [[ "${SKIP_BUILD}" != true ]]; then
+	python3 strat_build.py "${APP_NAME}" --apps-config "${APPS_CONFIG}" --platform "${PLATFORM}" "${BUILD_ARGS[@]}"
+fi
 
 SRC_DIR="build/bcm2xxx"
 IMG_PATH="${SRC_DIR}/kernel8.img"

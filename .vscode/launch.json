@@ -2,17 +2,31 @@
 "version": "0.2.0",
 "configurations": [
     {
-        "name": "Build + Debug Scheduler Rate Test (WSL)",
+        "name": "Create Blank OS Test App",
+        "type": "node-terminal",
+        "request": "launch",
+        "command": "wsl bash -lc \"python3 tools/scripts/create_test_app.py\"",
+        "cwd": "${workspaceFolder}"
+    },
+    {
+        "name": "Build + Run Selected Test App",
+        "type": "node-terminal",
+        "request": "launch",
+        "command": "wsl bash -lc \"python3 tools/scripts/build_test_app.py --apps-config test_apps/apps.json --rebuild --run\"",
+        "cwd": "${workspaceFolder}"
+    },
+    {
+        "name": "Build + Debug Selected Test App (WSL)",
         "type": "cppdbg",
         "request": "launch",
-        "program": "/mnt/c/Users/paulm/repos/stratOS/build/win-sim/sim_sched_rate_test",
+        "program": "/mnt/c/Users/paulm/repos/stratOS/build/win-sim/debug_test_app",
         "args": [],
         "stopAtEntry": true,
         "cwd": "/mnt/c/Users/paulm/repos/stratOS",
         "environment": [],
         "externalConsole": false,
         "MIMode": "gdb",
-        "preLaunchTask": "build selected test app",
+        "preLaunchTask": "build selected test app for debug",
         "pipeTransport": {
             "pipeProgram": "C:/Windows/System32/wsl.exe",
             "pipeArgs": ["--"],

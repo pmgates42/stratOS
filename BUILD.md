@@ -21,7 +21,17 @@ Quick usage
   python3 strat_build.py <application> -r
 
 - Build with a non-default apps config file:
-  python3 strat_build.py sim_sched_rate_test --apps-config test_apps/apps.json
+  python3 strat_build.py sched_rate_test --apps-config test_apps/apps.json
+
+- Build a multi-platform test profile for a specific platform:
+  python3 strat_build.py sched_rate_test --apps-config test_apps/apps.json --platform win-sim
+
+- Create a blank OS test application interactively:
+  python3 tools/scripts/create_test_app.py
+
+  The generator reads platform names from `build.json`, creates an
+  `APP_<TEST>_*` scaffold under `apps/`, and adds one multi-platform profile to
+  `test_apps/apps.json`.
 
 - Run a built simulator app:
   ./build/win-sim/default

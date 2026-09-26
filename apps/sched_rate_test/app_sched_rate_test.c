@@ -13,7 +13,7 @@
 #include "application/app_interface.h"
 #include "uapi/strat_os_sched.h"
 #include "peripherals/timer.h"
-#include "unity.h"
+#include "app_test.h"
 
 #ifdef EMBEDDED_BUILD
     #define printf tfp_printf
@@ -89,11 +89,11 @@ static void debug_print_task_func_ptr(const char * label, void (*task_func)(void
     printf("\n%s=0x%08x%08x", label, (unsigned int)hi, (unsigned int)lo);
 }
 
-void setUp(void)
+void APP_test_setup(void)
 {
 }
 
-void tearDown(void)
+void APP_test_teardown(void)
 {
 }
 
@@ -231,9 +231,9 @@ static void test_three_tasks_execute_at_configured_rate(void)
 
     for(i = 0U; i < (uint32_t)list_cnt(g_stats); i++)
     {
-        TEST_ASSERT_GREATER_THAN_UINT32(0U, g_stats[i].run_count);
-        TEST_ASSERT_GREATER_OR_EQUAL_UINT32(SCHED_RATE_TEST_MIN_INTERVAL_SAMPLES, g_stats[i].checked_interval_count);
-        TEST_ASSERT_LESS_OR_EQUAL_UINT64(SCHED_RATE_TEST_TOLERANCE_US, g_stats[i].max_abs_error_us);
+        APP_test_assert_greater_than_uint32(0U, g_stats[i].run_count);
+        APP_test_assert_greater_or_equal_uint32(SCHED_RATE_TEST_MIN_INTERVAL_SAMPLES, g_stats[i].checked_interval_count);
+        APP_test_assert_less_or_equal_uint64(SCHED_RATE_TEST_TOLERANCE_US, g_stats[i].max_abs_error_us);
     }
 }
 
@@ -261,9 +261,9 @@ static void sched_rate_verifier_task(void)
 
     g_test_finished = TRUE;
 
-    UNITY_BEGIN();
-    RUN_TEST(test_three_tasks_execute_at_configured_rate);
-    unity_result = UNITY_END();
+    APP_test_begin();
+    APP_test_run(test_three_tasks_execute_at_configured_rate);
+    unity_result = APP_test_end();
 
     print_rate_summary(elapsed_ms);
 
