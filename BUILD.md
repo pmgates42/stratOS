@@ -20,6 +20,10 @@ Quick usage
   or
   python3 strat_build.py <application> -r
 
+- Incremental builds are the default. The builder reuses objects whose source,
+  included headers, and compile command are unchanged. Use `--rebuild` after
+  changing toolchains or when a clean build is required.
+
 - Build with a non-default apps config file:
   python3 strat_build.py sched_rate_test --apps-config test_apps/apps.json
 
@@ -42,6 +46,8 @@ What strat_build.py does
 - Reads app profiles from `apps.json` (or `--apps-config` input).
 - Requires each app profile to declare a `platform`.
 - Compiles sources into `build/<platform>/...` object files.
+- Reuses up-to-date objects using GCC dependency files (`.d`) and compile
+  command signatures (`.cmd`).
 - By default it links only platforms that request a host-style link. The `bcm` (bare-metal) platform in the default manifest has linking disabled (`"link": false`) because final bare-metal linking requires careful linker-script and objcopy steps.
 
 Prerequisites

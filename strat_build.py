@@ -6,6 +6,7 @@ import json
 import shutil
 import subprocess
 import copy
+import shlex
 from pathlib import Path
 
 REPO_ROOT = Path.cwd().resolve()
@@ -142,6 +143,22 @@ def compile_source(compiler, cflags, src_path, out_obj, include_dirs, extra_flag
 
     cmd += ['-MMD', '-c', str(src_path), '-o', str(out_obj)]
 
+    dep_path = out_obj.with_suffix('.d')
+    signature_path = out_obj.with_suffix('.cmd')
+    command_signature = '\0'.join(cmd)
+    if out_obj.exists() and dep_path.exists() and signature_path.exists():
+        dependencies = dep_path.read_text(encoding='utf-8').replace('\\\n', ' ')
+        if ':' in dependencies:
+            dependency_paths = shlex.split(dependencies.split(':', 1)[1])
+            newest_dependency = max(
+                (Path(path).stat().st_mtime for path in dependency_paths if Path(path).exists()),
+                default=0
+            )
+            previous_signature = signature_path.read_text(encoding='utf-8')
+            if previous_signature == command_signature and out_obj.stat().st_mtime >= newest_dependency:
+                print('Up to date:', src_path)
+                return
+
     print('Compiling:', ' '.join(cmd))
     try:
         res = subprocess.run(cmd, check=True)
@@ -151,6 +168,7 @@ def compile_source(compiler, cflags, src_path, out_obj, include_dirs, extra_flag
     except subprocess.CalledProcessError as e:
         print(f"ERROR: compile failed for {src_path} (returncode {e.returncode})")
         sys.exit(e.returncode)
+    signature_path.write_text(command_signature, encoding='utf-8')
 
 
 def link_executable(compiler, objects, out_exe, ldflags=None):

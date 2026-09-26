@@ -26,7 +26,7 @@
             "args": [
                 "bash",
                 "-lc",
-                "python3 tools/scripts/build_test_app.py --apps-config test_apps/apps.json --rebuild"
+                "python3 tools/scripts/build_test_app.py --apps-config test_apps/apps.json"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -41,7 +41,7 @@
             "args": [
                 "bash",
                 "-lc",
-                "python3 tools/scripts/build_test_app.py --apps-config test_apps/apps.json --platform win-sim --rebuild --debug-output build/win-sim/debug_test_app"
+                "python3 tools/scripts/build_test_app.py --apps-config test_apps/apps.json --platform win-sim --debug-output build/win-sim/debug_test_app"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
