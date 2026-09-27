@@ -74,6 +74,60 @@
             "sources": [
                 "apps/core_utils_test/core_utils_test.c"
             ]
+        },
+        {
+            "name": "net_hw_test",
+            "output_name": "net_hw_test",
+            "platforms": [
+                "win-sim"
+            ],
+            "test_framework": "app_test",
+            "platform_config": {
+                "win-sim": {
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H"
+                    ]
+                }
+            },
+            "sources": [
+                "apps/net_hw_test/net_hw_test.c"
+            ]
+        },
+        {
+            "name": "net_ethernet_test",
+            "output_name": "net_ethernet_test",
+            "platforms": [
+                "win-sim"
+            ],
+            "test_framework": "app_test",
+            "platform_config": {
+                "win-sim": {
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H"
+                    ]
+                }
+            },
+            "sources": [
+                "apps/net_ethernet_test/net_ethernet_test.c"
+            ]
+        },
+        {
+            "name": "net_udp_test",
+            "output_name": "net_udp_test",
+            "platforms": [
+                "win-sim"
+            ],
+            "test_framework": "app_test",
+            "platform_config": {
+                "win-sim": {
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H"
+                    ]
+                }
+            },
+            "sources": [
+                "apps/net_udp_test/net_udp_test.c"
+            ]
         }
     ]
 }

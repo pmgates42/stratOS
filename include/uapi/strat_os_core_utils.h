@@ -19,10 +19,10 @@ typedef struct
 } STRAT_OS_core_linked_list_item_t;
 
 error_type STRAT_OS_CORE_linked_list_init(STRAT_OS_core_linked_list_node_t *list);
-void STRAT_OS_CORE_linked_list_append(
+error_type STRAT_OS_CORE_linked_list_append(
     STRAT_OS_core_linked_list_node_t *list,
     STRAT_OS_core_linked_list_node_t *node);
-void STRAT_OS_CORE_linked_list_remove(STRAT_OS_core_linked_list_node_t *node);
+error_type STRAT_OS_CORE_linked_list_remove(STRAT_OS_core_linked_list_node_t *node);
 void STRAT_OS_CORE_linked_list_destroy(STRAT_OS_core_linked_list_node_t *list);
 
 #ifdef __cplusplus

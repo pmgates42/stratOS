@@ -1,13 +1,18 @@
 #include "generic.h"
 #include "uapi/strat_os_core_utils.h"
 
-void STRAT_OS_CORE_linked_list_init(STRAT_OS_core_linked_list_node_t *list)
+error_type STRAT_OS_CORE_linked_list_init(STRAT_OS_core_linked_list_node_t *list)
 {
-list->next = NULL;
-list->previous = NULL;
+    if (list == NULL)
+        return ERR_INVALID;
+
+    list->next = NULL;
+    list->previous = NULL;
+
+    return ERR_NO_ERR;
 }
 
-void STRAT_OS_CORE_linked_list_append(
+error_type STRAT_OS_CORE_linked_list_append(
     STRAT_OS_core_linked_list_node_t *list,
     STRAT_OS_core_linked_list_node_t *node)
 {
@@ -26,7 +31,7 @@ void STRAT_OS_CORE_linked_list_append(
     return ERR_NO_ERR;
 }
 
-void STRAT_OS_CORE_linked_list_remove(STRAT_OS_core_linked_list_node_t *node)
+error_type STRAT_OS_CORE_linked_list_remove(STRAT_OS_core_linked_list_node_t *node)
 {
     STRAT_OS_core_linked_list_node_t *prev_node_ptr;
     STRAT_OS_core_linked_list_node_t *next_node_ptr;
@@ -45,6 +50,8 @@ void STRAT_OS_CORE_linked_list_remove(STRAT_OS_core_linked_list_node_t *node)
     
     node->previous = NULL;
     node->next = NULL;
+
+    return ERR_NO_ERR;
 }
 
 void STRAT_OS_CORE_linked_list_destroy(STRAT_OS_core_linked_list_node_t *list)

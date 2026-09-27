@@ -1,6 +1,5 @@
 {
-    "platforms":
-    [
+    "platforms": [
         {
             "name": "bcm2xxx",
             "compiler": "aarch64-none-elf-gcc",
@@ -38,7 +37,9 @@
                     }
                 ]
             },
-            "includes": ["platform/bcm2xxx/include"],
+            "includes": [
+                "platform/bcm2xxx/include"
+            ],
             "modules": [
                 "boot",
                 "boot_mem",
@@ -56,7 +57,6 @@
                 "common_generic"
             ]
         },
-
         {
             "name": "win-sim",
             "compiler": "gcc",
@@ -72,7 +72,9 @@
                 "-DSSCHED_SCHED_TICK_US=10000"
             ],
             "ldflags": [],
-            "includes": ["platform/sim/include"],
+            "includes": [
+                "platform/sim/include"
+            ],
             "modules": [
                 "boot",
                 "platform_sim",
@@ -84,49 +86,67 @@
                 "snsr"
             ]
         }
-
     ],
-
-
     "modules": [
         {
             "name": "boot",
-            "sources": ["boot/*.c"],
-            "includes": ["boot/include", "aarch64/include"]
+            "sources": [
+                "boot/*.c"
+            ],
+            "includes": [
+                "boot/include",
+                "aarch64/include"
+            ]
         },
-
         {
             "name": "boot_mem",
-            "sources": ["boot/mm.S"],
-            "includes": ["boot/include", "aarch64/include"]
+            "sources": [
+                "boot/mm.S"
+            ],
+            "includes": [
+                "boot/include",
+                "aarch64/include"
+            ]
         },
-
         {
             "name": "ssched",
-            "sources": ["ssched/ssched.c"],
-            "includes": ["ssched/include"]
+            "sources": [
+                "ssched/ssched.c"
+            ],
+            "includes": [
+                "ssched/include"
+            ]
         },
-
         {
             "name": "strat_os",
             "sources": [
-                "common/uapi/strat_os_sched.c"
+                "common/uapi/strat_os_sched.c",
+                "common/uapi/strat_os_net_hw.c",
+                "common/uapi/strat_os_net_ethernet.c",
+                "common/uapi/strat_os_net_udp.c"
             ],
-            "includes": ["common/uapi"]
+            "includes": [
+                "common/uapi"
+            ]
         },
-
         {
             "name": "core_utils",
-            "sources": ["common/core_utils/*.c"],
-            "includes": ["common/core_utils"]
+            "sources": [
+                "common/core_utils/*.c"
+            ],
+            "includes": [
+                "common/core_utils"
+            ]
         },
-
         {
             "name": "core_drivers",
-            "sources": ["drivers/core/**/*.c"],
-            "includes": ["drivers/core"]
+            "sources": [
+                "drivers/core/**/*.c"
+            ],
+            "includes": [
+                "drivers/core"
+            ]
         },
-
         {
             "name": "app_test",
             "sources": [
@@ -138,59 +158,90 @@
                 "test/unit/libs/unity/src"
             ]
         },
-
         {
             "name": "platform_sim",
-            "sources": ["platform/sim/**/*.c", "platform/sim/**/*.S"],
-            "includes": ["platform/sim/include"]
+            "sources": [
+                "platform/sim/**/*.c",
+                "platform/sim/**/*.S"
+            ],
+            "includes": [
+                "platform/sim/include"
+            ]
         },
-
         {
             "name": "bcm2xxx",
-            "sources": ["platform/bcm2xxx/*.c"],
-            "includes": ["platform/bcm2xxx/include", "aarch64/include"]
+            "sources": [
+                "platform/bcm2xxx/*.c"
+            ],
+            "includes": [
+                "platform/bcm2xxx/include",
+                "aarch64/include"
+            ]
         },
-
         {
             "name": "aarch64",
-            "sources": ["aarch64/*.S"],
-            "includes": ["aarch64/include"]
+            "sources": [
+                "aarch64/*.S"
+            ],
+            "includes": [
+                "aarch64/include"
+            ]
         },
-
         {
             "name": "hw_common",
-            "sources": ["platform/hw_common/**/*.c"],
-            "includes": ["platform/hw_common"]
+            "sources": [
+                "platform/hw_common/**/*.c"
+            ],
+            "includes": [
+                "platform/hw_common"
+            ]
         },
-
         {
             "name": "dwc2",
-            "sources": ["drivers/usb/dwc2/*.c"],
-            "includes": ["drivers/usb/dwc2"]
+            "sources": [
+                "drivers/usb/dwc2/*.c"
+            ],
+            "includes": [
+                "drivers/usb/dwc2"
+            ]
         },
-
         {
             "name": "hc_sr04",
-            "sources": ["drivers/hc_sr04/*.c"],
-            "includes": ["drivers/hc_sr04"]
+            "sources": [
+                "drivers/hc_sr04/*.c"
+            ],
+            "includes": [
+                "drivers/hc_sr04"
+            ]
         },
-
         {
             "name": "config",
-            "sources": ["common/config/*.c"],
-            "includes": ["common/config"]
+            "sources": [
+                "common/config/*.c"
+            ],
+            "includes": [
+                "common/config"
+            ]
         },
-
         {
             "name": "common_generic",
-            "sources": ["common/generic.c"],
-            "includes": ["common"]
+            "sources": [
+                "common/generic.c"
+            ],
+            "includes": [
+                "common"
+            ]
         },
-
         {
             "name": "snsr",
-            "sources": ["common/snsr/*.c", "common/snsr/dist/*.c"],
-            "includes": ["common/snsr", "common/snsr/dist"]
+            "sources": [
+                "common/snsr/*.c",
+                "common/snsr/dist/*.c"
+            ],
+            "includes": [
+                "common/snsr",
+                "common/snsr/dist"
+            ]
         }
     ]
 }
