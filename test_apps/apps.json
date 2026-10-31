@@ -128,6 +128,42 @@
             "sources": [
                 "apps/net_udp_test/net_udp_test.c"
             ]
+        },
+        {
+            "name": "net_ipv4_test",
+            "output_name": "net_ipv4_test",
+            "platforms": [
+                "win-sim"
+            ],
+            "test_framework": "app_test",
+            "platform_config": {
+                "win-sim": {
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H"
+                    ]
+                }
+            },
+            "sources": [
+                "apps/net_ipv4_test/net_ipv4_test.c"
+            ]
+        },
+        {
+            "name": "net_driver_test",
+            "output_name": "net_driver_test",
+            "platforms": [
+                "win-sim"
+            ],
+            "test_framework": "app_test",
+            "platform_config": {
+                "win-sim": {
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H"
+                    ]
+                }
+            },
+            "sources": [
+                "apps/net_driver_test/net_driver_test.c"
+            ]
         }
     ]
 }

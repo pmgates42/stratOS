@@ -123,7 +123,9 @@
                 "common/uapi/strat_os_sched.c",
                 "common/uapi/strat_os_net_hw.c",
                 "common/uapi/strat_os_net_ethernet.c",
-                "common/uapi/strat_os_net_udp.c"
+                "common/uapi/strat_os_net_udp.c",
+                "common/uapi/strat_os_net_ipv4.c",
+                "common/uapi/strat_os_net_driver.c"
             ],
             "includes": [
                 "common/uapi"

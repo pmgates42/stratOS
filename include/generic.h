@@ -71,5 +71,6 @@ typedef enum
     ERR_NO_ERR  = 0,
     ERR_INVALID,
     ERR_NO_MEM,
+    ERR_NO_DATA,
 
 } error_type;
