@@ -55,8 +55,9 @@ typedef uint16_t config_module_id_type; /* Module ID type */
 enum
 {
 CONFIG_MODULE_ID__SPI = 0,
+CONFIG_MODULE_ID__NET_HW,       /* network hardware driver (e.g. W5500 RST/INT) */
 
-CONFIG_MODULE_ID__KERNEL_LAST = CONFIG_MODULE_ID__SPI
+CONFIG_MODULE_ID__KERNEL_LAST = CONFIG_MODULE_ID__NET_HW
 };
 
 
@@ -213,6 +214,10 @@ typedef enum
     SPI_MODULE_PIN_ID__SCLK,
     SPI_MODULE_PIN_ID__MOSI,
     SPI_MODULE_PIN_ID__MISO,
+
+    /* Network hardware module pins (non-SPI control lines) */
+    NET_HW_MODULE_PIN_ID__RST,      /* active-low device reset  */
+    NET_HW_MODULE_PIN_ID__INT,      /* active-low interrupt out */
 
 } config_pin_id_type;
 

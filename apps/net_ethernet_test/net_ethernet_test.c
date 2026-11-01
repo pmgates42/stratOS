@@ -85,6 +85,182 @@ static void test_short_ethernet_frame_is_rejected(void)
         STRAT_OS_NET_ETHERNET_decode(&packet, &frame));
 }
 
+static void test_decode_accepts_unsupported_ether_type(void)
+{
+    uint8_t packet_bytes[STRAT_OS_NET_ETHERNET_HEADER_SIZE] = {
+        0x10U, 0x11U, 0x12U, 0x13U, 0x14U, 0x15U,
+        0x20U, 0x21U, 0x22U, 0x23U, 0x24U, 0x25U,
+        /* EtherType: ARP, decoded but not interpreted. */
+        0x08U, 0x06U
+    };
+    STRAT_OS_net_packet_t packet = {
+        packet_bytes,
+        sizeof(packet_bytes),
+        0U,
+        sizeof(packet_bytes)
+    };
+    STRAT_OS_net_ethernet_frame_t frame = { 0 };
+
+    TEST_ASSERT_EQUAL(ERR_NO_ERR,
+        STRAT_OS_NET_ETHERNET_decode(&packet, &frame));
+    TEST_ASSERT_EQUAL_UINT16(0x0806U, frame.ether_type);
+}
+
+static void test_decode_honors_nonzero_offset(void)
+{
+    uint8_t packet_bytes[4U + STRAT_OS_NET_ETHERNET_HEADER_SIZE] = {
+        /* Bytes before the active range must be ignored. */
+        0xffU, 0xffU, 0xffU, 0xffU,
+        0x10U, 0x11U, 0x12U, 0x13U, 0x14U, 0x15U,
+        0x20U, 0x21U, 0x22U, 0x23U, 0x24U, 0x25U,
+        0x08U, 0x00U
+    };
+    STRAT_OS_net_packet_t packet = {
+        packet_bytes,
+        sizeof(packet_bytes),
+        4U,
+        STRAT_OS_NET_ETHERNET_HEADER_SIZE
+    };
+    STRAT_OS_net_ethernet_frame_t frame = { 0 };
+
+    TEST_ASSERT_EQUAL(ERR_NO_ERR,
+        STRAT_OS_NET_ETHERNET_decode(&packet, &frame));
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(
+        packet_bytes + 4U,
+        frame.destination,
+        STRAT_OS_NET_ETHERNET_ADDRESS_SIZE);
+    TEST_ASSERT_EQUAL_UINT16(STRAT_OS_NET_ETHERNET_TYPE_IPV4, frame.ether_type);
+    TEST_ASSERT_EQUAL(4U, packet.offset);
+    TEST_ASSERT_EQUAL(STRAT_OS_NET_ETHERNET_HEADER_SIZE, packet.length);
+}
+
+static void test_decode_rejects_invalid_packet_views(void)
+{
+    uint8_t packet_bytes[32] = { 0 };
+    STRAT_OS_net_packet_t packet = {
+        packet_bytes,
+        sizeof(packet_bytes),
+        0U,
+        sizeof(packet_bytes)
+    };
+    STRAT_OS_net_packet_t bad;
+    STRAT_OS_net_ethernet_frame_t frame;
+
+    clr_mem(&frame, sizeof(frame));
+    frame.ether_type = 0x1234U;
+
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_decode(NULL, &frame));
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_decode(&packet, NULL));
+
+    bad = packet;
+    bad.data = NULL;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_decode(&bad, &frame));
+
+    /* Active range ends past capacity. */
+    bad = packet;
+    bad.offset = 20U;
+    bad.length = 20U;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_decode(&bad, &frame));
+
+    bad = packet;
+    bad.length = sizeof(packet_bytes) + 1U;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_decode(&bad, &frame));
+
+    bad = packet;
+    bad.offset = sizeof(packet_bytes) + 1U;
+    bad.length = 0U;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_decode(&bad, &frame));
+
+    /* Offset plus length wraps around to a small value. */
+    bad = packet;
+    bad.offset = 8U;
+    bad.length = (size_t)0 - 4U;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_decode(&bad, &frame));
+
+    /* Header would fit in capacity but not in the active range. */
+    bad = packet;
+    bad.length = STRAT_OS_NET_ETHERNET_HEADER_SIZE - 1U;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_decode(&bad, &frame));
+
+    TEST_ASSERT_EQUAL_UINT16(0x1234U, frame.ether_type);
+}
+
+static void test_remove_header_honors_nonzero_offset(void)
+{
+    uint8_t packet_bytes[32];
+    STRAT_OS_net_packet_t packet = {
+        packet_bytes,
+        sizeof(packet_bytes),
+        4U,
+        STRAT_OS_NET_ETHERNET_HEADER_SIZE + TEST_ETHERNET_PAYLOAD_SIZE
+    };
+    STRAT_OS_net_ethernet_frame_t frame = { 0 };
+
+    TEST_ASSERT_EQUAL(ERR_NO_ERR,
+        STRAT_OS_NET_ETHERNET_remove_header(&packet, &frame));
+    TEST_ASSERT_EQUAL(4U + STRAT_OS_NET_ETHERNET_HEADER_SIZE, packet.offset);
+    TEST_ASSERT_EQUAL(TEST_ETHERNET_PAYLOAD_SIZE, packet.length);
+    TEST_ASSERT_EQUAL_PTR(packet_bytes, packet.data);
+    TEST_ASSERT_EQUAL(sizeof(packet_bytes), packet.capacity);
+    TEST_ASSERT_TRUE(packet.offset + packet.length <= packet.capacity);
+}
+
+static void test_remove_header_allows_empty_payload(void)
+{
+    uint8_t packet_bytes[STRAT_OS_NET_ETHERNET_HEADER_SIZE];
+    STRAT_OS_net_packet_t packet = {
+        packet_bytes,
+        sizeof(packet_bytes),
+        0U,
+        sizeof(packet_bytes)
+    };
+    STRAT_OS_net_ethernet_frame_t frame = { 0 };
+
+    TEST_ASSERT_EQUAL(ERR_NO_ERR,
+        STRAT_OS_NET_ETHERNET_remove_header(&packet, &frame));
+    TEST_ASSERT_EQUAL(STRAT_OS_NET_ETHERNET_HEADER_SIZE, packet.offset);
+    TEST_ASSERT_EQUAL(0U, packet.length);
+}
+
+static void test_remove_header_rejects_invalid_packet_views(void)
+{
+    uint8_t packet_bytes[32];
+    STRAT_OS_net_ethernet_frame_t frame = { 0 };
+    STRAT_OS_net_packet_t packet = {
+        packet_bytes,
+        sizeof(packet_bytes),
+        2U,
+        STRAT_OS_NET_ETHERNET_HEADER_SIZE - 1U
+    };
+
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_remove_header(NULL, &frame));
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_remove_header(&packet, NULL));
+
+    /* Too short for a header; the view must not change. */
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_remove_header(&packet, &frame));
+    TEST_ASSERT_EQUAL(2U, packet.offset);
+    TEST_ASSERT_EQUAL(STRAT_OS_NET_ETHERNET_HEADER_SIZE - 1U, packet.length);
+
+    /* Active range ends past capacity. */
+    packet.offset = 30U;
+    packet.length = STRAT_OS_NET_ETHERNET_HEADER_SIZE;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_ETHERNET_remove_header(&packet, &frame));
+    TEST_ASSERT_EQUAL(30U, packet.offset);
+    TEST_ASSERT_EQUAL(STRAT_OS_NET_ETHERNET_HEADER_SIZE, packet.length);
+}
+
 static boolean APP_net_ethernet_test_run(void)
 {
     int unity_result;
@@ -93,6 +269,12 @@ static boolean APP_net_ethernet_test_run(void)
     APP_test_run(test_decode_reads_ethernet_header);
     APP_test_run(test_remove_header_exposes_ethernet_payload);
     APP_test_run(test_short_ethernet_frame_is_rejected);
+    APP_test_run(test_decode_accepts_unsupported_ether_type);
+    APP_test_run(test_decode_honors_nonzero_offset);
+    APP_test_run(test_decode_rejects_invalid_packet_views);
+    APP_test_run(test_remove_header_honors_nonzero_offset);
+    APP_test_run(test_remove_header_allows_empty_payload);
+    APP_test_run(test_remove_header_rejects_invalid_packet_views);
     unity_result = APP_test_end();
     (void)unity_result;
 

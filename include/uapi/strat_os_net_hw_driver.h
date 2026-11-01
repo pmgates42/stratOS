@@ -16,7 +16,7 @@ extern "C" {
 /*
  * Hardware-specific receive and release operations.
  *
- * An ENC28J60 implementation would use these callbacks to read and recycle
+ * A W5500 implementation would use these callbacks to read and recycle
  * hardware receive memory. A simulator can implement the same callbacks by
  * copying a pending device frame into the supplied packet buffer. The
  * network driver does not know which implementation it is calling. The

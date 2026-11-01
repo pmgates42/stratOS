@@ -164,6 +164,41 @@
             "sources": [
                 "apps/net_driver_test/net_driver_test.c"
             ]
+        },
+        {
+            "name": "w5500_test",
+            "output_name": "w5500_test",
+            "platforms": [
+                "win-sim",
+                "bcm2xxx"
+            ],
+            "test_framework": "app_test",
+            "platform_config": {
+                "win-sim": {
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H"
+                    ]
+                },
+                "bcm2xxx": {
+                    "cflags": [
+                        "-DUNITY_EXCLUDE_STDINT_H",
+                        "-DUNITY_EXCLUDE_FLOAT",
+                        "-DUNITY_EXCLUDE_DOUBLE",
+                        "-DUNITY_EXCLUDE_FLOAT_PRINT",
+                        "-DUNITY_EXCLUDE_SETJMP_H",
+                        "-DUNITY_OUTPUT_CHAR(a)=putc(0,(char)(a))",
+                        "-DUNITY_OUTPUT_CHAR_HEADER_DECLARATION=putc(void* p,char c)"
+                    ]
+                }
+            },
+            "sources": [
+                "apps/w5500_test/w5500_test.c",
+                "apps/w5500_test/w5500_fake_bus.c"
+            ],
+            "includes": [
+                "drivers/w5500",
+                "apps/w5500_test"
+            ]
         }
     ]
 }

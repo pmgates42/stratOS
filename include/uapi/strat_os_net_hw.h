@@ -71,8 +71,10 @@ typedef struct
  * buffer: backing storage owned by the caller
  * capacity: total number of bytes available in buffer
  *
- * The initialized view has offset and length set to zero. Packet users must
- * preserve the invariant offset + length <= capacity.
+ * The initialized view has offset and length set to zero; the buffer contents
+ * are not modified. Packet users must preserve the invariant
+ * offset + length <= capacity. Returns ERR_INVALID when packet or buffer is
+ * null or capacity is zero.
  */
 error_type STRAT_OS_NET_HW_packet_init(
 	STRAT_OS_net_packet_t *packet,
@@ -87,8 +89,10 @@ error_type STRAT_OS_NET_HW_packet_init(
  *
  * The descriptor must be complete and its length must not exceed its
  * capacity. The resulting packet points at descriptor->buffer, starts at
- * offset zero, and exposes descriptor->length bytes. The function returns
- * ERR_INVALID when the descriptor is incomplete or out of bounds.
+ * offset zero, and exposes descriptor->length bytes; a zero length is valid.
+ * The function returns ERR_INVALID, leaving packet unchanged, when an argument
+ * or descriptor->buffer is null, capacity is zero, or the descriptor is
+ * incomplete or out of bounds.
  */
 error_type STRAT_OS_NET_HW_packet_from_rx_descriptor(
 	STRAT_OS_net_packet_t *packet,

@@ -30,6 +30,24 @@ static void test_packet_init_describes_empty_buffer(void)
     TEST_ASSERT_EQUAL(0U, packet.length);
 }
 
+static void test_packet_init_rejects_invalid_inputs(void)
+{
+    uint8_t buffer[8];
+    STRAT_OS_net_packet_t packet = { buffer, 1U, 2U, 3U };
+
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_HW_packet_init(NULL, buffer, sizeof(buffer)));
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_HW_packet_init(&packet, NULL, sizeof(buffer)));
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_HW_packet_init(&packet, buffer, 0U));
+
+    TEST_ASSERT_EQUAL_PTR(buffer, packet.data);
+    TEST_ASSERT_EQUAL(1U, packet.capacity);
+    TEST_ASSERT_EQUAL(2U, packet.offset);
+    TEST_ASSERT_EQUAL(3U, packet.length);
+}
+
 static void test_complete_rx_descriptor_creates_packet_view(void)
 {
     uint8_t buffer[] = { 0x01U, 0x02U, 0x03U, 0x04U };
@@ -64,14 +82,79 @@ static void test_incomplete_rx_descriptor_is_rejected(void)
         STRAT_OS_NET_HW_packet_from_rx_descriptor(&packet, &descriptor));
 }
 
+static void test_rx_descriptor_rejects_invalid_inputs(void)
+{
+    uint8_t buffer[8];
+    STRAT_OS_net_hw_rx_descriptor_t descriptor = {
+        buffer,
+        sizeof(buffer),
+        4U,
+        TRUE
+    };
+    STRAT_OS_net_hw_rx_descriptor_t bad;
+    STRAT_OS_net_packet_t packet = { buffer, 1U, 2U, 3U };
+
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_HW_packet_from_rx_descriptor(NULL, &descriptor));
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_HW_packet_from_rx_descriptor(&packet, NULL));
+
+    bad = descriptor;
+    bad.buffer = NULL;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_HW_packet_from_rx_descriptor(&packet, &bad));
+
+    bad = descriptor;
+    bad.capacity = 0U;
+    bad.length = 0U;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_HW_packet_from_rx_descriptor(&packet, &bad));
+
+    bad = descriptor;
+    bad.length = sizeof(buffer) + 1U;
+    TEST_ASSERT_EQUAL(ERR_INVALID,
+        STRAT_OS_NET_HW_packet_from_rx_descriptor(&packet, &bad));
+
+    TEST_ASSERT_EQUAL_PTR(buffer, packet.data);
+    TEST_ASSERT_EQUAL(1U, packet.capacity);
+    TEST_ASSERT_EQUAL(2U, packet.offset);
+    TEST_ASSERT_EQUAL(3U, packet.length);
+}
+
+static void test_rx_descriptor_accepts_zero_and_boundary_lengths(void)
+{
+    uint8_t buffer[8];
+    STRAT_OS_net_hw_rx_descriptor_t descriptor = {
+        buffer,
+        sizeof(buffer),
+        0U,
+        TRUE
+    };
+    STRAT_OS_net_packet_t packet;
+
+    TEST_ASSERT_EQUAL(ERR_NO_ERR,
+        STRAT_OS_NET_HW_packet_from_rx_descriptor(&packet, &descriptor));
+    TEST_ASSERT_EQUAL(0U, packet.length);
+    TEST_ASSERT_TRUE(packet.offset + packet.length <= packet.capacity);
+
+    descriptor.length = sizeof(buffer);
+    TEST_ASSERT_EQUAL(ERR_NO_ERR,
+        STRAT_OS_NET_HW_packet_from_rx_descriptor(&packet, &descriptor));
+    TEST_ASSERT_EQUAL(sizeof(buffer), packet.length);
+    TEST_ASSERT_TRUE(packet.offset + packet.length <= packet.capacity);
+}
+
 static boolean APP_net_hw_test_run(void)
 {
     int unity_result;
 
     APP_test_begin();
     APP_test_run(test_packet_init_describes_empty_buffer);
+    APP_test_run(test_packet_init_rejects_invalid_inputs);
     APP_test_run(test_complete_rx_descriptor_creates_packet_view);
     APP_test_run(test_incomplete_rx_descriptor_is_rejected);
+    APP_test_run(test_rx_descriptor_rejects_invalid_inputs);
+    APP_test_run(test_rx_descriptor_accepts_zero_and_boundary_lengths);
     unity_result = APP_test_end();
     (void)unity_result;
 

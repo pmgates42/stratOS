@@ -52,6 +52,7 @@
                 "core_drivers",
                 "dwc2",
                 "hc_sr04",
+                "w5500",
                 "config",
                 "snsr",
                 "common_generic"
@@ -82,6 +83,7 @@
                 "strat_os",
                 "core_utils",
                 "core_drivers",
+                "w5500",
                 "config",
                 "snsr"
             ]
@@ -214,6 +216,15 @@
             ],
             "includes": [
                 "drivers/hc_sr04"
+            ]
+        },
+        {
+            "name": "w5500",
+            "sources": [
+                "drivers/w5500/*.c"
+            ],
+            "includes": [
+                "drivers/w5500"
             ]
         },
         {

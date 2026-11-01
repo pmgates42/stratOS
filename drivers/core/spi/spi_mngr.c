@@ -99,6 +99,9 @@ error_type spi_init()
     gpio_set(intf_data.gpio_pins.cs_0);
     gpio_set(intf_data.gpio_pins.cs_1);
 
+    /* SPI mode 0 idle: clock low */
+    gpio_clr(intf_data.gpio_pins.sclk);
+
     /*  only support a single channel right now */ // TODO
     intf_data.tx_id = TX_BUFFER_CHANNEL_0;
     intf_data.rx_id = RX_BUFFER_CHANNEL_0;
@@ -250,6 +253,12 @@ static boolean pins_are_registered(void)
     }
 
     return TRUE;
+}
+
+
+boolean spi_lcl_is_initialized(void)
+{
+    return module_initialized;
 }
 
 

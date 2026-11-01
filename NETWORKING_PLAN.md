@@ -1,6 +1,6 @@
 # StratOS Networking Plan
 
-This plan develops networking from simulator-tested, hardware-independent layers toward a real ENC28J60 driver. Each layer should be complete and tested before the next layer depends on it.
+This plan develops networking from simulator-tested, hardware-independent layers toward a real WIZnet W5500 driver. Each layer should be complete and tested before the next layer depends on it.
 
 ## Architecture
 
@@ -29,7 +29,7 @@ The driver owns the packet while it is receiving or transmitting. Ownership move
 
 Each network-driver instance is bound to one hardware-driver instance during
 system initialization. The hardware driver knows the device, such as the
-ENC28J60 or simulator. The network driver knows only the generic receive,
+W5500 or simulator. The network driver knows only the generic receive,
 release, and queue operations.
 
 ## Stage 0: Stabilize the Scaffold
@@ -53,32 +53,32 @@ release, and queue operations.
 
 Target: `net_hw` and `net_hw_test`.
 
-- [ ] Implement packet initialization.
-- [ ] Reject null packet, null buffer, and zero-capacity inputs.
-- [ ] Implement descriptor-to-packet conversion.
-- [ ] Reject incomplete descriptors.
-- [ ] Reject descriptor lengths larger than descriptor capacity.
-- [ ] Set `offset` to zero for a newly received frame.
-- [ ] Set `length` to the received byte count.
-- [ ] Add tests for zero-length frames and boundary-sized frames.
-- [ ] Add tests proving `offset + length <= capacity`.
-- [ ] Decide whether packet initialization clears the buffer or only initializes metadata.
+- [x] Implement packet initialization.
+- [x] Reject null packet, null buffer, and zero-capacity inputs.
+- [x] Implement descriptor-to-packet conversion.
+- [x] Reject incomplete descriptors.
+- [x] Reject descriptor lengths larger than descriptor capacity.
+- [x] Set `offset` to zero for a newly received frame.
+- [x] Set `length` to the received byte count.
+- [x] Add tests for zero-length frames and boundary-sized frames.
+- [x] Add tests proving `offset + length <= capacity`.
+- [x] Decide whether packet initialization clears the buffer or only initializes metadata. (Decision: metadata only.)
 
 ## Stage 2: Implement Ethernet Frames
 
 Target: `net_ethernet` and `net_ethernet_test`.
 
-- [ ] Decode destination MAC address.
-- [ ] Decode source MAC address.
-- [ ] Decode EtherType in network byte order.
-- [ ] Reject packets shorter than the Ethernet header.
-- [ ] Reject packets whose active range exceeds `capacity`.
-- [ ] Remove or advance past the Ethernet header without copying payload data.
-- [ ] Preserve the packet payload as the active `data + offset` range.
-- [ ] Add tests for IPv4 EtherType.
-- [ ] Add tests for unsupported EtherTypes.
-- [ ] Add tests with nonzero initial packet offsets.
-- [ ] Add tests for malformed packet lengths.
+- [x] Decode destination MAC address.
+- [x] Decode source MAC address.
+- [x] Decode EtherType in network byte order.
+- [x] Reject packets shorter than the Ethernet header.
+- [x] Reject packets whose active range exceeds `capacity`.
+- [x] Remove or advance past the Ethernet header without copying payload data.
+- [x] Preserve the packet payload as the active `data + offset` range.
+- [x] Add tests for IPv4 EtherType.
+- [x] Add tests for unsupported EtherTypes. (Decode accepts them; the caller dispatches.)
+- [x] Add tests with nonzero initial packet offsets.
+- [x] Add tests for malformed packet lengths.
 
 ## Stage 3: Add an IPv4 Layer
 
@@ -159,26 +159,55 @@ application
 - [ ] Test packet loss and queue exhaustion behavior.
 - [ ] Test that application reads do not expose Ethernet/IP/UDP headers.
 
-## Stage 7: Add the ENC28J60 Hardware Driver Last
+## Stage 7: Add the W5500 Hardware Driver Last
 
-The ENC28J60 driver should implement the existing hardware-driver interface. It
+Detailed implementation plan: [W5500_DRIVER_PLAN.md](./W5500_DRIVER_PLAN.md).
+
+The W5500 driver should implement the existing hardware-driver interface. It
 should not change the network-driver queue, Ethernet, IPv4, UDP, or socket
-semantics.
+semantics. The W5500 is used in **MACRAW mode on socket 0** so that it hands
+StratOS raw Ethernet frames; its built-in TCP/IP offload is not used, which
+keeps the Ethernet, IPv4, and UDP layers above it unchanged.
 
-- [ ] Obtain and review the ENC28J60 datasheet and module pinout.
-- [ ] Verify module voltage and logic levels before connecting it.
-- [ ] Confirm SPI pin wiring, chip select, interrupt, and reset wiring.
-- [ ] Implement the minimum StratOS SPI transaction needed for register reads.
-- [ ] Read and verify the ENC28J60 revision or identifier register.
-- [ ] Implement hardware reset and oscillator/link initialization.
-- [ ] Configure receive buffer boundaries.
-- [ ] Read one received frame length from the ENC28J60.
+### Hardware: W5500 Lite module on the Raspberry Pi 3B+
+
+The W5500 Lite module is **3.3 V only** (no onboard regulator). Power it from
+a Pi 3.3 V pin, never 5 V. It draws roughly 130-180 mA with link up. Both `G`
+pins on the module are the same net; one is enough.
+
+Module silkscreen: J1 = `G MO SCK CS INT`, J2 = `G V NC RST MI`, with `G` at
+the RJ45 end of each header.
+
+The mapping below matches the bit-banged pin table in
+`platform/bcm2xxx/bcm_2xxx_spi.c`. It follows the SPI1 layout at the USB end
+of the 40-pin header, so it stays valid if the hardware SPI1 peripheral is
+used later. `RST` and `INT` are registered under `CONFIG_MODULE_ID__NET_HW`.
+
+| W5500 Lite | Pi header pin | Pi signal |
+|------------|---------------|-----------|
+| V          | 1 or 17       | 3.3 V     |
+| G          | 39            | GND       |
+| SCK        | 40            | GPIO 21 / SPI1 SCLK |
+| MO         | 38            | GPIO 20 / SPI1 MOSI |
+| MI         | 35            | GPIO 19 / SPI1 MISO |
+| CS         | 36            | GPIO 16 / SPI1 CE2  |
+| RST        | 37            | GPIO 26 (`NET_HW_MODULE_PIN_ID__RST`) |
+| INT        | 33            | GPIO 13 (`NET_HW_MODULE_PIN_ID__INT`, optional; polling is fine) |
+
+- [ ] Obtain and review the W5500 datasheet (register map, SPI frame format, MACRAW mode).
+- [ ] Verify module voltage and logic levels before connecting it (3.3 V only).
+- [ ] Confirm SPI pin wiring, chip select, interrupt, and reset wiring against the table above.
+- [ ] Implement the W5500 SPI frame: 16-bit address, control byte (block select, R/W, VDM), data.
+- [ ] Read and verify the `VERSIONR` register (expect `0x04`).
+- [ ] Implement hardware reset (`RST` low >= 500 us) and software reset (`MR.RST`), then set `SHAR` (MAC address).
+- [ ] Configure socket 0 RX/TX buffer sizes (`Sn_RXBUF_SIZE`, `Sn_TXBUF_SIZE`) and open socket 0 in MACRAW mode.
+- [ ] Read one received frame: `Sn_RX_RSR`, then the 2-byte length prefix at `Sn_RX_RD`.
 - [ ] Copy one received frame into a StratOS-owned packet buffer.
 - [ ] Populate `data`, `capacity`, `offset`, and `length` correctly.
-- [ ] Implement receive-buffer release and pointer advancement.
-- [ ] Implement one-frame transmission.
-- [ ] Add interrupt or polling-based receive detection.
-- [ ] Bind one network-driver instance to the ENC28J60 hardware-driver instance.
+- [ ] Implement receive release: advance `Sn_RX_RD` and issue `Sn_CR = RECV`.
+- [ ] Implement one-frame transmission: write at `Sn_TX_WR`, advance it, issue `Sn_CR = SEND`, wait for `SEND_OK`.
+- [ ] Add interrupt (`INT` / `Sn_IR`) or polling-based receive detection.
+- [ ] Bind one network-driver instance to the W5500 hardware-driver instance.
 - [ ] Connect the driver to the existing Ethernet layer without changing its public API.
 - [ ] Test a real Ethernet frame between StratOS and a host computer.
 - [ ] Test real UDP traffic after the simulator path is passing.
@@ -189,5 +218,5 @@ semantics.
 - [ ] Malformed input is rejected without out-of-bounds reads or invalid packet views.
 - [ ] Packet ownership is documented and enforced at every queue boundary.
 - [ ] Simulator loopback can send and receive multiple UDP datagrams.
-- [ ] The ENC28J60 driver can exchange raw Ethernet frames without protocol logic leaking into the hardware layer.
+- [ ] The W5500 driver can exchange raw Ethernet frames without protocol logic leaking into the hardware layer.
 - [ ] Hardware-specific code is isolated from Ethernet, IPv4, UDP, and socket code.

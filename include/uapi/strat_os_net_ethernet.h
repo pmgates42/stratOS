@@ -35,8 +35,10 @@ typedef struct
  *
  * The packet view is not modified. The destination and source addresses are
  * copied from the six-byte Ethernet address fields. EtherType is returned in
- * host byte order. ERR_INVALID is returned when fewer than 14 active bytes
- * are available.
+ * host byte order and is not checked against supported types; the caller
+ * dispatches on it. ERR_INVALID is returned when an argument is null, the
+ * active range exceeds capacity, or fewer than 14 active bytes are available.
+ * The frame is not modified on error.
  */
 error_type STRAT_OS_NET_ETHERNET_decode(
 	const STRAT_OS_net_packet_t *packet,
@@ -49,8 +51,10 @@ error_type STRAT_OS_NET_ETHERNET_decode(
  * frame: decoded Ethernet frame associated with packet
  *
  * The view is advanced by 14 bytes: offset increases and length decreases.
- * The backing bytes are not copied or cleared. ERR_INVALID is returned when
- * the active packet region does not contain a complete Ethernet header.
+ * The backing bytes are not copied or cleared. ERR_INVALID is returned, with
+ * the view unchanged, when an argument is null, the active range exceeds
+ * capacity, or the active packet region does not contain a complete Ethernet
+ * header.
  */
 error_type STRAT_OS_NET_ETHERNET_remove_header(
 	STRAT_OS_net_packet_t *packet,

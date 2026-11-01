@@ -64,7 +64,8 @@ void memcpy(void *dest, const void *src, size_t n);
 #define GET_BIT(value, bit) (((value) >> (bit)) & 1U)
 
 // TODO remove these after debugging
-#define ERROR_PIN 16
+/* GPIO 12 (header pin 32). GPIO 16 is SPI CS0, see platform/bcm2xxx/bcm_2xxx_spi.c */
+#define ERROR_PIN 12
 
 typedef enum
 {

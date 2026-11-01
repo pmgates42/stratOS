@@ -19,7 +19,8 @@
 
 typedef struct
 {
-    uint16_t              phy_pin;    /* physical hardware pin     */
+    config_module_id_type module_id;  /* owning OS module          */
+    uint16_t              phy_pin;    /* BCM GPIO number           */
     config_pin_id_type    os_pin_id;  /* pin lookup id             */
     bcm2xxx_gpio_fnc_t    function;   /* pin function (input/output)*/
 } consumer_module_pin_config_entry_type;
@@ -32,12 +33,29 @@ static const consumer_module_pin_config_entry_type consumer_module_pin_config_ta
      * with this pinout
      * https://pinout.xyz/
      * https://github.com/pmgates42/stratOS/issues/4
+     *
+     * SPI is bit-banged, so any GPIO works. These follow the SPI1 layout at the
+     * USB end of the 40-pin header so the wiring stays valid if the hardware
+     * SPI1 peripheral is used later. See W5500_BRINGUP_NOTES.md.
+     *
+     *   signal   GPIO   header pin
+     *   CS0      16     36
+     *   SCLK     21     40
+     *   MOSI     20     38
+     *   MISO     19     35
+     *   RST      26     37
+     *   INT      13     33
+     *   GND      -      39
      */
-    {  8,    SPI_MODULE_PIN_ID__CS_0, BCM2XXX_GPIO_FUNC_OUTPUT },
-    // {  7,    SPI_MODULE_PIN_ID__CS_1, BCM2XXX_GPIO_FUNC_OUTPUT }, // TODO Enable CS1
-    {  11,   SPI_MODULE_PIN_ID__SCLK, BCM2XXX_GPIO_FUNC_OUTPUT },
-    {  10,   SPI_MODULE_PIN_ID__MOSI, BCM2XXX_GPIO_FUNC_OUTPUT },
-    {  9,    SPI_MODULE_PIN_ID__MISO, BCM2XXX_GPIO_FUNC_INPUT  },
+    { CONFIG_MODULE_ID__SPI,    16, SPI_MODULE_PIN_ID__CS_0,    BCM2XXX_GPIO_FUNC_OUTPUT },
+    // { CONFIG_MODULE_ID__SPI, 17, SPI_MODULE_PIN_ID__CS_1,    BCM2XXX_GPIO_FUNC_OUTPUT }, // TODO Enable CS1
+    { CONFIG_MODULE_ID__SPI,    21, SPI_MODULE_PIN_ID__SCLK,    BCM2XXX_GPIO_FUNC_OUTPUT },
+    { CONFIG_MODULE_ID__SPI,    20, SPI_MODULE_PIN_ID__MOSI,    BCM2XXX_GPIO_FUNC_OUTPUT },
+    { CONFIG_MODULE_ID__SPI,    19, SPI_MODULE_PIN_ID__MISO,    BCM2XXX_GPIO_FUNC_INPUT  },
+
+    /* W5500 control lines; not SPI signals but set up here with the bus */
+    { CONFIG_MODULE_ID__NET_HW, 26, NET_HW_MODULE_PIN_ID__RST,  BCM2XXX_GPIO_FUNC_OUTPUT },
+    { CONFIG_MODULE_ID__NET_HW, 13, NET_HW_MODULE_PIN_ID__INT,  BCM2XXX_GPIO_FUNC_INPUT  },
 };
 
 boolean PLATFORM_spi_init(void)
@@ -50,7 +68,7 @@ boolean PLATFORM_spi_init(void)
        since it performs pin operations via the OS ids (as opossed to the physical pin numbers) */
     for(i = 0; i < list_cnt( consumer_module_pin_config_table ); i++ )
     {
-        config_err = config_register_pin_for_module( CONFIG_MODULE_ID__SPI,
+        config_err = config_register_pin_for_module( consumer_module_pin_config_table[i].module_id,
                                                     consumer_module_pin_config_table[i].phy_pin,
                                                     consumer_module_pin_config_table[i].os_pin_id );
 

@@ -33,6 +33,7 @@ typedef struct
 
 } hw_intf_data_t;
 
+boolean spi_lcl_is_initialized(void);
 boolean spi_lcl_get_hw_intf_data(hw_intf_data_t * out_data);
 boolean spi_lcl_refresh_state();
 void spi_lcl_read_buff(channel_buffer_id_type id, char * out_data, uint8_t size);
